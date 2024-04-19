@@ -1,4 +1,4 @@
-use std::{fs::File, io::Read, time::Instant};
+use std::{fs::File, io::Read, ops::Add, time::Instant};
 
 use num_bigint::BigInt;
 use num_traits::{FromBytes, ToPrimitive};
@@ -66,23 +66,23 @@ fn drill_hash(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
         .chain_update(challenge.as_ref());
 
     // The drill part (1024 sequential modpow and mem reads)
-    // let timer = Instant::now();
+    let timer = Instant::now();
     let len = BigInt::from(noise.len());
     let mut digest = [0u8; 1024];
     let mut addr = BigInt::from_le_bytes(&challenge);
-    let mut n = BigInt::from(nonce.saturating_add(2));
+    let mut n = BigInt::from(nonce);
     for i in 0..1024 {
-        addr = addr.modpow(&n, &len);
+        addr = addr.modpow(&n.add(2), &len);
         digest[i] = noise[addr.to_usize().unwrap()];
-        n = BigInt::from(digest[i].saturating_add(2));
+        n = BigInt::from(digest[i]);
     }
-    // println!("reads in {} nanos", timer.elapsed().as_nanos());
+    println!("reads in {} nanos", timer.elapsed().as_nanos());
 
     // The hash part (keccak proof)
-    // let timer = Instant::now();
+    let timer = Instant::now();
     hasher.update(digest.as_slice());
     let x = hasher.finalize().into();
-    // println!("hash in {} nanos", timer.elapsed().as_nanos());
+    println!("hash in {} nanos", timer.elapsed().as_nanos());
     x
 }
 
