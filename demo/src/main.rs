@@ -4,7 +4,7 @@ use num_bigint::BigInt;
 use num_traits::{FromBytes, ToPrimitive};
 use sha3::{Digest, Keccak256};
 
-const TARGET_DIFFICULTY: u32 = 19; // 10; // 8; // 4; //10;
+const TARGET_DIFFICULTY: u32 = 4; //10;
 
 fn main() {
     // Current challenge (255s for demo)
@@ -35,7 +35,6 @@ fn main() {
 
 // TODO Parallelize
 fn do_work(challenge: [u8; 32], noise: &[u8]) -> u64 {
-    let timer = Instant::now();
     let mut nonce = 0;
     loop {
         // Calculate hash
@@ -49,14 +48,6 @@ fn do_work(challenge: [u8; 32], noise: &[u8]) -> u64 {
         // Increment nonce
         nonce += 1;
     }
-
-    println!(
-        "{} hashes in {} sec ({} H/s)",
-        nonce,
-        timer.elapsed().as_secs(),
-        nonce / timer.elapsed().as_secs()
-    );
-
     nonce as u64
 }
 
@@ -72,6 +63,7 @@ fn drill_hash(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
     let mut addr = BigInt::from_le_bytes(&challenge);
     let mut n = BigInt::from(nonce);
     for i in 0..1024 {
+        // TODO Handle nonce = 0 and 1 case better
         addr = addr.modpow(&n.add(2), &len);
         digest[i] = noise[addr.to_usize().unwrap()];
         n = BigInt::from(digest[i]);
