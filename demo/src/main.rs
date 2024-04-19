@@ -61,12 +61,11 @@ fn drill_hash(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
     let len = BigInt::from(noise.len());
     let mut digest = [0u8; 1024];
     let mut addr = BigInt::from_le_bytes(&challenge);
-    let mut n = BigInt::from(nonce);
+    let mut n = BigInt::from(nonce.saturating_add(2));
     for i in 0..1024 {
-        // TODO Handle nonce = 0 and 1 case better
-        addr = addr.modpow(&n.add(2), &len);
+        addr = addr.modpow(&n, &len);
         digest[i] = noise[addr.to_usize().unwrap()];
-        n = BigInt::from(digest[i]);
+        n = BigInt::from(digest[i].saturating_add(2));
     }
     println!("reads in {} nanos", timer.elapsed().as_nanos());
 
