@@ -16,7 +16,6 @@ fn main() {
     file.read_to_end(&mut buffer).unwrap();
     let noise = buffer.as_slice();
     println!("noise len {}", noise.len());
-    println!("noise: {:?}", &noise[0..8]);
 
     // Do work
     let work_timer = Instant::now();
@@ -37,12 +36,11 @@ fn main() {
 fn do_work(challenge: [u8; 32], noise: &[u8]) -> u64 {
     let mut nonce = 0;
     loop {
-        // Require every nonce to have a sequential work component
-        let solution = memhash(challenge, nonce, noise);
+        // Calculate hash
+        let solution = drill_hash(challenge, nonce, noise);
 
-        // Update hasher (digest 32 bytes and update internal state)
-        let d = difficulty(solution);
-        if d >= TARGET_DIFFICULTY {
+        // Return if difficulty was met
+        if difficulty(solution) >= TARGET_DIFFICULTY {
             break;
         }
 
@@ -53,11 +51,12 @@ fn do_work(challenge: [u8; 32], noise: &[u8]) -> u64 {
     nonce as u64
 }
 
-fn memhash(challenge: [u8; 32], nonce: usize, noise: &[u8]) -> [u8; 32] {
+fn drill_hash(challenge: [u8; 32], nonce: usize, noise: &[u8]) -> [u8; 32] {
     let mut hasher = Keccak256::new()
         .chain_update(nonce.to_le_bytes())
         .chain_update(challenge.as_ref());
 
+    // The drill part
     let timer = Instant::now();
     let len = BigInt::from(noise.len());
     let mut digest = [0u8; 1024];
@@ -70,19 +69,17 @@ fn memhash(challenge: [u8; 32], nonce: usize, noise: &[u8]) -> [u8; 32] {
     }
     println!("reads in {} nanos", timer.elapsed().as_nanos());
 
+    // The hash part
     let timer = Instant::now();
     hasher.update(digest.as_slice());
-    println!("digest in {} nanos", timer.elapsed().as_nanos());
-
-    let timer = Instant::now();
     let x = hasher.finalize().into();
     println!("finalized in {} nanos", timer.elapsed().as_nanos());
     x
 }
 
 fn prove_work(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> bool {
-    let candidate = memhash(challenge, nonce as usize, noise);
-    println!("candidate hash = {candidate:?}");
+    let candidate = drill_hash(challenge, nonce as usize, noise);
+    println!("candidate hash {candidate:?}");
     difficulty(candidate) >= TARGET_DIFFICULTY
 }
 
