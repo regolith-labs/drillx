@@ -1,0 +1,20 @@
+[package]
+name = "hasher"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+array-const-fn-init = "0.1.1"
+fastcrypto = { version = "0.1.0", git = "https://github.com/MystenLabs/fastcrypto" }
+fastcrypto-vdf = { version = "0.1.0", git = "https://github.com/MystenLabs/fastcrypto" }
+num-bigint = "0.4.4"
+num-traits = "0.2.18"
+sha3 = "0.10.8"
+# num-bigint = "0.4.4"
+# num-traits = "0.2.18"
+# sha2 = "0.10.8"
+# solana-program = "1.18.0"
+tokio = { version = "1.37.0", features = ["full"] }
+vdf = "0.1.0"
