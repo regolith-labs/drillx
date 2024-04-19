@@ -11,22 +11,22 @@ fn main() {
     // Current challenge (255s for demo)
     let challenge = [255; 32];
 
-    // Read mempage file.
+    // Read noise file.
     let mut file = File::open("output.txt").unwrap();
     let mut buffer = Vec::new();
     file.read_to_end(&mut buffer).unwrap();
-    let mempage = buffer.as_slice();
-    println!("mempage len {}", mempage.len());
-    println!("mempage: {:?}", &mempage[0..8]);
+    let noise = buffer.as_slice();
+    println!("noise len {}", noise.len());
+    println!("noise: {:?}", &noise[0..8]);
 
     // Do work
     let work_timer = Instant::now();
-    let nonce = do_work(challenge, mempage);
+    let nonce = do_work(challenge, noise);
     println!("work done in {} nanos", work_timer.elapsed().as_nanos());
 
     // Now proof
     let proof_timer = Instant::now();
-    assert!(prove_work(challenge, nonce, mempage));
+    assert!(prove_work(challenge, nonce, noise));
     println!("proof done in {} nanos", proof_timer.elapsed().as_nanos());
 
     println!(
@@ -35,11 +35,11 @@ fn main() {
     );
 }
 
-fn do_work(challenge: [u8; 32], mempage: &[u8]) -> u64 {
+fn do_work(challenge: [u8; 32], noise: &[u8]) -> u64 {
     let mut nonce = 0;
     loop {
         // Require every nonce to have a sequential work component
-        let solution = memhash(challenge, nonce, mempage);
+        let solution = memhash(challenge, nonce, noise);
 
         // Update hasher (digest 32 bytes and update internal state)
         let d = difficulty(solution);
@@ -54,20 +54,20 @@ fn do_work(challenge: [u8; 32], mempage: &[u8]) -> u64 {
     nonce as u64
 }
 
-fn memhash(challenge: [u8; 32], nonce: usize, mempage: &[u8]) -> [u8; 32] {
+fn memhash(challenge: [u8; 32], nonce: usize, noise: &[u8]) -> [u8; 32] {
     let mut hasher = Keccak256::new()
         .chain_update(nonce.to_le_bytes())
         .chain_update(challenge.as_ref());
 
     let timer = Instant::now();
-    let len = BigInt::from(mempage.len());
+    let len = BigInt::from(noise.len());
     let mut digest = [0u8; 1024];
     let mut addr = BigInt::from_le_bytes(&challenge);
-    let mut a = BigInt::from(nonce);
+    let mut a = BigInt::from(nonce.saturating_add(2));
     for i in 0..1024 {
         addr = addr.modpow(&a, &len);
-        digest[i] = mempage[addr.to_usize().unwrap()];
-        a = BigInt::from(digest[i]);
+        digest[i] = noise[addr.to_usize().unwrap()];
+        a = BigInt::from(digest[i].saturating_add(2));
     }
     println!("reads in {} nanos", timer.elapsed().as_nanos());
 
@@ -81,8 +81,8 @@ fn memhash(challenge: [u8; 32], nonce: usize, mempage: &[u8]) -> [u8; 32] {
     x
 }
 
-fn prove_work(challenge: [u8; 32], nonce: u64, mempage: &[u8]) -> bool {
-    let candidate = memhash(challenge, nonce as usize, mempage);
+fn prove_work(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> bool {
+    let candidate = memhash(challenge, nonce as usize, noise);
     println!("candidate hash = {candidate:?}");
     difficulty(candidate) >= TARGET_DIFFICULTY
 }
