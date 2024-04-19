@@ -11,7 +11,7 @@ fn main() {
     let challenge = [255; 32];
 
     // Read noise file.
-    let mut file = File::open("output.txt").unwrap();
+    let mut file = File::open("noise.txt").unwrap();
     let mut buffer = Vec::new();
     file.read_to_end(&mut buffer).unwrap();
     let noise = buffer.as_slice();
