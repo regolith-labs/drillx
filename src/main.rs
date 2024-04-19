@@ -1,6 +1,5 @@
 use std::{fs::File, io::Read, time::Instant};
 
-use array_const_fn_init::array_const_fn_init;
 use num_bigint::BigInt;
 use num_traits::{FromBytes, ToPrimitive};
 use sha3::{Digest, Keccak256};
@@ -63,11 +62,11 @@ fn memhash(challenge: [u8; 32], nonce: usize, noise: &[u8]) -> [u8; 32] {
     let len = BigInt::from(noise.len());
     let mut digest = [0u8; 1024];
     let mut addr = BigInt::from_le_bytes(&challenge);
-    let mut a = BigInt::from(nonce.saturating_add(2));
+    let mut n = BigInt::from(nonce.saturating_add(2));
     for i in 0..1024 {
-        addr = addr.modpow(&a, &len);
+        addr = addr.modpow(&n, &len);
         digest[i] = noise[addr.to_usize().unwrap()];
-        a = BigInt::from(digest[i].saturating_add(2));
+        n = BigInt::from(digest[i].saturating_add(2));
     }
     println!("reads in {} nanos", timer.elapsed().as_nanos());
 
