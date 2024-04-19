@@ -4,7 +4,7 @@ use num_bigint::BigInt;
 use num_traits::{FromBytes, ToPrimitive};
 use sha3::{Digest, Keccak256};
 
-const TARGET_DIFFICULTY: u32 = 4; //10;
+const TARGET_DIFFICULTY: u32 = 19; // 10; // 8; // 4; //10;
 
 fn main() {
     // Current challenge (255s for demo)
@@ -33,7 +33,9 @@ fn main() {
     );
 }
 
+// TODO Parallelize
 fn do_work(challenge: [u8; 32], noise: &[u8]) -> u64 {
+    let timer = Instant::now();
     let mut nonce = 0;
     loop {
         // Calculate hash
@@ -48,16 +50,23 @@ fn do_work(challenge: [u8; 32], noise: &[u8]) -> u64 {
         nonce += 1;
     }
 
+    println!(
+        "{} hashes in {} sec ({} H/s)",
+        nonce,
+        timer.elapsed().as_secs(),
+        nonce / timer.elapsed().as_secs()
+    );
+
     nonce as u64
 }
 
-fn drill_hash(challenge: [u8; 32], nonce: usize, noise: &[u8]) -> [u8; 32] {
+fn drill_hash(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
     let mut hasher = Keccak256::new()
         .chain_update(nonce.to_le_bytes())
         .chain_update(challenge.as_ref());
 
-    // The drill part
-    let timer = Instant::now();
+    // The drill part (1024 sequential modpow and mem reads)
+    // let timer = Instant::now();
     let len = BigInt::from(noise.len());
     let mut digest = [0u8; 1024];
     let mut addr = BigInt::from_le_bytes(&challenge);
@@ -67,18 +76,18 @@ fn drill_hash(challenge: [u8; 32], nonce: usize, noise: &[u8]) -> [u8; 32] {
         digest[i] = noise[addr.to_usize().unwrap()];
         n = BigInt::from(digest[i].saturating_add(2));
     }
-    println!("reads in {} nanos", timer.elapsed().as_nanos());
+    // println!("reads in {} nanos", timer.elapsed().as_nanos());
 
-    // The hash part
-    let timer = Instant::now();
+    // The hash part (keccak proof)
+    // let timer = Instant::now();
     hasher.update(digest.as_slice());
     let x = hasher.finalize().into();
-    println!("finalized in {} nanos", timer.elapsed().as_nanos());
+    // println!("hash in {} nanos", timer.elapsed().as_nanos());
     x
 }
 
 fn prove_work(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> bool {
-    let candidate = drill_hash(challenge, nonce as usize, noise);
+    let candidate = drill_hash(challenge, nonce, noise);
     println!("candidate hash {candidate:?}");
     difficulty(candidate) >= TARGET_DIFFICULTY
 }
@@ -86,10 +95,8 @@ fn prove_work(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> bool {
 fn difficulty(hash: [u8; 32]) -> u32 {
     let mut count = 0;
     for &byte in &hash {
-        // Count leading zeros in current byte
         let lz = byte.leading_zeros();
         count += lz;
-        // If lz is less than 8, it means we've encountered a non-zero bit
         if lz < 8 {
             break;
         }
