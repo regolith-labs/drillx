@@ -63,7 +63,7 @@ fn drill_hash(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
     let mut addr = BigInt::from_le_bytes(&challenge);
     let mut n = BigInt::from(nonce.saturating_add(2));
     for i in 0..1024 {
-        addr = addr.modpow(&n, &len);
+        addr = addr.max(BigInt::from(2)).modpow(&n, &len);
         digest[i] = noise[addr.to_usize().unwrap()];
         n = BigInt::from(digest[i].saturating_add(2));
     }
