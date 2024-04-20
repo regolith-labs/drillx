@@ -59,32 +59,8 @@ fn drill_hash(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
 
     // The drill part (1024 sequential modpow and mem reads)
     let timer = Instant::now();
-<<<<<<< HEAD
     let digest = drill(challenge, nonce, noise);
-    // let len = BigInt::from(noise.len());
-    // let mut digest = [0u8; 1024];
-    // let mut addr = BigInt::from_le_bytes(&challenge);
-    // let mut n = BigInt::from(nonce);
-    // for i in 0..1024 {
-    //     // TODO Handle nonce = 0 and 1 case better
-    //     addr = addr.modpow(&n.add(2), &len);
-    //     digest[i] = noise[addr.to_usize().unwrap()];
-    //     // TODO Select 8 bytes, not one
-    //     n = BigInt::from(digest[i]);
-    // }
     println!("drill in {} nanos", timer.elapsed().as_nanos());
-=======
-    let len = BigInt::from(noise.len());
-    let mut digest = [0u8; 1024];
-    let mut addr = BigInt::from_le_bytes(&challenge);
-    let mut n = BigInt::from(nonce.saturating_add(2));
-    for i in 0..1024 {
-        addr = addr.max(BigInt::from(2)).modpow(&n, &len);
-        digest[i] = noise[addr.to_usize().unwrap()];
-        n = BigInt::from(digest[i].saturating_add(2));
-    }
-    println!("reads in {} nanos", timer.elapsed().as_nanos());
->>>>>>> 6da146fa7a5987ddfb99afec80c546c6dd8c4286
 
     // The hash part (keccak proof)
     let timer = Instant::now();
