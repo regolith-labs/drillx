@@ -1,9 +1,8 @@
-use std::{fs::File, io::Read, ops::Add, time::Instant};
+use std::{fs::File, io::Read, time::Instant};
 
-use num_bigint::BigInt;
-use num_enum::TryFromPrimitive;
-use num_traits::{FromBytes, ToPrimitive};
+use enum_dispatch::enum_dispatch;
 use sha3::{Digest, Keccak256};
+use strum::IntoEnumIterator;
 
 const TARGET_DIFFICULTY: u32 = 4; //10;
 
@@ -71,45 +70,30 @@ fn drill_hash(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
 }
 
 pub fn drill(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
-    // Get some randomness
-    let a = blake3::hash(&[challenge.as_ref(), nonce.to_le_bytes().as_ref()].concat());
+    // Stateful ops
+    let ops: &'static mut [RandomOp] = Box::leak(RandomOp::iter().collect::<Box<[_]>>());
 
     // Generate starting address
     let len = noise.len();
+    let r = blake3::hash(&[challenge.as_ref(), nonce.to_le_bytes().as_ref()].concat());
     let mut addr = modpow(
-        u64::from_le_bytes(a.as_bytes()[0..8].try_into().unwrap()),
-        u32::from_le_bytes(a.as_bytes()[8..12].try_into().unwrap()),
+        u64::from_le_bytes(r.as_bytes()[0..8].try_into().unwrap()),
+        u32::from_le_bytes(r.as_bytes()[8..12].try_into().unwrap()),
         len as u64,
     );
 
-    // Execute random sequential lookups
+    // Build digest
+    let nonce_ = nonce.to_le_bytes();
     let mut digest = [0; 32];
-    let mut j = noise[addr as usize];
     for i in 0..32 {
-        // Select op
-        let opcode = a.as_bytes()[i];
-        let op = Op::try_from(opcode % OP_COUNT).expect("Unknown opcode");
+        // Do random ops until exit
+        while !random_op(ops, &addr, &challenge, &nonce_, noise).op(&mut addr, &challenge, &nonce_)
+        {
+            // Noop
+        }
 
-        // Fetch arg
-        // TODO Can skip on sqrt + nop
-        let arg = get_arg(addr, j, noise);
-
-        // Execute op
-        addr = match op {
-            Op::Add => addr.wrapping_add(u64::from_le_bytes(arg)),
-            Op::Sub => addr.wrapping_sub(u64::from_le_bytes(arg)),
-            Op::Mul => addr.wrapping_mul(u64::from_le_bytes(arg)),
-            Op::Div => addr.wrapping_div(u64::from_le_bytes(arg)),
-            Op::Left => addr.rotate_left(u32::from_le_bytes(arg[4..].try_into().unwrap())),
-            Op::Right => addr.rotate_right(u32::from_le_bytes(arg[4..].try_into().unwrap())),
-            Op::Xor => addr ^ u64::from_le_bytes(arg),
-            Op::Sqrt => f64::from_le_bytes(addr.to_le_bytes()).sqrt() as u64,
-            Op::Nop => addr,
-        } % len as u64;
-
-        // Update digest
-        digest[i] = noise[addr as usize];
-        j = digest[i];
+        // Append to digest
+        digest[i] = get_val(addr, r.as_bytes()[i as usize % 32], noise)[i % 8];
     }
 
     // Return
@@ -117,11 +101,11 @@ pub fn drill(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
 }
 
 // TODO Probably want to do ring buffer lookup for noise rather than saturating_sub(8)
-fn get_arg(addr: u64, count: u8, noise: &[u8]) -> [u8; 8] {
-    let mut val = [0u8; 8];
-    let mut addr = addr.saturating_sub(8);
-    for _ in 0..count {
-        val = noise[addr as usize..(addr as usize + 8)]
+fn get_val(addr: u64, r: u8, noise: &[u8]) -> [u8; 8] {
+    let mut r = r;
+    let mut addr = (addr % noise.len() as u64).saturating_sub(8);
+    loop {
+        let val: [u8; 8] = noise[addr as usize..(addr as usize + 8)]
             .try_into()
             .unwrap();
         // TODO Can skip last time through the loop
@@ -131,28 +115,155 @@ fn get_arg(addr: u64, count: u8, noise: &[u8]) -> [u8; 8] {
             noise.len() as u64,
         )
         .saturating_sub(8);
+
+        r = r.wrapping_add(1); // TODO This is fishy
+        if r % 17 == 5 {
+            return val;
+        }
     }
-    val
 }
 
 fn modpow(a: u64, exp: u32, m: u64) -> u64 {
     a.wrapping_pow(exp) % m
 }
 
-pub const OP_COUNT: u8 = 9;
+fn random_op<'a>(
+    ops: &'a mut [RandomOp],
+    addr: &u64,
+    challenge: &[u8; 32],
+    nonce: &[u8; 8],
+    noise: &[u8],
+) -> &'a mut RandomOp {
+    // Seed op from challenge
+    let len = noise.len();
+    let mut addr = *addr;
+    let mut n = noise[addr as usize % len];
+    let mut seed = [0u8; 8];
+    for i in 0..8 {
+        // Randomize reads
+        let a = challenge[n as usize % 32];
+        addr = modpow(addr, a as u32, len as u64);
+        n = noise[addr as usize];
+        let b = challenge[n as usize % 32];
+        addr = modpow(addr, b as u32, len as u64);
+        n = noise[addr as usize];
+        let c = challenge[n as usize % 32];
+        addr = modpow(addr, c as u32, len as u64);
+        n = noise[addr as usize];
+        let d = challenge[n as usize % 32];
+        addr = modpow(addr, c as u32, len as u64);
+        n = noise[addr as usize];
 
-#[derive(Debug, PartialEq, TryFromPrimitive)]
-#[repr(u8)]
-pub enum Op {
-    Add = 0,
-    Sub,
-    Mul,
-    Div,
-    Left,
-    Right,
-    Xor,
-    Sqrt,
-    Nop,
+        // Generate seed
+        seed[i] = a ^ b ^ c ^ d;
+    }
+    let mut chosen_op = usize::from_le_bytes(seed);
+
+    // Mask with nonce
+    for i in 0..8 {
+        seed[i] = nonce[n as usize % 8];
+        // TODO Can skip on last iteration of loop
+        addr = modpow(addr, seed[i] as u32, len as u64);
+        n = noise[addr as usize];
+    }
+    chosen_op ^= usize::from_le_bytes(seed);
+
+    // Return op
+    &mut ops[chosen_op % ops.len()]
+}
+
+#[derive(strum::EnumIter)]
+#[enum_dispatch(Op)]
+pub enum RandomOp {
+    MaskAdd(MaskAdd),
+    Xor(Xor),
+}
+
+pub struct MaskAdd {
+    mask: u64,
+    b: u64,
+}
+
+impl Default for MaskAdd {
+    fn default() -> MaskAdd {
+        MaskAdd {
+            mask: 0b_10101010_10101010_10101010_10101010_10101010_10101010_10101010_10101010,
+            b: u64::from_le_bytes(core::array::from_fn(|i| b"ore"[i % 3])),
+        }
+    }
+}
+
+impl Op for MaskAdd {
+    fn op(&mut self, a: &mut u64, challenge: &[u8; 32], nonce: &[u8; 8]) -> bool {
+        // Mix
+        let a_ = a.to_le_bytes();
+        self.mask ^= u64::from_le_bytes([
+            a_[6] ^ challenge[a_[1] as usize % 32] ^ nonce[a_[2] as usize % 8],
+            a_[1] ^ challenge[a_[2] as usize % 32] ^ nonce[a_[3] as usize % 8],
+            a_[2] ^ challenge[a_[3] as usize % 32] ^ nonce[a_[0] as usize % 8],
+            a_[3] ^ challenge[a_[0] as usize % 32] ^ nonce[a_[4] as usize % 8],
+            a_[0] ^ challenge[a_[4] as usize % 32] ^ nonce[a_[7] as usize % 8],
+            a_[4] ^ challenge[a_[7] as usize % 32] ^ nonce[a_[5] as usize % 8],
+            a_[7] ^ challenge[a_[5] as usize % 32] ^ nonce[a_[6] as usize % 8],
+            a_[5] ^ challenge[a_[6] as usize % 32] ^ nonce[a_[1] as usize % 8],
+        ]);
+        self.b ^= u64::from_le_bytes([
+            a_[2] ^ challenge[a_[3] as usize % 32] ^ nonce[a_[0] as usize % 8],
+            a_[0] ^ challenge[a_[4] as usize % 32] ^ nonce[a_[7] as usize % 8],
+            a_[1] ^ challenge[a_[2] as usize % 32] ^ nonce[a_[3] as usize % 8],
+            a_[3] ^ challenge[a_[0] as usize % 32] ^ nonce[a_[4] as usize % 8],
+            a_[7] ^ challenge[a_[5] as usize % 32] ^ nonce[a_[6] as usize % 8],
+            a_[6] ^ challenge[a_[1] as usize % 32] ^ nonce[a_[2] as usize % 8],
+            a_[5] ^ challenge[a_[6] as usize % 32] ^ nonce[a_[1] as usize % 8],
+            a_[4] ^ challenge[a_[7] as usize % 32] ^ nonce[a_[5] as usize % 8],
+        ]);
+
+        // Apply mask and add
+        *a = (*a & self.mask).wrapping_add(self.b);
+
+        // Exit code
+        *a % 17 == 5
+    }
+}
+
+pub struct Xor {
+    mask: u64,
+}
+
+impl Default for Xor {
+    fn default() -> Xor {
+        Xor {
+            mask: 0b_01010101_01010101_01010101_01010101_01010101_01010101_01010101_01010101,
+        }
+    }
+}
+
+impl Op for Xor {
+    fn op(&mut self, a: &mut u64, challenge: &[u8; 32], nonce: &[u8; 8]) -> bool {
+        // Mix (TODO, maybe mix these up)
+        let a_ = a.to_le_bytes();
+        self.mask ^= u64::from_le_bytes([
+            a_[1] ^ challenge[a_[2] as usize % 32] ^ nonce[a_[3] as usize % 8],
+            a_[3] ^ challenge[a_[0] as usize % 32] ^ nonce[a_[4] as usize % 8],
+            a_[2] ^ challenge[a_[3] as usize % 32] ^ nonce[a_[0] as usize % 8],
+            a_[5] ^ challenge[a_[6] as usize % 32] ^ nonce[a_[1] as usize % 8],
+            a_[4] ^ challenge[a_[7] as usize % 32] ^ nonce[a_[5] as usize % 8],
+            a_[7] ^ challenge[a_[5] as usize % 32] ^ nonce[a_[6] as usize % 8],
+            a_[6] ^ challenge[a_[1] as usize % 32] ^ nonce[a_[2] as usize % 8],
+            a_[0] ^ challenge[a_[4] as usize % 32] ^ nonce[a_[7] as usize % 8],
+        ]);
+
+        // Apply mask
+        *a ^= self.mask;
+
+        // Exit
+        *a % 17 == 7
+    }
+}
+
+#[enum_dispatch]
+pub trait Op {
+    fn op(&mut self, a: &mut u64, challenge: &[u8; 32], nonce: &[u8; 8]) -> bool;
 }
 
 fn prove_work(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> bool {
