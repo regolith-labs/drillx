@@ -87,7 +87,8 @@ pub fn drill(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
     let mut digest = [0; 32];
     for i in 0..32 {
         // Do random ops until exit
-        while !random_op(ops, &addr, &challenge, &nonce_, noise).op(&mut addr, &challenge, &nonce_)
+        while !random_op(ops, &mut addr, &challenge, &nonce_, noise)
+            .op(&mut addr, &challenge, &nonce_)
         {
             // Noop
         }
@@ -129,30 +130,35 @@ fn modpow(a: u64, exp: u32, m: u64) -> u64 {
 
 fn random_op<'a>(
     ops: &'a mut [RandomOp],
-    addr: &u64,
+    addr: &mut u64,
     challenge: &[u8; 32],
     nonce: &[u8; 8],
     noise: &[u8],
 ) -> &'a mut RandomOp {
     // Seed op from challenge
     let len = noise.len();
-    let mut addr = *addr;
-    let mut n = noise[addr as usize % len];
+    let mut n = noise[*addr as usize % len];
     let mut seed = [0u8; 8];
     for i in 0..8 {
-        // Randomize reads
+        // Read A
         let a = challenge[n as usize % 32];
-        addr = modpow(addr, a as u32, len as u64);
-        n = noise[addr as usize];
+        *addr = modpow(*addr, a as u32, len as u64);
+        n = noise[*addr as usize];
+
+        // Read B
         let b = challenge[n as usize % 32];
-        addr = modpow(addr, b as u32, len as u64);
-        n = noise[addr as usize];
+        *addr = modpow(*addr, b as u32, len as u64);
+        n = noise[*addr as usize];
+
+        // Read B
         let c = challenge[n as usize % 32];
-        addr = modpow(addr, c as u32, len as u64);
-        n = noise[addr as usize];
+        *addr = modpow(*addr, c as u32, len as u64);
+        n = noise[*addr as usize];
+
+        // Read D
         let d = challenge[n as usize % 32];
-        addr = modpow(addr, c as u32, len as u64);
-        n = noise[addr as usize];
+        *addr = modpow(*addr, d as u32, len as u64);
+        n = noise[*addr as usize];
 
         // Generate seed
         seed[i] = a ^ b ^ c ^ d;
@@ -163,8 +169,8 @@ fn random_op<'a>(
     for i in 0..8 {
         seed[i] = nonce[n as usize % 8];
         // TODO Can skip on last iteration of loop
-        addr = modpow(addr, seed[i] as u32, len as u64);
-        n = noise[addr as usize];
+        *addr = modpow(*addr, seed[i] as u32, len as u64);
+        n = noise[*addr as usize];
     }
     chosen_op ^= usize::from_le_bytes(seed);
 
