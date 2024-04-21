@@ -1,0 +1,17 @@
+[package]
+name = "drillhash"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "drillhash"
+
+[dependencies]
+blake3 = { workspace = true }
+enum_dispatch = { workspace = true }
+num_enum = { workspace = true }
+num-traits = { workspace = true }
+primes = { workspace = true }
+sha3 = { workspaace = true }
+strum = { workspace = true }

@@ -6,12 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+drillhash = { workspace = true }
 blake3 = "1.5"
 enum_dispatch = "0.3.13"
 num-bigint = "0.4.4"
 num_enum = "0.5"
 num-traits = "0.2.18"
-primes = "0.3.0"
 sha3 = "0.10.8"
 strum = { version = "0.26.2", features = ["derive"] }
 tokio = { version = "1.37.0", features = ["full"] }

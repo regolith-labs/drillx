@@ -8,58 +8,13 @@ use sha3::{Digest, Keccak256};
 use strum::IntoEnumIterator;
 
 use crate::ops::*;
+pub use crate::utils::difficulty;
 use crate::utils::*;
 
-const TARGET_DIFFICULTY: u32 = 4; // 8; //10;
+// TODO Solana feature flag
+// TODO Debug build flag (print times)
 
-fn main() {
-    // Current challenge (255s for demo)
-    let challenge = [255; 32];
-
-    // Read noise file.
-    let mut file = File::open("noise.txt").unwrap();
-    let mut buffer = Vec::new();
-    file.read_to_end(&mut buffer).unwrap();
-    let noise = buffer.as_slice();
-    if !is_prime(noise.len() as u64) {
-        panic!("Noise file length must be prime");
-    }
-
-    // Do work
-    let work_timer = Instant::now();
-    let nonce = do_work(challenge, noise);
-    println!("work done in {} nanos", work_timer.elapsed().as_nanos());
-
-    // Now proof
-    let proof_timer = Instant::now();
-    assert!(prove_work(challenge, nonce, noise));
-    println!("proof done in {} nanos", proof_timer.elapsed().as_nanos());
-
-    println!(
-        "work took {}x vs proof",
-        work_timer.elapsed().as_nanos() / proof_timer.elapsed().as_nanos()
-    );
-}
-
-// TODO Parallelize
-fn do_work(challenge: [u8; 32], noise: &[u8]) -> u64 {
-    let mut nonce = 0;
-    loop {
-        // Calculate hash
-        let solution = drill_hash(challenge, nonce, noise);
-
-        // Return if difficulty was met
-        if difficulty(solution) >= TARGET_DIFFICULTY {
-            break;
-        }
-
-        // Increment nonce
-        nonce += 1;
-    }
-    nonce as u64
-}
-
-fn drill_hash(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
+pub fn drillhash(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
     let mut hasher = Keccak256::new()
         .chain_update(nonce.to_le_bytes())
         .chain_update(challenge.as_ref());
@@ -77,7 +32,7 @@ fn drill_hash(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
     x
 }
 
-pub fn drill(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
+fn drill(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
     // Stateful ops
     let ops: &'static mut [RandomOp] = Box::leak(RandomOp::iter().collect::<Box<[_]>>());
 
@@ -107,10 +62,4 @@ pub fn drill(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
 
     // Return
     digest
-}
-
-fn prove_work(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> bool {
-    let candidate = drill_hash(challenge, nonce, noise);
-    println!("candidate hash {candidate:?}");
-    difficulty(candidate) >= TARGET_DIFFICULTY
 }

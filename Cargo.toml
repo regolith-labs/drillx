@@ -1,7 +1,16 @@
 [workspace]
 members = [
-    "demo",
+    "drillhash",
+    "examples",
     "program"
 ]
 
-
+[workspace.dependencies]
+blake3 = "1.5"
+drillhash = { path = "drillhash" }
+enum_dispatch = "0.3.13"
+num_enum = "0.5"
+num-traits = "0.2.18"
+primes = "0.3.0"
+sha3 = "0.10.8"
+strum = { version = "0.26.2", features = ["derive"] }

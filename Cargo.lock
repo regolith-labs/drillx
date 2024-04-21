@@ -1205,15 +1205,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1435fa1053d8b2fbbe9be7e97eca7f33d37b28409959813daefc1446a14247f1"
 
 [[package]]
-name = "drillhash-demo"
+name = "drillhash"
 version = "0.1.0"
 dependencies = [
  "blake3",
  "enum_dispatch",
- "num-bigint 0.4.4",
  "num-traits",
  "num_enum 0.5.11",
  "primes",
+ "sha3 0.10.8",
+ "strum 0.26.2",
+]
+
+[[package]]
+name = "drillhash-demo"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "drillhash",
+ "enum_dispatch",
+ "num-bigint 0.4.4",
+ "num-traits",
+ "num_enum 0.5.11",
  "sha3 0.10.8",
  "strum 0.26.2",
  "tokio",
