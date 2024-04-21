@@ -1,8 +1,8 @@
 pub fn read_value(addr: &mut u64, challenge: [u8; 32], nonce: [u8; 8], noise: &[u8]) -> [u8; 8] {
     let mut result = [0u8; 8];
-    for i in 0..8 {
+    for i in 0..16 {
         let n = noise[*addr as usize % noise.len()];
-        result[i] = n ^ challenge[n as usize % 32] ^ nonce[n as usize % 8];
+        result[i % 8] = n ^ challenge[n as usize % 32] ^ nonce[n as usize % 8];
         *addr = modpow(
             addr.saturating_add(2),
             u64::from_le_bytes(result),
