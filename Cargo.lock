@@ -1214,6 +1214,7 @@ dependencies = [
  "num_enum 0.5.11",
  "primes",
  "sha3 0.10.8",
+ "solana-program",
  "strum 0.26.2",
 ]
 

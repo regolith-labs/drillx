@@ -55,8 +55,8 @@ pub fn noise_address() -> Pubkey {
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Pod, Zeroable)]
 pub struct Args {
-    pub difficulty: u64,
     pub nonce: u64,
+    pub difficulty: u64,
 }
 
 impl Args {
