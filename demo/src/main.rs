@@ -102,7 +102,7 @@ pub fn drill(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
         }
 
         // Append to digest
-        digest[i] = noise[addr as usize % noise.len()];
+        digest[i] = read_noise(&mut addr, challenge, nonce_, noise)[7];
     }
 
     // Return
