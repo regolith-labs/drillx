@@ -24,12 +24,17 @@ pub fn drillhash(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
     let timer = Instant::now();
 
     #[cfg(feature = "solana")]
-    let x = solana_program::keccak::hashv(&[&nonce.to_le_bytes(), &challenge, digest.as_slice()]).0;
+    let x = solana_program::keccak::hashv(&[
+        &nonce.to_le_bytes(),
+        challenge.as_slice(),
+        digest.as_slice(),
+    ])
+    .0;
 
     #[cfg(not(feature = "solana"))]
     let x = Keccak256::new()
         .chain_update(nonce.to_le_bytes())
-        .chain_update(challenge.as_ref())
+        .chain_update(challenge.as_slice())
         .chain_update(digest.as_slice())
         .finalize()
         .into();
