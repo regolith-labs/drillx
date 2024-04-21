@@ -94,8 +94,9 @@ pub fn drill(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
     let mut digest = [0; 32];
     for i in 0..32 {
         // Do random ops on address until exit
-        let op = random_op(ops, &mut addr, challenge, nonce_, noise);
-        while !op.op(&mut addr, challenge, nonce_, noise) {
+        while !random_op(ops, &mut addr, challenge, nonce_, noise)
+            .op(&mut addr, challenge, nonce_, noise)
+        {
             // println!("{:?} {}", op, addr);
             // Noop
         }
