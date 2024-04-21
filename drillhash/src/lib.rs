@@ -44,11 +44,11 @@ fn drill(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
 
     // Generate starting address
     #[cfg(feature = "solana")]
-    let b = solana_program::blake3::hashv(&[challenge.as_ref(), nonce.to_le_bytes().as_ref()]).0;
+    let b = solana_program::blake3::hashv(&[&challenge, nonce.to_le_bytes().as_slice()]).0;
 
     // let b = blake3::hash(&[&challenge, &nonce.to_le_bytes()].concat()).as_bytes();
     #[cfg(not(feature = "solana"))]
-    let b = blake3::hash(&[challenge.as_ref(), nonce.to_le_bytes().as_ref()].concat())
+    let b = blake3::hash(&[&challenge, nonce.to_le_bytes().as_slice()].concat())
         .as_bytes()
         .to_owned();
 
