@@ -20,7 +20,7 @@ use xor::*;
 
 use enum_dispatch::enum_dispatch;
 
-use crate::read_value;
+use crate::read_noise;
 
 #[derive(Debug, strum::EnumIter)]
 #[enum_dispatch(Op)]
@@ -48,7 +48,7 @@ pub fn random_op<'a>(
     nonce: [u8; 8],
     noise: &[u8],
 ) -> &'a mut RandomOp {
-    let seed = read_value(addr, challenge, nonce, noise);
+    let seed = read_noise(addr, challenge, nonce, noise);
     let opcode = usize::from_le_bytes(seed);
     &mut ops[opcode % ops.len()]
 }

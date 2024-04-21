@@ -1,4 +1,4 @@
-use crate::{exit, read_value};
+use crate::{exit, read_noise};
 
 use super::Op;
 
@@ -18,7 +18,7 @@ impl Default for Add {
 impl Op for Add {
     fn op(&mut self, addr: &mut u64, challenge: [u8; 32], nonce: [u8; 8], noise: &[u8]) -> bool {
         // Update b
-        let seed = read_value(addr, challenge, nonce, noise);
+        let seed = read_noise(addr, challenge, nonce, noise);
         self.b ^= u64::from_le_bytes(seed);
 
         // Add

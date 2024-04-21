@@ -1,4 +1,4 @@
-pub fn read_value(addr: &mut u64, challenge: [u8; 32], nonce: [u8; 8], noise: &[u8]) -> [u8; 8] {
+pub fn read_noise(addr: &mut u64, challenge: [u8; 32], nonce: [u8; 8], noise: &[u8]) -> [u8; 8] {
     let mut result = [0u8; 8];
     for i in 0..16 {
         let n = noise[*addr as usize % noise.len()];
