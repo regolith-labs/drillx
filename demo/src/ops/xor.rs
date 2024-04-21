@@ -17,14 +17,20 @@ impl Default for Xor {
 
 impl Op for Xor {
     fn op(&mut self, addr: &mut u64, challenge: [u8; 32], nonce: [u8; 8], noise: &[u8]) -> bool {
-        // Update b
-        let seed = read_noise(addr, challenge, nonce, noise);
-        self.b ^= u64::from_le_bytes(seed);
+        // Pre-arithmetic
+        self.update_state(addr, challenge, nonce, noise);
 
         // Xor
         *addr ^= self.b;
 
+        // Post-arithmetic
+        self.update_state(addr, challenge, nonce, noise);
+
         // Exit
         exit(addr)
+    }
+
+    fn update_state(&mut self, addr: &mut u64, challenge: [u8; 32], nonce: [u8; 8], noise: &[u8]) {
+        self.b ^= u64::from_le_bytes(read_noise(addr, challenge, nonce, noise));
     }
 }

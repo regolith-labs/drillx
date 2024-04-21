@@ -22,6 +22,9 @@ use enum_dispatch::enum_dispatch;
 
 use crate::read_noise;
 
+// TODO Add a variety of bitops to arithmetic functions
+// TODO Update op state before *and after* the arithmetic
+
 #[derive(Debug, strum::EnumIter)]
 #[enum_dispatch(Op)]
 pub enum RandomOp {
@@ -39,6 +42,7 @@ pub enum RandomOp {
 #[enum_dispatch]
 pub trait Op {
     fn op(&mut self, addr: &mut u64, challenge: [u8; 32], nonce: [u8; 8], noise: &[u8]) -> bool;
+    fn update_state(&mut self, addr: &mut u64, challenge: [u8; 32], nonce: [u8; 8], noise: &[u8]);
 }
 
 pub fn random_op<'a>(

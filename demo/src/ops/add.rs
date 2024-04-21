@@ -19,18 +19,21 @@ impl Default for Add {
 
 impl Op for Add {
     fn op(&mut self, addr: &mut u64, challenge: [u8; 32], nonce: [u8; 8], noise: &[u8]) -> bool {
-        // Update mask
-        let seed = read_noise(addr, challenge, nonce, noise);
-        self.mask ^= u64::from_le_bytes(seed);
-
-        // Update b
-        let seed = read_noise(addr, challenge, nonce, noise);
-        self.b ^= u64::from_le_bytes(seed);
+        // Pre-arithmetic
+        self.update_state(addr, challenge, nonce, noise);
 
         // Add
         *addr = (*addr ^ self.mask).wrapping_add(self.b);
 
+        // Post-arithmetic
+        self.update_state(addr, challenge, nonce, noise);
+
         // Exit code
         exit(addr)
+    }
+
+    fn update_state(&mut self, addr: &mut u64, challenge: [u8; 32], nonce: [u8; 8], noise: &[u8]) {
+        self.mask ^= u64::from_le_bytes(read_noise(addr, challenge, nonce, noise));
+        self.b ^= u64::from_le_bytes(read_noise(addr, challenge, nonce, noise));
     }
 }
