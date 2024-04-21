@@ -1,15 +1,11 @@
-use std::ops::Add;
-
 use bytemuck::{Pod, Zeroable};
-use num_bigint::BigInt;
-use num_traits::{FromBytes, ToPrimitive};
+use drillhash::*;
 use solana_program::{
     self,
     account_info::AccountInfo,
     declare_id,
     entrypoint::ProgramResult,
     instruction::{AccountMeta, Instruction},
-    keccak::hashv,
     program_error::ProgramError,
     pubkey::Pubkey,
 };
@@ -31,41 +27,12 @@ pub fn process_instruction(
     };
 
     let challenge = [255; 32];
-    let candidate = drill_hash(challenge, args.nonce, &noise.data.borrow());
-    if difficulty(candidate).lt(&args.difficulty) {
+    let candidate = drillhash(challenge, args.nonce, &noise.data.borrow());
+    if difficulty(candidate).lt(&(args.difficulty as u32)) {
         return Err(ProgramError::Custom(0));
     }
 
     Ok(())
-}
-
-fn drill_hash(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
-    // The drill part (1024 sequential modpow and mem reads)
-    let len = BigInt::from(noise.len());
-    let mut digest = [0u8; 1024];
-    let mut addr = BigInt::from_le_bytes(&challenge);
-    let mut n = BigInt::from(nonce);
-    for i in 0..1024 {
-        // TODO Handle nonce = 0 and 1 case better
-        addr = addr.modpow(&n.add(2), &len);
-        digest[i] = noise[addr.to_usize().unwrap()];
-        n = BigInt::from(digest[i]);
-    }
-
-    // The hash part (keccak proof)
-    hashv(&[digest.as_slice()]).to_bytes()
-}
-
-fn difficulty(hash: [u8; 32]) -> u64 {
-    let mut count = 0;
-    for &byte in &hash {
-        let lz = byte.leading_zeros();
-        count += lz;
-        if lz < 8 {
-            break;
-        }
-    }
-    count.into()
 }
 
 pub fn verify(signer: Pubkey, nonce: u64, difficulty: u64) -> Instruction {

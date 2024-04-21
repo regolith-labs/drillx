@@ -1,9 +1,8 @@
 mod ops;
 mod utils;
 
-use std::{fs::File, io::Read, time::Instant};
+use std::time::Instant;
 
-use primes::is_prime;
 use sha3::{Digest, Keccak256};
 use strum::IntoEnumIterator;
 

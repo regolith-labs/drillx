@@ -21,7 +21,7 @@ fn main() {
 
     // Now proof
     let proof_timer = Instant::now();
-    prove_work(challenge, nonce, noise)
+    prove_work(challenge, nonce, noise);
     println!("proof done in {} nanos", proof_timer.elapsed().as_nanos());
     println!(
         "work took {}x vs proof",
@@ -47,7 +47,7 @@ fn do_work(challenge: [u8; 32], noise: &[u8]) -> u64 {
     nonce as u64
 }
 
-fn prove_work(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> bool {
+fn prove_work(challenge: [u8; 32], nonce: u64, noise: &[u8]) {
     let candidate = drillhash(challenge, nonce, noise);
     println!("candidate hash {candidate:?}");
     assert!(difficulty(candidate) >= TARGET_DIFFICULTY);
