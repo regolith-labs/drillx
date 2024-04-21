@@ -28,7 +28,7 @@ pub enum RandomOp {
     Add(Add),
     Sub(Sub),
     Mul(Mul),
-    Div(Div),
+    // Div(Div),
     Sqrt(Sqrt),
     Left(Left),
     Right(Right),

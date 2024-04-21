@@ -95,14 +95,17 @@ pub fn drill(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
     let mut digest = [0; 32];
     for i in 0..32 {
         // Do random ops on address until exit
-        while random_op(ops, &mut addr, challenge, nonce_, noise)
+        while !random_op(ops, &mut addr, challenge, nonce_, noise)
             .op(&mut addr, challenge, nonce_, noise)
         {
+            if addr == 0 {
+                addr = u64::from_le_bytes(read_noise(&mut addr, challenge, nonce_, noise));
+            }
             // Noop
         }
 
         // Append to digest
-        digest[i] = read_noise(&mut addr, challenge, nonce_, noise)[7];
+        digest[i] = noise[addr as usize % noise.len()]; //  read_noise(&mut addr, challenge, nonce_, noise)[7];
     }
 
     // Return
