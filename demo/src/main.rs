@@ -64,7 +64,7 @@ fn drill_hash(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
         .chain_update(nonce.to_le_bytes())
         .chain_update(challenge.as_ref());
 
-    // The drill part (1024 sequential modpow and mem reads)
+    // The drill part (random sequential calculations and memory reads)
     let timer = Instant::now();
     let digest = drill(challenge, nonce, noise);
     println!("drill in {} nanos", timer.elapsed().as_nanos());
