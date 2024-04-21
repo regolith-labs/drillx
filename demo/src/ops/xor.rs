@@ -31,6 +31,7 @@ impl Op for Xor {
     }
 
     fn update_state(&mut self, addr: &mut u64, challenge: [u8; 32], nonce: [u8; 8], noise: &[u8]) {
-        self.b ^= u64::from_le_bytes(read_noise(addr, challenge, nonce, noise));
+        self.b ^=
+            self.b.rotate_right(1) ^ u64::from_le_bytes(read_noise(addr, challenge, nonce, noise));
     }
 }

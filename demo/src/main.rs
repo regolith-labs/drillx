@@ -10,7 +10,7 @@ use strum::IntoEnumIterator;
 use crate::ops::*;
 use crate::utils::*;
 
-const TARGET_DIFFICULTY: u32 = 4; //10;
+const TARGET_DIFFICULTY: u32 = 4; // 8; //10;
 
 fn main() {
     // Current challenge (255s for demo)
@@ -82,12 +82,11 @@ pub fn drill(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
     let ops: &'static mut [RandomOp] = Box::leak(RandomOp::iter().collect::<Box<[_]>>());
 
     // Generate starting address
-    let len = noise.len();
     let b = blake3::hash(&[challenge.as_ref(), nonce.to_le_bytes().as_ref()].concat());
     let mut addr = modpow(
         u64::from_le_bytes(b.as_bytes()[0..8].try_into().unwrap()),
         u64::from_le_bytes(b.as_bytes()[8..16].try_into().unwrap()),
-        len as u64,
+        u64::MAX / 2, // len as u64,
     );
 
     // Build digest
@@ -95,17 +94,14 @@ pub fn drill(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
     let mut digest = [0; 32];
     for i in 0..32 {
         // Do random ops on address until exit
-        while !random_op(ops, &mut addr, challenge, nonce_, noise)
-            .op(&mut addr, challenge, nonce_, noise)
-        {
-            if addr == 0 {
-                addr = u64::from_le_bytes(read_noise(&mut addr, challenge, nonce_, noise));
-            }
+        let op = random_op(ops, &mut addr, challenge, nonce_, noise);
+        while !op.op(&mut addr, challenge, nonce_, noise) {
+            // println!("{:?} {}", op, addr);
             // Noop
         }
 
         // Append to digest
-        digest[i] = noise[addr as usize % noise.len()]; //  read_noise(&mut addr, challenge, nonce_, noise)[7];
+        digest[i] = noise[addr as usize % noise.len()];
     }
 
     // Return

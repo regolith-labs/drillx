@@ -1,29 +1,26 @@
 mod add;
 mod div;
-mod left;
 mod mask;
 mod mul;
-mod right;
 mod sqrt;
 mod sub;
 mod xor;
 
 use add::*;
 // use div::*;
-use left::*;
+// use left::*;
 // use mask::*;
 use mul::*;
-use right::*;
-use sqrt::*;
+// use right::*;
+// use sqrt::*;
 use sub::*;
-use xor::*;
+// use xor::*;
 
 use enum_dispatch::enum_dispatch;
 
 use crate::read_noise;
 
-// TODO Add a variety of bitops to arithmetic functions
-// TODO Update op state before *and after* the arithmetic
+// TODO Fix sqrt
 
 #[derive(Debug, strum::EnumIter)]
 #[enum_dispatch(Op)]
@@ -32,11 +29,8 @@ pub enum RandomOp {
     Sub(Sub),
     Mul(Mul),
     // Div(Div),
-    Sqrt(Sqrt),
-    Left(Left),
-    Right(Right),
-    // Mask(Mask),
-    Xor(Xor),
+    // Sqrt(Sqrt),
+    // Xor(Xor),
 }
 
 #[enum_dispatch]
