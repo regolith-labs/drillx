@@ -9,9 +9,9 @@ mod sub;
 mod xor;
 
 use add::*;
-use div::*;
+// use div::*;
 use left::*;
-use mask::*;
+// use mask::*;
 use mul::*;
 use right::*;
 use sqrt::*;
@@ -32,7 +32,7 @@ pub enum RandomOp {
     Sqrt(Sqrt),
     Left(Left),
     Right(Right),
-    Mask(Mask),
+    // Mask(Mask),
     Xor(Xor),
 }
 
