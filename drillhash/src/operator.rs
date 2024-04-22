@@ -2,12 +2,20 @@ use std::time::Instant;
 
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
+const OPCOUNT_LIMIT: u32 = 256;
+const EXIT_OPERAND: u8 = 17;
+
 #[derive(Debug)]
 pub struct Operator<'a> {
     // challenge: &'a [u8; 32],
     // nonce: &'a [u8; 8],
     noise: &'a [u8],
     state: [u8; 64], // 512 bit internal state
+    opcount: u32,
+    exit: u8,
+    t1: u128,
+    t2: u128,
+    t3: u128,
 }
 
 // TODO Sqrt, Floats, Swap ?
@@ -32,7 +40,6 @@ impl<'a> Operator<'a> {
     pub fn new(challenge: &'a [u8; 32], nonce: &'a [u8; 8], noise: &'a [u8]) -> Operator<'a> {
         #[cfg(feature = "solana")]
         let a = solana_program::blake3::hashv(&[challenge.as_slice(), nonce.as_slice()]).0;
-
         #[cfg(feature = "solana")]
         let b = solana_program::blake3::hashv(a.as_slice()).0;
 
@@ -40,20 +47,24 @@ impl<'a> Operator<'a> {
         let a = blake3::hash(&[challenge.as_slice(), nonce.as_slice()].concat())
             .as_bytes()
             .to_owned();
-
         #[cfg(not(feature = "solana"))]
         let b = blake3::hash(a.as_slice()).as_bytes().to_owned();
 
+        // Build state
+        let mut state = [0u8; 64];
+        for i in 0..32 {
+            state[i * 2] = a[i];
+            state[i * 2 + 1] = b[i];
+        }
+
         Operator {
             noise,
-            state: [
-                a[0], b[0], a[1], b[1], a[2], b[2], a[3], b[3], a[4], b[4], a[5], b[5], a[6], b[6],
-                a[7], b[7], a[8], b[8], a[9], b[9], a[10], b[10], a[11], b[11], a[12], b[12],
-                a[13], b[13], a[14], b[14], a[15], b[15], a[16], b[16], a[17], b[17], a[18], b[18],
-                a[19], b[19], a[20], b[20], a[21], b[21], a[22], b[22], a[23], b[23], a[24], b[24],
-                a[25], b[25], a[26], b[26], a[27], b[27], a[28], b[28], a[29], b[29], a[30], b[30],
-                a[31], b[31],
-            ],
+            state,
+            opcount: 0,
+            exit: (state[0] ^ state[1]) % EXIT_OPERAND,
+            t1: 0,
+            t2: 0,
+            t3: 0,
         }
     }
 
@@ -62,27 +73,35 @@ impl<'a> Operator<'a> {
         let mut result = [0; 64];
         for i in 0..64 {
             while !self.exec() {
-                self.shuffle(self.state[63]);
+                self.shuffle(self.opcount as u8 ^ self.state[0]);
+                self.opcount += 1;
+                if self.opcount.ge(&OPCOUNT_LIMIT) {
+                    break;
+                }
             }
+            self.opcount = 0;
             result[i] = self.noise[self.addr()];
         }
+
+        // println!("Addr time: {} ns", self.t1);
+        // println!("Shuffle time: {} ns", self.t2);
+        // println!("Noiseloop time: {} ns", self.t3);
         result
     }
 
     fn exec(&mut self) -> bool {
         // Arithmetic
         // let t = Instant::now();
-        self.shuffle(0);
         let noise = self.noise_loop::<64>();
         let mut b = self.state[0] ^ noise[0];
         for i in 0..64 {
             b = self.op(b, self.noise[i]);
             self.state[i] = self.op(self.state[i], b);
-            self.shuffle(b);
         }
 
         // Exit code
         // println!("exec in {} nanos", t.elapsed().as_nanos());
+        self.shuffle(b);
         self.exit()
     }
 
@@ -90,27 +109,26 @@ impl<'a> Operator<'a> {
     pub fn addr(&mut self) -> usize {
         // let t = Instant::now();
         let mut addr = [0u8; 8];
-        let count = self.state[0] as usize;
+        let count = self.state[63] as usize;
 
         // Fill addr buffer
         let mut b = 0u8;
         for i in 0..count.max(8) {
-            // Bitop
-            addr[i % 8] ^= self.state[addr[i % 8] as usize % 64];
+            addr[i % 8] ^= self.state[b as usize % 64];
             b ^= addr[i % 8];
         }
 
         // Return
+        // self.t1 += t.elapsed().as_nanos();
         self.shuffle(b);
-        // println!("addr in {} nanos", t.elapsed().as_nanos());
         usize::from_le_bytes(addr) % self.noise.len()
     }
 
     fn shuffle(&mut self, mut m: u8) {
         // let t = Instant::now();
-        // First, we'll introduce a random-like deterministic modifier
+        // Accumulate changes in a wrapping manner
         for &value in &self.state {
-            m = m.wrapping_add(value); // Accumulate changes in a wrapping manner
+            m = m.wrapping_add(value);
         }
 
         for i in 0..64 {
@@ -125,11 +143,13 @@ impl<'a> Operator<'a> {
             // Introduce more non-linearity
             m = m.wrapping_mul(31).wrapping_add(self.state[i]);
         }
-        // println!("shuffle in {} nanos", t.elapsed().as_nanos());
+
+        // self.t2 += t.elapsed().as_nanos();
     }
 
     fn opcode(&mut self) -> Opcode {
-        let mut opcode = self.state[0];
+        // TODO
+        let opcode = self.state[0];
         // let noise = self.noise_loop::<8>();
         // let count = self.state[noise[opcode as usize % 8] as usize % 64];
 
@@ -154,14 +174,13 @@ impl<'a> Operator<'a> {
         // Fill the noise buffer
         let mut b = 0u8;
         for i in 0..N {
-            // Bitop
             let n = self.noise[self.addr()];
             result[i % N] = n ^ self.state[n as usize % 64];
             b = b.wrapping_add(result[i % N]);
-            self.shuffle(b);
         }
 
-        // println!("noiseloop in {} nanos", t.elapsed().as_nanos());
+        // self.t3 += t.elapsed().as_nanos();
+        self.shuffle(b);
         result
     }
 
@@ -176,8 +195,6 @@ impl<'a> Operator<'a> {
     }
 
     fn exit(&mut self) -> bool {
-        // TODO
-        // println!("State: {:?}", self.state);
         let x = u64::from_be_bytes([
             self.state[63],
             self.state[62],
@@ -188,9 +205,6 @@ impl<'a> Operator<'a> {
             self.state[57],
             self.state[56],
         ]);
-        // println!("X: {:?} {}", x, x % 17);
-
-        x % 17 == 5
-        // true
+        x % EXIT_OPERAND as u64 == self.exit.into()
     }
 }

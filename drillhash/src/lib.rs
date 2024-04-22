@@ -1,5 +1,4 @@
 mod operator;
-mod ops;
 mod utils;
 
 use std::time::Instant;
@@ -8,8 +7,7 @@ use std::time::Instant;
 use sha3::{Digest, Keccak256};
 
 use crate::operator::Operator;
-pub use crate::utils::difficulty;
-use crate::utils::*;
+pub use crate::utils::*;
 
 // TODO Debug build flag (print times)
 
@@ -17,7 +15,6 @@ pub fn drillhash(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
     // The drill part (random sequential calculations and memory reads)
     let timer = Instant::now();
     let digest = Operator::new(&challenge, &nonce.to_le_bytes(), noise).drill();
-    // println!("digest: {:?}", digest);
     println!("drill in {} nanos", timer.elapsed().as_nanos());
 
     // The hash part (keccak proof)
@@ -39,6 +36,6 @@ pub fn drillhash(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
         .finalize()
         .into();
 
-    println!("hash in {} nanos", timer.elapsed().as_nanos());
+    println!("hash in {} nanos\n", timer.elapsed().as_nanos());
     x
 }
