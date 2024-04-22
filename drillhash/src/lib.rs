@@ -17,7 +17,7 @@ pub fn drillhash(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
     // The drill part (random sequential calculations and memory reads)
     let timer = Instant::now();
     let digest = Operator::new(&challenge, &nonce.to_le_bytes(), noise).drill();
-    println!("digest: {:?}", digest);
+    // println!("digest: {:?}", digest);
     println!("drill in {} nanos", timer.elapsed().as_nanos());
 
     // The hash part (keccak proof)

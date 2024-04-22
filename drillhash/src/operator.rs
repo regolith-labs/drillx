@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 #[derive(Debug)]
@@ -59,7 +61,9 @@ impl<'a> Operator<'a> {
     pub fn drill(&mut self) -> [u8; 64] {
         let mut result = [0; 64];
         for i in 0..64 {
-            while !self.exec() {}
+            while !self.exec() {
+                self.shuffle(self.state[63]);
+            }
             result[i] = self.noise[self.addr()];
         }
         result
@@ -67,38 +71,43 @@ impl<'a> Operator<'a> {
 
     fn exec(&mut self) -> bool {
         // Arithmetic
+        // let t = Instant::now();
         self.shuffle(0);
         let noise = self.noise_loop::<64>();
         let mut b = self.state[0] ^ noise[0];
         for i in 0..64 {
             b = self.op(b, self.noise[i]);
             self.state[i] = self.op(self.state[i], b);
-            self.shuffle(self.state[i]);
+            self.shuffle(b);
         }
 
         // Exit code
+        // println!("exec in {} nanos", t.elapsed().as_nanos());
         self.exit()
     }
 
     /// Derive address for reading noise file
     pub fn addr(&mut self) -> usize {
+        // let t = Instant::now();
         let mut addr = [0u8; 8];
         let count = self.state[0] as usize;
 
         // Fill addr buffer
+        let mut b = 0u8;
         for i in 0..count.max(8) {
             // Bitop
             addr[i % 8] ^= self.state[addr[i % 8] as usize % 64];
-
-            // Shuffle
-            self.shuffle(addr[i % 8]);
+            b ^= addr[i % 8];
         }
 
         // Return
+        self.shuffle(b);
+        // println!("addr in {} nanos", t.elapsed().as_nanos());
         usize::from_le_bytes(addr) % self.noise.len()
     }
 
     fn shuffle(&mut self, mut m: u8) {
+        // let t = Instant::now();
         // First, we'll introduce a random-like deterministic modifier
         for &value in &self.state {
             m = m.wrapping_add(value); // Accumulate changes in a wrapping manner
@@ -116,21 +125,22 @@ impl<'a> Operator<'a> {
             // Introduce more non-linearity
             m = m.wrapping_mul(31).wrapping_add(self.state[i]);
         }
+        // println!("shuffle in {} nanos", t.elapsed().as_nanos());
     }
 
     fn opcode(&mut self) -> Opcode {
         let mut opcode = self.state[0];
-        let noise = self.noise_loop::<8>();
-        let count = self.state[noise[opcode as usize % 8] as usize % 64];
+        // let noise = self.noise_loop::<8>();
+        // let count = self.state[noise[opcode as usize % 8] as usize % 64];
 
-        // Derive opcode
-        for _ in 0..count {
-            // Bitop
-            opcode ^= self.state[opcode as usize % 64] ^ noise[opcode as usize % 8];
+        // // Derive opcode
+        // for _ in 0..count {
+        //     // Bitop
+        //     opcode ^= self.state[opcode as usize % 64] ^ noise[opcode as usize % 8];
 
-            // Shuffle
-            self.shuffle(opcode);
-        }
+        //     // Shuffle
+        //     self.shuffle(opcode);
+        // }
 
         // Return
         Opcode::try_from(opcode % Opcode::cardinality() as u8).expect("Unknown opcode")
@@ -138,18 +148,20 @@ impl<'a> Operator<'a> {
 
     // Loop through noise file
     fn noise_loop<const N: usize>(&mut self) -> [u8; N] {
+        // let t = Instant::now();
         let mut result = [0u8; N];
 
         // Fill the noise buffer
+        let mut b = 0u8;
         for i in 0..N {
             // Bitop
             let n = self.noise[self.addr()];
             result[i % N] = n ^ self.state[n as usize % 64];
-
-            // Suffle
-            self.shuffle(result[i % N]);
+            b = b.wrapping_add(result[i % N]);
+            self.shuffle(b);
         }
 
+        // println!("noiseloop in {} nanos", t.elapsed().as_nanos());
         result
     }
 
@@ -166,17 +178,19 @@ impl<'a> Operator<'a> {
     fn exit(&mut self) -> bool {
         // TODO
         // println!("State: {:?}", self.state);
-        // u64::from_be_bytes([
-        //     self.state[63],
-        //     self.state[62],
-        //     self.state[61],
-        //     self.state[60],
-        //     self.state[59],
-        //     self.state[58],
-        //     self.state[57],
-        //     self.state[56],
-        // ]) % 17
-        //     == 5
-        true
+        let x = u64::from_be_bytes([
+            self.state[63],
+            self.state[62],
+            self.state[61],
+            self.state[60],
+            self.state[59],
+            self.state[58],
+            self.state[57],
+            self.state[56],
+        ]);
+        // println!("X: {:?} {}", x, x % 17);
+
+        x % 17 == 5
+        // true
     }
 }
