@@ -1,13 +1,19 @@
 mod add;
+mod addl;
 mod div;
 mod mask;
 mod mul;
-mod sqrt;
+mod mull;
+// mod sqrt;
 mod sub;
-mod xor;
+mod subl;
+// mod xor;
 
 use add::*;
-// use div::*;
+use addl::*;
+use div::*;
+use mull::*;
+use subl::*;
 // use left::*;
 // use mask::*;
 use mul::*;
@@ -20,17 +26,22 @@ use enum_dispatch::enum_dispatch;
 
 use crate::read_noise;
 
+// TODO Fix div
 // TODO Fix sqrt
+// TODO Left rotating ops?
+// TODO Float ops?
 
 #[derive(Debug, strum::EnumIter)]
 #[enum_dispatch(Op)]
 pub enum RandomOp {
-    Add(Add),
-    Sub(Sub),
-    Mul(Mul),
+    AddR(AddR),
+    AddL(AddL),
+    SubR(SubR),
+    SubL(SubL),
+    MulR(Mul),
+    MulL(MulL),
     // Div(Div),
     // Sqrt(Sqrt),
-    // Xor(Xor),
 }
 
 #[enum_dispatch]

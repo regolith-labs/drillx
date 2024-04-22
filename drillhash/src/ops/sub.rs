@@ -3,15 +3,15 @@ use crate::{exit, read_noise};
 use super::Op;
 
 #[derive(Debug)]
-pub struct Sub {
+pub struct SubR {
     mask: u64,
     b: u64,
     r: u8,
 }
 
-impl Default for Sub {
-    fn default() -> Sub {
-        Sub {
+impl Default for SubR {
+    fn default() -> SubR {
+        SubR {
             mask: 0b_10101010_10101010_10101010_10101010_10101010_10101010_10101010_10101010,
             b: u64::from_le_bytes(core::array::from_fn(|i| b"ore"[i % 3])),
             r: 0b_01010101,
@@ -19,13 +19,14 @@ impl Default for Sub {
     }
 }
 
-impl Op for Sub {
+impl Op for SubR {
     fn op(&mut self, addr: &mut u64, challenge: [u8; 32], nonce: [u8; 8], noise: &[u8]) -> bool {
         // Pre-arithmetic
         self.update_state(addr, challenge, nonce, noise);
 
         // Subtract
-        *addr = (addr.rotate_right(self.r.into()) ^ self.mask).wrapping_sub(self.b);
+        *addr = addr.wrapping_sub(self.b).rotate_right(self.r.into()) ^ self.mask;
+        // *addr = (addr.rotate_right(self.r.into()) ^ self.mask).wrapping_sub(self.b);
 
         // Post-arithmetic
         self.update_state(addr, challenge, nonce, noise);

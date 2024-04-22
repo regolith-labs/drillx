@@ -25,7 +25,12 @@ impl Op for Mul {
         self.update_state(addr, challenge, nonce, noise);
 
         // Multiply
-        *addr = (addr.rotate_right(self.r.into()) ^ self.mask).wrapping_mul(self.b);
+        *addr = addr
+            .saturating_add(2)
+            .wrapping_mul(self.b)
+            .rotate_right(self.r.into())
+            ^ self.mask;
+        // (addr.rotate_right(self.r.into()) ^ self.mask).wrapping_mul(self.b);
 
         // Post-arithmetic
         self.update_state(addr, challenge, nonce, noise);

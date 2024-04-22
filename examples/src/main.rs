@@ -2,7 +2,7 @@ use std::{fs::File, io::Read, time::Instant};
 
 use drillhash::*;
 
-const TARGET_DIFFICULTY: u32 = 4; // 8; //10;
+const TARGET_DIFFICULTY: u32 = 8; // 12; // 8; //10;
 
 fn main() {
     // Current challenge (255s for demo)

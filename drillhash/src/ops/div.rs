@@ -25,8 +25,11 @@ impl Op for Div {
         self.update_state(addr, challenge, nonce, noise);
 
         // Divide
-        *addr =
-            (addr.rotate_right(self.r.into()) ^ self.mask).wrapping_div(self.b.saturating_add(1));
+        *addr = addr
+            .wrapping_div(self.b.saturating_add(1))
+            .rotate_right(self.r.into())
+            ^ self.mask;
+        // (addr.rotate_right(self.r.into()) ^ self.mask).wrapping_div(self.b.saturating_add(1));
 
         // Post-arithmetic
         self.update_state(addr, challenge, nonce, noise);
@@ -36,10 +39,10 @@ impl Op for Div {
     }
 
     fn update_state(&mut self, addr: &mut u64, challenge: [u8; 32], nonce: [u8; 8], noise: &[u8]) {
-        self.mask ^= self.mask.rotate_right(1)
-            ^ u64::from_le_bytes(read_noise(addr, challenge, nonce, noise));
-        self.b ^=
-            self.b.rotate_right(1) ^ u64::from_le_bytes(read_noise(addr, challenge, nonce, noise));
+        self.mask = self.mask.rotate_right(1);
+        self.mask ^= u64::from_le_bytes(read_noise(addr, challenge, nonce, noise));
+        self.b = self.b.rotate_right(1);
+        self.b ^= u64::from_le_bytes(read_noise(addr, challenge, nonce, noise));
         self.r ^= self.mask.to_le_bytes()[7] ^ self.b.to_le_bytes()[7];
     }
 }
