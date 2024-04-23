@@ -18,14 +18,14 @@ async fn test_initialize() {
     assert!(banks.process_transaction(tx).await.is_err());
 
     // Should succeed
-    let ix = program::verify(payer.pubkey(), 6, 4);
+    let ix = program::verify(payer.pubkey(), 7, 4);
     let tx = Transaction::new_signed_with_payer(&[ix], Some(&payer.pubkey()), &[&payer], blockhash);
     assert!(banks.process_transaction(tx).await.is_ok());
 }
 
 async fn setup_program_test_env() -> (BanksClient, Keypair, Hash) {
     let mut program_test = ProgramTest::new(
-        "drillhash",
+        "drillhx",
         program::id(),
         processor!(program::process_instruction),
     );

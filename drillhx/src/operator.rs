@@ -116,7 +116,7 @@ impl<'a> Operator<'a> {
         // Fill buffer
         let mut addr = [0u8; 8];
         let mut b = 0u8;
-        let count = (self.state[0] ^ self.state[8] ^ self.state[16] ^ self.state[24]) as usize;
+        let count = (self.state[3] ^ self.state[1] ^ self.state[41] ^ self.state[59]) as usize;
         for i in 0..count.max(8) {
             addr[i % 8] ^= self.state[b as usize % 64];
             b ^= addr[i % 8];

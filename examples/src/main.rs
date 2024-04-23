@@ -2,7 +2,7 @@ use std::{fs::File, io::Read, time::Instant};
 
 use drillhx::*;
 
-const TARGET_DIFFICULTY: u32 = 8; // 12; // 8; //10;
+const TARGET_DIFFICULTY: u32 = 4; // 12; // 8; //10;
 
 fn main() {
     // Current challenge (255s for demo)
@@ -34,6 +34,7 @@ fn do_work(challenge: [u8; 32], noise: &[u8]) -> u64 {
     let mut nonce = 0;
     loop {
         // Calculate hash
+        println!("Nonce {}", nonce);
         let hx = drillhx(challenge, nonce, noise);
 
         // Return if difficulty was met
