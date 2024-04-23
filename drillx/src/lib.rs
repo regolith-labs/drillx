@@ -9,10 +9,10 @@ use sha3::{Digest, Keccak256};
 use crate::operator::Operator;
 pub use crate::utils::*;
 
-// TODO Debug build flag (print times)
+// TODO Debug feature flag for print statements
 
 pub fn hash(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
-    // The drill part (random sequential calculations and memory reads)
+    // The drill part (non-parallelizable digest)
     let timer = Instant::now();
     let digest = Operator::new(&challenge, &nonce.to_le_bytes(), noise).drill();
     println!("drill in {} nanos", timer.elapsed().as_nanos());
