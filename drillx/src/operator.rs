@@ -75,8 +75,8 @@ impl<'a> Operator<'a> {
         let mut result = [0; DIGEST_SIZE];
         for i in 0..DIGEST_SIZE {
             while !self.update() {}
-            let b = usize::from_le_bytes(self.buf::<8>(self.opcount as usize));
-            let n = self.noise[b % self.noise.len()];
+            let addr = usize::from_le_bytes(self.buf::<8>(self.opcount as usize));
+            let n = self.noise[addr % self.noise.len()];
             r = r.wrapping_add(n);
             result[i] = n.rotate_right(r as u32 % 8);
             self.opcount = 0;
