@@ -1,3 +1,3 @@
-# Drillhash
+# Drillx
 
-Hashing algorithm for Ore cryptocurrency.
+Drillx is an asic-resistant hashing algorithm for Ore cryptocurrency mining.
