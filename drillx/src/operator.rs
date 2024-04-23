@@ -15,7 +15,7 @@ const EXIT_OPERAND: u8 = 17;
 // TODO Maybe make this a variable (could be useful to tune later for onchain performance)
 const DIGEST_SIZE: usize = 32;
 
-/// Global state for drill operations
+/// Global state for drilling algorithm
 #[derive(Debug)]
 pub struct Operator<'a> {
     /// Scratchpad for bit noise
@@ -24,7 +24,7 @@ pub struct Operator<'a> {
     /// 512-bit internal state
     state: [u8; 64],
 
-    /// Count of operations executed on current byte of the digest
+    /// Operations executed on current slice of the digest
     opcount: u32,
 
     /// Exit condition
@@ -40,18 +40,22 @@ impl<'a> Operator<'a> {
     // Initialize 512 bit internal state from two recursive blake hashes
     pub fn new(challenge: &'a [u8; 32], nonce: &'a [u8; 8], noise: &'a [u8]) -> Operator<'a> {
         // Recursive blake3 hash
+        let a;
+        let b;
         #[cfg(not(feature = "solana"))]
-        let a = blake3::hash(&[challenge.as_slice(), nonce.as_slice()].concat())
-            .as_bytes()
-            .to_owned();
-        #[cfg(not(feature = "solana"))]
-        let b = blake3::hash(a.as_slice()).as_bytes().to_owned();
+        {
+            a = blake3::hash(&[challenge.as_slice(), nonce.as_slice()].concat())
+                .as_bytes()
+                .to_owned();
+            b = blake3::hash(a.as_slice()).as_bytes().to_owned();
+        }
 
-        // Recursive blake3 hash for solana runtime
+        // Recursive blake3 hash (solana runtime)
         #[cfg(feature = "solana")]
-        let a = solana_program::blake3::hashv(&[challenge.as_slice(), nonce.as_slice()]).0;
-        #[cfg(feature = "solana")]
-        let b = solana_program::blake3::hashv(a.as_slice()).0;
+        {
+            a = solana_program::blake3::hashv(&[challenge.as_slice(), nonce.as_slice()]).0;
+            b = solana_program::blake3::hashv(a.as_slice()).0;
+        }
 
         // Build internal state
         let mut state = [0u8; 64];
@@ -71,9 +75,8 @@ impl<'a> Operator<'a> {
         }
     }
 
-    /// Build 64-bit digest
+    /// Build digest using unpredictable and non-parallelizable operations
     pub fn drill(&mut self) -> [u8; DIGEST_SIZE] {
-        // Build digest
         let mut result = [0; DIGEST_SIZE];
         for i in 0..DIGEST_SIZE {
             while !self.exec() {
@@ -115,7 +118,7 @@ impl<'a> Operator<'a> {
 
         // Fill buffer
         let mut addr = [0u8; 8];
-        let mut b = 0u8;
+        let mut b = self.state[0] ^ self.state[8] ^ self.state[42] ^ self.state[56];
         let count = (self.state[3] ^ self.state[1] ^ self.state[41] ^ self.state[59]) as usize;
         for i in 0..count.max(8) {
             addr[i % 8] ^= self.state[b as usize % 64];
@@ -146,14 +149,14 @@ impl<'a> Operator<'a> {
             let index_b = (b as usize ^ (i * m as usize) as usize) % 64; // Use index and modifier
             self.state[i] = a ^ b ^ self.state[index_b];
 
-            // Introduce some non-linearity
+            // Nonlinear shift
             m = m.wrapping_mul(SHUFFLE_PRIME).wrapping_add(self.state[i]);
         }
 
         self.t2 += t.elapsed().as_nanos();
     }
 
-    /// Read a slice of noise in a looping unpredictable manner
+    /// Read a slice of noise in a looping and unpredictable manner
     fn noise_loop<const N: usize>(&mut self) -> [u8; N] {
         let t = Instant::now();
 
