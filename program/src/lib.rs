@@ -1,5 +1,5 @@
 use bytemuck::{Pod, Zeroable};
-use drillhash::*;
+use drillhx::*;
 use solana_program::{
     self,
     account_info::AccountInfo,
@@ -27,7 +27,7 @@ pub fn process_instruction(
     };
 
     let challenge = [255; 32];
-    let candidate = drillhash(challenge, args.nonce, &noise.data.borrow());
+    let candidate = drillhx(challenge, args.nonce, &noise.data.borrow());
     if difficulty(candidate).lt(&(args.difficulty as u32)) {
         return Err(ProgramError::Custom(0));
     }

@@ -1,21 +1,22 @@
 [package]
-name = "drillhash"
+name = "drillhx"
 version = "0.1.0"
-description = "Drillhash is an asic-resistant hashing algorithm for Ore."
+description = "Drillhx is an asic-resistant hashing algorithm for Ore cryptocurrency mining."
 edition = "2021"
 license = "Apache-2.0"
 homepage = "https://ore.supply"
 documentation = "https://ore.supply"
-repository = "https://github.com/hardhatchad/drillhash"
+repository = "https://github.com/hardhatchad/drillhx"
 readme = "./README.md"
 keywords = ["solana", "crypto", "mining"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
-name = "drillhash"
+name = "drillhx"
 
 [features]
 default = ["blake3", "sha3"]
+benchmark = []
 solana = ["solana-program"]
 
 [dependencies]

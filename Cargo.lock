@@ -1205,7 +1205,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1435fa1053d8b2fbbe9be7e97eca7f33d37b28409959813daefc1446a14247f1"
 
 [[package]]
-name = "drillhash"
+name = "drillhash-program"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
+ "drillhx",
+ "solana-program",
+ "solana-program-test",
+ "solana-sdk",
+ "tokio",
+]
+
+[[package]]
+name = "drillhx"
 version = "0.1.0"
 dependencies = [
  "blake3",
@@ -1216,18 +1228,6 @@ dependencies = [
  "sha3 0.10.8",
  "solana-program",
  "strum 0.26.2",
-]
-
-[[package]]
-name = "drillhash-program"
-version = "0.1.0"
-dependencies = [
- "bytemuck",
- "drillhash",
- "solana-program",
- "solana-program-test",
- "solana-sdk",
- "tokio",
 ]
 
 [[package]]
@@ -1388,7 +1388,7 @@ checksum = "0206175f82b8d6bf6652ff7d71a1e27fd2e4efde587fd368662814d6ec1d9ce0"
 name = "example-1"
 version = "0.1.0"
 dependencies = [
- "drillhash",
+ "drillhx",
  "tokio",
 ]
 

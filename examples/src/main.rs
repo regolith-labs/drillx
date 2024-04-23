@@ -1,6 +1,6 @@
 use std::{fs::File, io::Read, time::Instant};
 
-use drillhash::*;
+use drillhx::*;
 
 const TARGET_DIFFICULTY: u32 = 8; // 12; // 8; //10;
 
@@ -34,10 +34,10 @@ fn do_work(challenge: [u8; 32], noise: &[u8]) -> u64 {
     let mut nonce = 0;
     loop {
         // Calculate hash
-        let h = drillhash(challenge, nonce, noise);
+        let hx = drillhx(challenge, nonce, noise);
 
         // Return if difficulty was met
-        if difficulty(h) >= TARGET_DIFFICULTY {
+        if difficulty(hx) >= TARGET_DIFFICULTY {
             break;
         }
 
@@ -48,7 +48,7 @@ fn do_work(challenge: [u8; 32], noise: &[u8]) -> u64 {
 }
 
 fn prove_work(challenge: [u8; 32], nonce: u64, noise: &[u8]) {
-    let candidate = drillhash(challenge, nonce, noise);
+    let candidate = drillhx(challenge, nonce, noise);
     println!("candidate hash {candidate:?}");
     assert!(difficulty(candidate) >= TARGET_DIFFICULTY);
 }

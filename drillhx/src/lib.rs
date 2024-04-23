@@ -11,7 +11,7 @@ pub use crate::utils::*;
 
 // TODO Debug build flag (print times)
 
-pub fn drillhash(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
+pub fn drillhx(challenge: [u8; 32], nonce: u64, noise: &[u8]) -> [u8; 32] {
     // The drill part (random sequential calculations and memory reads)
     let timer = Instant::now();
     let digest = Operator::new(&challenge, &nonce.to_le_bytes(), noise).drill();

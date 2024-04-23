@@ -13,7 +13,7 @@ default = []
 
 [dependencies]
 bytemuck = { workspace = true }
-drillhash = { workspace = true, feature = ["solana"] }
+drillhx = { workspace = true, feature = ["solana"] }
 solana-program = { workspace = true }
 
 [dev-dependencies]
