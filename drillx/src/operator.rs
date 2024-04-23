@@ -71,17 +71,20 @@ impl<'a> Operator<'a> {
 
     /// Build digest using unpredictable and non-parallelizable operations
     pub fn drill(&mut self) -> [u8; DIGEST_SIZE] {
+        let mut r = self.state[0];
         let mut result = [0; DIGEST_SIZE];
         for i in 0..DIGEST_SIZE {
             while !self.update() {}
-            result[i] = self.noise
-                [usize::from_le_bytes(self.buf::<8>(self.opcount as usize)) % self.noise.len()];
+            let b = usize::from_le_bytes(self.buf::<8>(self.opcount as usize));
+            let n = self.noise[b % self.noise.len()];
+            r = r.wrapping_add(n);
+            result[i] = n.rotate_right(r as u32 % 8);
             self.opcount = 0;
         }
 
         // Print timers
         println!("Noise {} ns", self.t1);
-        println!("Op {} ns", self.t1);
+        println!("Op {} ns", self.t2);
         result
     }
 
@@ -125,7 +128,7 @@ impl<'a> Operator<'a> {
 
         // Fill the noise buffer
         let offset = usize::from_le_bytes(self.buf::<8>(0));
-        let mut addr = usize::from_le_bytes(self.buf::<8>(1));
+        let mut addr = usize::from_le_bytes(self.buf::<8>(offset));
         let mut result = self.state[0];
         for _ in 0..N {
             addr ^= usize::from_le_bytes([
@@ -141,7 +144,7 @@ impl<'a> Operator<'a> {
             result ^= self.noise[addr % self.noise.len()];
         }
 
-        // Shuffle and return
+        // Return
         self.t1 += t.elapsed().as_nanos();
         result
     }
@@ -174,8 +177,11 @@ impl<'a> Operator<'a> {
 
     /// Stop executing on the current byte of the digest
     fn exit(&mut self) -> bool {
-        let buf = self.buf::<8>(self.opcount as usize);
-        u64::from_be_bytes(buf) % EXIT_OPERAND as u64 == self.exit.into()
+        let mut i = 0u8;
+        for x in self.state {
+            i = i.wrapping_add(x);
+        }
+        u64::from_be_bytes(self.buf::<8>(i as usize)) % EXIT_OPERAND as u64 == self.exit.into()
     }
 }
 
