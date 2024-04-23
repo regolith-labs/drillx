@@ -2,9 +2,6 @@ use std::time::Instant;
 
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
-/// Maximum allowed operations per digest byte
-const OPCOUNT_LIMIT: u32 = 32;
-
 /// Modulo operand for exit condition
 const EXIT_OPERAND: u8 = 17;
 
