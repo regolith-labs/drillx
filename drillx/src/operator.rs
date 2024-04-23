@@ -91,20 +91,20 @@ impl<'a> Operator<'a> {
     /// Do unpredictable number of arithmetic operations on internal state
     fn update(&mut self) -> bool {
         // Do arithmetic
-        let mut b = self.state[0];
+        let mut seed = self.state[0];
         for i in 0..64 {
-            let buf = self.buf::<8>(b.wrapping_add(i) as usize);
+            let buf = self.buf::<8>(seed.wrapping_add(i) as usize);
             let n = self.noise::<64>();
-            // TODO Loop an unpredictable number of times (combinations of branches must exceed what brute force can reasonably do)
+            // TODO Loop an unpredictable number of times (combinations of op branches must exceed what brute force can reasonably do)
             // for _ in 0..8 {
             //     //n.max(8) {
             //     n ^= dbg!(self.op(dbg!(n), dbg!(x)));
             //     x ^= dbg!(self.op(dbg!(x), dbg!(n)));
             // }
-            let a = buf[self.state[i as usize % 64] as usize % 8];
+            let a = buf[self.state[n as usize % 64] as usize % 8];
             let r = buf[self.state[a as usize % 64] as usize % 8];
             self.state[i as usize] ^= self.op(a, n).rotate_right(r as u32);
-            b ^= self.state[i as usize];
+            seed ^= self.state[i as usize];
         }
 
         // Exit
@@ -131,6 +131,7 @@ impl<'a> Operator<'a> {
         let mut addr = usize::from_le_bytes(self.buf::<8>(offset));
         let mut result = self.state[0];
         for _ in 0..N {
+            // TODO Test alternative method of addr construction that doesn't rely on hardcoded rotations
             addr ^= usize::from_le_bytes([
                 self.noise[(addr ^ offset) % self.noise.len()],
                 self.noise[(addr ^ offset.rotate_right(8)) % self.noise.len()],
