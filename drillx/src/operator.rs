@@ -12,6 +12,7 @@ const SHUFFLE_PRIME: u8 = 31;
 const EXIT_OPERAND: u8 = 17;
 
 /// Size of the digest to build
+// TODO Maybe make this a variable (could be useful to tune later for onchain performance)
 const DIGEST_SIZE: usize = 32;
 
 /// Global state for drill operations
@@ -71,7 +72,6 @@ impl<'a> Operator<'a> {
     }
 
     /// Build 64-bit digest
-    // TODO Maybe make digest size variable (could be useful to tune later for onchain performance)
     pub fn drill(&mut self) -> [u8; DIGEST_SIZE] {
         // Build digest
         let mut result = [0; DIGEST_SIZE];
