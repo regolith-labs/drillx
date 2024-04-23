@@ -75,7 +75,7 @@ impl<'a> Operator<'a> {
         let mut result = [0; DIGEST_SIZE];
         for i in 0..DIGEST_SIZE {
             while !self.update() {}
-            let addr = usize::from_le_bytes(self.buf::<8>(self.opcount as usize));
+            let addr = usize::from_le_bytes(self.buf(self.opcount as u8));
             let n = self.noise[addr % self.noise.len()];
             r = r.wrapping_add(n);
             result[i] = n.rotate_right(r as u32 % 8);
@@ -85,6 +85,7 @@ impl<'a> Operator<'a> {
         // Print timers
         println!("Noise {} ns", self.t1);
         println!("Op {} ns", self.t2);
+        println!("Buf {} ns", self.t3);
         result
     }
 
@@ -93,7 +94,6 @@ impl<'a> Operator<'a> {
         // Do arithmetic
         let mut seed = self.state[0];
         for i in 0..64 {
-            let buf = self.buf::<8>(seed.wrapping_add(i) as usize);
             let n = self.noise::<64>();
             // TODO Loop an unpredictable number of times (combinations of op branches must exceed what brute force can reasonably do)
             // for _ in 0..8 {
@@ -101,24 +101,26 @@ impl<'a> Operator<'a> {
             //     n ^= dbg!(self.op(dbg!(n), dbg!(x)));
             //     x ^= dbg!(self.op(dbg!(x), dbg!(n)));
             // }
-            let a = buf[self.state[n as usize % 64] as usize % 8];
-            let r = buf[self.state[a as usize % 64] as usize % 8];
+            let a = self.state[n.wrapping_add(seed) as usize % 64];
+            let r = self.state[a.wrapping_add(seed) as usize % 64];
             self.state[i as usize] ^= self.op(a, n).rotate_right(r as u32);
             seed ^= self.state[i as usize];
         }
 
         // Exit
-        self.exit()
+        self.exit(seed)
     }
 
-    /// Build an unpredictable buffer of arbitrary size from a seed position and internal state
-    fn buf<const N: usize>(&self, seed: usize) -> [u8; N] {
-        let mut buf = [0u8; N];
-        let mut a = self.state[seed % 64];
-        for i in 0..N {
+    /// Build a buffer of arbitrary size from a seed and internal state
+    fn buf(&mut self, seed: u8) -> [u8; 8] {
+        let t = Instant::now();
+        let mut buf = [0u8; 8];
+        let mut a = self.state[seed as usize % 64];
+        for i in 0..8 {
             buf[i] = a ^ self.state[a as usize % 64];
-            a ^= buf[i].rotate_right(a.wrapping_add(i as u8) as u32 % 8);
+            a ^= buf[i].rotate_right(a as u32 % 8);
         }
+        self.t3 += t.elapsed().as_nanos();
         buf
     }
 
@@ -127,20 +129,20 @@ impl<'a> Operator<'a> {
         let t = Instant::now();
 
         // Fill the noise buffer
-        let offset = usize::from_le_bytes(self.buf::<8>(0));
-        let mut addr = usize::from_le_bytes(self.buf::<8>(offset));
-        let mut result = self.state[0];
+        let mut result = self.sum();
+        let mask = usize::from_le_bytes(self.buf(result));
+        let mut addr = usize::from_le_bytes(self.buf(mask as u8));
         for _ in 0..N {
             // TODO Test alternative method of addr construction that doesn't rely on hardcoded rotations
             addr ^= usize::from_le_bytes([
-                self.noise[(addr ^ offset) % self.noise.len()],
-                self.noise[(addr ^ offset.rotate_right(8)) % self.noise.len()],
-                self.noise[(addr ^ offset.rotate_right(16)) % self.noise.len()],
-                self.noise[(addr ^ offset.rotate_right(24)) % self.noise.len()],
-                self.noise[(addr ^ offset.rotate_right(32)) % self.noise.len()],
-                self.noise[(addr ^ offset.rotate_right(40)) % self.noise.len()],
-                self.noise[(addr ^ offset.rotate_right(48)) % self.noise.len()],
-                self.noise[(addr ^ offset.rotate_right(56)) % self.noise.len()],
+                self.noise[(addr ^ mask) % self.noise.len()],
+                self.noise[(addr ^ mask.rotate_right(8)) % self.noise.len()],
+                self.noise[(addr ^ mask.rotate_right(16)) % self.noise.len()],
+                self.noise[(addr ^ mask.rotate_right(24)) % self.noise.len()],
+                self.noise[(addr ^ mask.rotate_right(32)) % self.noise.len()],
+                self.noise[(addr ^ mask.rotate_right(40)) % self.noise.len()],
+                self.noise[(addr ^ mask.rotate_right(48)) % self.noise.len()],
+                self.noise[(addr ^ mask.rotate_right(56)) % self.noise.len()],
             ]);
             result ^= self.noise[addr % self.noise.len()];
         }
@@ -152,11 +154,8 @@ impl<'a> Operator<'a> {
 
     /// Select an opcode from the current state
     fn opcode(&mut self) -> Opcode {
-        Opcode::try_from(
-            (usize::from_le_bytes(self.buf::<8>(self.opcount as usize)) % Opcode::cardinality())
-                as u8,
-        )
-        .expect("Unknown opcode")
+        Opcode::try_from(self.state[self.opcount as usize % 64] % Opcode::cardinality() as u8)
+            .expect("Unknown opcode")
     }
 
     /// Execute a random operation the given operands
@@ -176,13 +175,18 @@ impl<'a> Operator<'a> {
         x
     }
 
-    /// Stop executing on the current byte of the digest
-    fn exit(&mut self) -> bool {
-        let mut i = 0u8;
+    /// Returns wrapping sum of all 512 bytes in internal state
+    fn sum(&self) -> u8 {
+        let mut sum = 0u8;
         for x in self.state {
-            i = i.wrapping_add(x);
+            sum = sum.wrapping_add(x);
         }
-        u64::from_be_bytes(self.buf::<8>(i as usize)) % EXIT_OPERAND as u64 == self.exit.into()
+        sum
+    }
+
+    /// Stop executing on the current byte of the digest
+    fn exit(&mut self, seed: u8) -> bool {
+        seed % EXIT_OPERAND == self.exit.into()
     }
 }
 
