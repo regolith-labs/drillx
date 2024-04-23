@@ -5,9 +5,6 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 /// Maximum allowed operations per digest byte
 const OPCOUNT_LIMIT: u32 = 32;
 
-/// A prime number for the shuffle operation
-const SHUFFLE_PRIME: u8 = 31;
-
 /// Modulo operand for exit condition
 const EXIT_OPERAND: u8 = 17;
 
@@ -79,161 +76,128 @@ impl<'a> Operator<'a> {
     pub fn drill(&mut self) -> [u8; DIGEST_SIZE] {
         let mut result = [0; DIGEST_SIZE];
         for i in 0..DIGEST_SIZE {
-            while !self.exec() {
-                self.shuffle(self.opcount as u8 ^ self.state[0]);
-                self.opcount += 1;
-                if self.opcount.ge(&OPCOUNT_LIMIT) {
-                    break;
-                }
-            }
-            result[i] = self.noise[self.addr()];
+            while !self.update() {}
+            result[i] = self.noise
+                [usize::from_le_bytes(self.buf::<8>(self.opcount as usize)) % self.noise.len()];
             self.opcount = 0;
         }
 
         // Print timers
-        println!("Addr {} ns", self.t1);
-        println!("Noise {} ns", self.t3);
-        println!("Shuffle {} ns", self.t2);
+        println!("Noise {} ns", self.t1);
+        println!("Op {} ns", self.t1);
         result
     }
 
-    /// Execute an arithmetic operation
-    fn exec(&mut self) -> bool {
+    /// Do unpredictable number of arithmetic operations on internal state
+    fn update(&mut self) -> bool {
         // Do arithmetic
-        let noise = self.noise_loop::<64>();
-        let mut x = self.state[0] ^ noise[0];
+        let mut b = self.state[0];
         for i in 0..64 {
-            x = self.op(x, self.noise[i]);
-            self.state[i] = self.op(self.state[i], x);
+            let buf = self.buf::<8>(b.wrapping_add(i) as usize);
+            let n = self.noise::<64>();
+            // TODO Loop an unpredictable number of times (combinations of branches must exceed what brute force can reasonably do)
+            // for _ in 0..8 {
+            //     //n.max(8) {
+            //     n ^= dbg!(self.op(dbg!(n), dbg!(x)));
+            //     x ^= dbg!(self.op(dbg!(x), dbg!(n)));
+            // }
+            let a = buf[self.state[i as usize % 64] as usize % 8];
+            let r = buf[self.state[a as usize % 64] as usize % 8];
+            self.state[i as usize] ^= self.op(a, n).rotate_right(r as u32);
+            b ^= self.state[i as usize];
         }
 
-        // Shuffle and exit
-        self.shuffle(x);
+        // Exit
         self.exit()
     }
 
-    /// Derive random address in noise memory space
-    pub fn addr(&mut self) -> usize {
-        let t = Instant::now();
-
-        // Fill buffer
-        let mut addr = [0u8; 8];
-        let mut b = self.state[0] ^ self.state[8] ^ self.state[42] ^ self.state[56];
-        let count = (self.state[3] ^ self.state[1] ^ self.state[41] ^ self.state[59]) as usize;
-        for i in 0..count.max(8) {
-            addr[i % 8] ^= self.state[b as usize % 64];
-            b ^= addr[i % 8];
+    /// Build an unpredictable buffer of arbitrary size from a seed position and internal state
+    fn buf<const N: usize>(&self, seed: usize) -> [u8; N] {
+        let mut buf = [0u8; N];
+        let mut a = self.state[seed % 64];
+        for i in 0..N {
+            buf[i] = a ^ self.state[a as usize % 64];
+            a ^= buf[i].rotate_right(a.wrapping_add(i as u8) as u32 % 8);
         }
-
-        // Return
-        self.t1 += t.elapsed().as_nanos();
-        self.shuffle(b);
-        usize::from_le_bytes(addr) % self.noise.len()
-    }
-
-    /// Shuffle the internal state
-    fn shuffle(&mut self, mut m: u8) {
-        let t = Instant::now();
-
-        // Initialize the modifier value
-        for &x in &self.state {
-            m = m.wrapping_add(x);
-        }
-
-        // Unpredictably shuffle every byte of state
-        for i in 0..64 {
-            // Update state
-            let a = self.state[i];
-            let index_a = (a as usize ^ m as usize) % 64; // Use xor with the modifier for index
-            let b = self.state[index_a];
-            let index_b = (b as usize ^ (i * m as usize) as usize) % 64; // Use index and modifier
-            self.state[i] = a ^ b ^ self.state[index_b];
-
-            // Nonlinear shift
-            m = m.wrapping_mul(SHUFFLE_PRIME).wrapping_add(self.state[i]);
-        }
-
-        self.t2 += t.elapsed().as_nanos();
+        buf
     }
 
     /// Read a slice of noise in a looping and unpredictable manner
-    fn noise_loop<const N: usize>(&mut self) -> [u8; N] {
+    fn noise<const N: usize>(&mut self) -> u8 {
         let t = Instant::now();
 
         // Fill the noise buffer
-        let mut result = [0u8; N];
-        let mut b = 0u8;
-        for i in 0..N {
-            let n = self.noise[self.addr()];
-            result[i % N] = n ^ self.state[n as usize % 64];
-            b = b.wrapping_add(result[i % N]);
+        let offset = usize::from_le_bytes(self.buf::<8>(0));
+        let mut addr = usize::from_le_bytes(self.buf::<8>(1));
+        let mut result = self.state[0];
+        for _ in 0..N {
+            addr ^= usize::from_le_bytes([
+                self.noise[(addr ^ offset) % self.noise.len()],
+                self.noise[(addr ^ offset.rotate_right(8)) % self.noise.len()],
+                self.noise[(addr ^ offset.rotate_right(16)) % self.noise.len()],
+                self.noise[(addr ^ offset.rotate_right(24)) % self.noise.len()],
+                self.noise[(addr ^ offset.rotate_right(32)) % self.noise.len()],
+                self.noise[(addr ^ offset.rotate_right(40)) % self.noise.len()],
+                self.noise[(addr ^ offset.rotate_right(48)) % self.noise.len()],
+                self.noise[(addr ^ offset.rotate_right(56)) % self.noise.len()],
+            ]);
+            result ^= self.noise[addr % self.noise.len()];
         }
 
         // Shuffle and return
-        self.t3 += t.elapsed().as_nanos();
-        self.shuffle(b);
+        self.t1 += t.elapsed().as_nanos();
         result
     }
 
     /// Select an opcode from the current state
     fn opcode(&mut self) -> Opcode {
         Opcode::try_from(
-            (self.state[2]
-                ^ self.state[3]
-                ^ self.state[5]
-                ^ self.state[7]
-                ^ self.state[11]
-                ^ self.state[13]
-                ^ self.state[17]
-                ^ self.state[19])
-                % Opcode::cardinality() as u8,
+            (usize::from_le_bytes(self.buf::<8>(self.opcount as usize)) % Opcode::cardinality())
+                as u8,
         )
         .expect("Unknown opcode")
     }
 
     /// Execute a random operation the given operands
     fn op(&mut self, a: u8, b: u8) -> u8 {
-        match self.opcode() {
+        let t = Instant::now();
+        let x = match self.opcode() {
             Opcode::Add => a.wrapping_add(b),
             Opcode::Sub => a.wrapping_sub(b),
             Opcode::Mul => a.wrapping_mul(b),
-            Opcode::Div => a.wrapping_div(b.saturating_add(2)),
-            Opcode::Nop => a,
-            Opcode::Swap => b,
-        }
+            // TODO Avoid case where wrapping_div goes to zero if b > a
+            // Opcode::Div => a.wrapping_div(b.saturating_add(2)),
+            // Opcode::Nop => a,
+            // Opcode::Swap => b,
+        };
+        self.opcount += 1;
+        self.t2 += t.elapsed().as_nanos();
+        x
     }
 
     /// Stop executing on the current byte of the digest
     fn exit(&mut self) -> bool {
-        u64::from_be_bytes([
-            self.state[23],
-            self.state[29],
-            self.state[31],
-            self.state[37],
-            self.state[41],
-            self.state[43],
-            self.state[47],
-            self.state[53],
-        ]) % EXIT_OPERAND as u64
-            == self.exit.into()
+        let buf = self.buf::<8>(self.opcount as usize);
+        u64::from_be_bytes(buf) % EXIT_OPERAND as u64 == self.exit.into()
     }
 }
 
 /// Set of arbitrary compute operations to chose from
-// TODO Sqrt, Floats ?
+// TODO Add more ops
+// TODO Div, Sqrt, Floats ?
 #[derive(Debug, IntoPrimitive, TryFromPrimitive)]
 #[repr(u8)]
 enum Opcode {
     Add = 0,
     Sub,
     Mul,
-    Div,
-    Nop,
-    Swap,
+    // Div,
+    // Nop,
+    // Swap,
 }
 
 impl Opcode {
     pub fn cardinality() -> usize {
-        6
+        3 // 6
     }
 }
