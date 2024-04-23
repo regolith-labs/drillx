@@ -28,6 +28,11 @@ pub struct Operator<'a> {
     t1: u128,
     t2: u128,
     t3: u128,
+
+    /// Counters
+    buf: u128,
+    op: u128,
+    noisec: u128,
 }
 
 impl<'a> Operator<'a> {
@@ -66,6 +71,9 @@ impl<'a> Operator<'a> {
             t1: 0,
             t2: 0,
             t3: 0,
+            buf: 0,
+            op: 0,
+            noisec: 0,
         }
     }
 
@@ -83,9 +91,24 @@ impl<'a> Operator<'a> {
         }
 
         // Print timers
-        println!("Noise {} ns", self.t1);
-        println!("Op {} ns", self.t2);
-        println!("Buf {} ns", self.t3);
+        println!(
+            "Noise {} calls – {} ns – {} ns avg",
+            self.t1,
+            self.noisec,
+            self.t1.saturating_div(self.noisec)
+        );
+        println!(
+            "Op {} calls – {} ns – {} ns avg",
+            self.t2,
+            self.op,
+            self.t2.saturating_div(self.op)
+        );
+        println!(
+            "Buf {} calls – {} ns – {} ns avg",
+            self.t3,
+            self.buf,
+            self.t3.saturating_div(self.buf)
+        );
         result
     }
 
@@ -112,6 +135,7 @@ impl<'a> Operator<'a> {
     }
 
     /// Build a buffer of arbitrary size from a seed and internal state
+    // TODO Reduce buf calls. Buf itself is pretty cheap (~700 ns), but we call it twice as often as op
     fn buf(&mut self, seed: u8) -> [u8; 8] {
         let t = Instant::now();
         let mut buf = [0u8; 8];
@@ -121,14 +145,44 @@ impl<'a> Operator<'a> {
             a ^= buf[i].rotate_right(a as u32 % 8);
         }
         self.t3 += t.elapsed().as_nanos();
+        self.buf += 1;
         buf
     }
+
+    // fn quickbuf(&mut self, r: u8) -> [u8; 8] {
+    //     let t = Instant::now();
+    //     let mut buf = [0; 8];
+    //     let mut a = self.state[r as usize % 64];
+    //     for i in 0..8 {
+    //         // buf[i] = (self.state[i * 8]
+    //         //     ^ self.state[i * 8 + 1]
+    //         //     ^ self.state[i * 8 + 2]
+    //         //     ^ self.state[i * 8 + 3]
+    //         //     ^ self.state[i * 8 + 4]
+    //         //     ^ self.state[i * 8 + 5]
+    //         //     ^ self.state[i * 8 + 6]
+    //         //     ^ self.state[i * 8 + 7])
+    //         //     .rotate_right(r as u32)
+    //         buf[i] = self.state[a.wrapping_mul(r).wrapping_add(i as u8) as usize % 64];
+    //         a ^= buf[i];
+    //     }
+    //     self.t3 += t.elapsed().as_nanos();
+    //     self.buf += 1;
+    //     buf
+    // }
 
     /// Read a slice of noise in a looping and unpredictable manner
     fn noise<const N: usize>(&mut self) -> u8 {
         let t = Instant::now();
 
         // Fill the noise buffer
+        // TODO Make this cheaper? Do we need 2 buf calls?
+        //      work done in 4675261984 nanos
+        //      Noise 534242027 calls 35648 ns 14986 ns avg
+        //      Op 23731166 calls 35648 ns 665 ns avg
+        //      Buf 53349538 calls 71328 ns 747 ns avg
+        //      drill in 604834005 nanos
+        //      hash in 110673 nanos
         let mut result = self.sum();
         let mask = usize::from_le_bytes(self.buf(result));
         let mut addr = usize::from_le_bytes(self.buf(mask as u8));
@@ -149,6 +203,7 @@ impl<'a> Operator<'a> {
 
         // Return
         self.t1 += t.elapsed().as_nanos();
+        self.noisec += 1;
         result
     }
 
@@ -172,6 +227,7 @@ impl<'a> Operator<'a> {
         };
         self.opcount += 1;
         self.t2 += t.elapsed().as_nanos();
+        self.op += 1;
         x
     }
 
