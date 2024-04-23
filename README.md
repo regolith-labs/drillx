@@ -1,3 +1,13 @@
 # Drillx
 
 Drillx is an asic-resistant hashing algorithm for Ore cryptocurrency mining.
+
+## Basic idea
+There are two steps to creating any hash:
+1. Build the digest
+2. Do the hash
+
+
+In Ore v1, building the digest was trivially easy. 100% of the work was the keccak hash. 
+
+The basic idea of drillx is to shift ~90-99% of the work to building the digest and make this process a long a non-parallelizable, memory bound task.
