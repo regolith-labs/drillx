@@ -1209,7 +1209,7 @@ name = "drillhash-program"
 version = "0.1.0"
 dependencies = [
  "bytemuck",
- "drillhx",
+ "drillx",
  "solana-program",
  "solana-program-test",
  "solana-sdk",
@@ -1217,7 +1217,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "drillhx"
+name = "drillx"
 version = "0.1.0"
 dependencies = [
  "blake3",
@@ -1388,7 +1388,7 @@ checksum = "0206175f82b8d6bf6652ff7d71a1e27fd2e4efde587fd368662814d6ec1d9ce0"
 name = "example-1"
 version = "0.1.0"
 dependencies = [
- "drillhx",
+ "drillx",
  "tokio",
 ]
 
