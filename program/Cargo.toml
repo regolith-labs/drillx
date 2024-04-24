@@ -1,5 +1,5 @@
 [package]
-name = "drillhash-program"
+name = "drillx-program"
 version = "0.1.0"
 edition = "2021"
 

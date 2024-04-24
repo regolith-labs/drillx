@@ -29,11 +29,11 @@ fn main() {
 
 // TODO Parallelize
 fn do_work(challenge: [u8; 32], noise: &[u8]) -> u64 {
-    let mut nonce = 0;
+    let mut nonce: u64 = 0;
     loop {
         // Calculate hash
         println!("Nonce {}", nonce);
-        let hx = drillx::hash(challenge, nonce, noise);
+        let hx = drillx::hash(&challenge, &nonce.to_le_bytes(), noise);
 
         // Return if difficulty was met
         if drillx::difficulty(hx) >= TARGET_DIFFICULTY {
@@ -47,7 +47,7 @@ fn do_work(challenge: [u8; 32], noise: &[u8]) -> u64 {
 }
 
 fn prove_work(challenge: [u8; 32], nonce: u64, noise: &[u8]) {
-    let candidate = drillx::hash(challenge, nonce, noise);
+    let candidate = drillx::hash(&challenge, &nonce.to_le_bytes(), noise);
     println!("candidate hash {candidate:?}");
     assert!(drillx::difficulty(candidate) >= TARGET_DIFFICULTY);
 }

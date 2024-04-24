@@ -3,6 +3,7 @@ use solana_program::{hash::Hash, rent::Rent};
 use solana_program_test::{processor, read_file, BanksClient, ProgramTest};
 use solana_sdk::{
     account::Account,
+    compute_budget::ComputeBudgetInstruction,
     signature::{Keypair, Signer},
     transaction::Transaction,
 };
@@ -13,25 +14,34 @@ async fn test_initialize() {
     let (mut banks, payer, blockhash) = setup_program_test_env().await;
 
     // Should fail
-    let ix = program::verify(payer.pubkey(), 0, 4);
-    let tx = Transaction::new_signed_with_payer(&[ix], Some(&payer.pubkey()), &[&payer], blockhash);
+    let tx = build_tx(&payer, 0, 4, blockhash);
     assert!(banks.process_transaction(tx).await.is_err());
 
     // Should succeed
-    let ix = program::verify(payer.pubkey(), 7, 4);
-    let tx = Transaction::new_signed_with_payer(&[ix], Some(&payer.pubkey()), &[&payer], blockhash);
+    let tx = build_tx(&payer, 6, 4, blockhash);
     assert!(banks.process_transaction(tx).await.is_ok());
+}
+
+fn build_tx(payer: &Keypair, nonce: u64, difficulty: u64, blockhash: Hash) -> Transaction {
+    let cu_budget_ix = ComputeBudgetInstruction::set_compute_unit_limit(1_400_000);
+    let ix = program::verify(payer.pubkey(), nonce, difficulty);
+    Transaction::new_signed_with_payer(
+        &[cu_budget_ix, ix],
+        Some(&payer.pubkey()),
+        &[&payer],
+        blockhash,
+    )
 }
 
 async fn setup_program_test_env() -> (BanksClient, Keypair, Hash) {
     let mut program_test = ProgramTest::new(
-        "drillhx",
+        "program",
         program::id(),
         processor!(program::process_instruction),
     );
     program_test.prefer_bpf(true);
 
-    // Setup metadata program
+    // Setup noise account
     let data = read_file(&"../noise.txt");
     program_test.add_account(
         noise_address(),
@@ -39,7 +49,7 @@ async fn setup_program_test_env() -> (BanksClient, Keypair, Hash) {
             lamports: Rent::default().minimum_balance(data.len()).max(1),
             data,
             owner: program::id(),
-            executable: true,
+            executable: false,
             rent_epoch: 0,
         },
     );
