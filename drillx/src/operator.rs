@@ -3,7 +3,7 @@ use std::time::Instant;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 /// Modulo operand for exit condition
-const EXIT_OPERAND: u8 = 17;
+const EXIT_OPERAND: u8 = 13;
 
 /// Size of the digest to build
 // TODO Maybe make this a variable (could be useful to tune later for onchain performance)
@@ -28,11 +28,13 @@ pub struct Operator<'a> {
     t1: u128,
     t2: u128,
     t3: u128,
+    t4: u128,
 
     /// Counters
     buf: u128,
     op: u128,
     noisec: u128,
+    postupdate: u128,
 }
 
 impl<'a> Operator<'a> {
@@ -71,9 +73,11 @@ impl<'a> Operator<'a> {
             t1: 0,
             t2: 0,
             t3: 0,
+            t4: 0,
             buf: 0,
             op: 0,
             noisec: 0,
+            postupdate: 0,
         }
     }
 
@@ -93,88 +97,68 @@ impl<'a> Operator<'a> {
         // Print timers
         println!(
             "Noise {} calls – {} ns – {} ns avg",
-            self.t1,
             self.noisec,
+            self.t1,
             self.t1.saturating_div(self.noisec)
         );
         println!(
             "Op {} calls – {} ns – {} ns avg",
-            self.t2,
             self.op,
+            self.t2,
             self.t2.saturating_div(self.op)
         );
         println!(
             "Buf {} calls – {} ns – {} ns avg",
-            self.t3,
             self.buf,
+            self.t3,
             self.t3.saturating_div(self.buf)
         );
+        println!("Postupdate {} ns", self.t4,);
         result
     }
 
     /// Do unpredictable number of arithmetic operations on internal state
     fn update(&mut self) -> bool {
         // Do arithmetic
-        let mut seed = self.state[0];
+        let mut b = self.state[0];
         for i in 0..64 {
-            let n = self.noise::<64>();
+            let n = self.noise::<32>();
             // TODO Loop an unpredictable number of times (combinations of op branches must exceed what brute force can reasonably do)
             // for _ in 0..8 {
             //     //n.max(8) {
             //     n ^= dbg!(self.op(dbg!(n), dbg!(x)));
             //     x ^= dbg!(self.op(dbg!(x), dbg!(n)));
             // }
-            let a = self.state[n.wrapping_add(seed) as usize % 64];
-            let r = self.state[a.wrapping_add(seed) as usize % 64];
-            self.state[i as usize] ^= self.op(a, n).rotate_right(r as u32);
-            seed ^= self.state[i as usize];
+            let a = self.state[n.wrapping_add(b) as usize % 64];
+            self.state[i as usize] ^= self.op(a, n);
+            b ^= self.state[i as usize];
         }
 
         // Exit
-        self.exit(seed)
+        self.exit(b)
     }
 
     /// Build a buffer of arbitrary size from a seed and internal state
     // TODO Reduce buf calls. Buf itself is pretty cheap (~700 ns), but we call it twice as often as op
     fn buf(&mut self, seed: u8) -> [u8; 8] {
         let t = Instant::now();
-        let mut buf = [0u8; 8];
-        let mut a = self.state[seed as usize % 64];
-        for i in 0..8 {
-            buf[i] = a ^ self.state[a as usize % 64];
-            a ^= buf[i].rotate_right(a as u32 % 8);
-        }
+        let buf = [
+            self.state[seed as usize % 64],
+            self.state[seed.rotate_right(1) as usize % 64],
+            self.state[seed.rotate_right(2) as usize % 64],
+            self.state[seed.rotate_right(3) as usize % 64],
+            self.state[seed.rotate_right(4) as usize % 64],
+            self.state[seed.rotate_right(5) as usize % 64],
+            self.state[seed.rotate_right(6) as usize % 64],
+            self.state[seed.rotate_right(7) as usize % 64],
+        ];
         self.t3 += t.elapsed().as_nanos();
         self.buf += 1;
         buf
     }
 
-    // fn quickbuf(&mut self, r: u8) -> [u8; 8] {
-    //     let t = Instant::now();
-    //     let mut buf = [0; 8];
-    //     let mut a = self.state[r as usize % 64];
-    //     for i in 0..8 {
-    //         // buf[i] = (self.state[i * 8]
-    //         //     ^ self.state[i * 8 + 1]
-    //         //     ^ self.state[i * 8 + 2]
-    //         //     ^ self.state[i * 8 + 3]
-    //         //     ^ self.state[i * 8 + 4]
-    //         //     ^ self.state[i * 8 + 5]
-    //         //     ^ self.state[i * 8 + 6]
-    //         //     ^ self.state[i * 8 + 7])
-    //         //     .rotate_right(r as u32)
-    //         buf[i] = self.state[a.wrapping_mul(r).wrapping_add(i as u8) as usize % 64];
-    //         a ^= buf[i];
-    //     }
-    //     self.t3 += t.elapsed().as_nanos();
-    //     self.buf += 1;
-    //     buf
-    // }
-
     /// Read a slice of noise in a looping and unpredictable manner
     fn noise<const N: usize>(&mut self) -> u8 {
-        let t = Instant::now();
-
         // Fill the noise buffer
         // TODO Make this cheaper? Do we need 2 buf calls?
         //      work done in 4675261984 nanos
@@ -186,6 +170,7 @@ impl<'a> Operator<'a> {
         let mut result = self.sum();
         let mask = usize::from_le_bytes(self.buf(result));
         let mut addr = usize::from_le_bytes(self.buf(mask as u8));
+        let t = Instant::now();
         for _ in 0..N {
             // TODO Test alternative method of addr construction that doesn't rely on hardcoded rotations
             addr ^= usize::from_le_bytes([
