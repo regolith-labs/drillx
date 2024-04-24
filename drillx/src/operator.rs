@@ -7,7 +7,7 @@ const EXIT_OPERAND: u8 = 13;
 
 /// Size of the digest to build
 // TODO Maybe make this a variable (could be useful to tune later for onchain performance)
-const DIGEST_SIZE: usize = 32;
+const DIGEST_SIZE: usize = 16;
 
 /// Global state for drilling algorithm
 #[derive(Debug)]
@@ -24,17 +24,15 @@ pub struct Operator<'a> {
     /// Exit condition
     exit: u8,
 
-    /// Timers
+    /// Profiling
     t1: u128,
     t2: u128,
     t3: u128,
     t4: u128,
-
-    /// Counters
-    buf: u128,
-    op: u128,
-    noisec: u128,
-    postupdate: u128,
+    o1: u128,
+    o2: u128,
+    o3: u128,
+    o4: u128,
 }
 
 impl<'a> Operator<'a> {
@@ -70,19 +68,21 @@ impl<'a> Operator<'a> {
             state,
             exit: state[0] % EXIT_OPERAND,
             opcount: 0,
+            // Profiling
             t1: 0,
             t2: 0,
             t3: 0,
             t4: 0,
-            buf: 0,
-            op: 0,
-            noisec: 0,
-            postupdate: 0,
+            o1: 0,
+            o2: 0,
+            o3: 0,
+            o4: 0,
         }
     }
 
     /// Build digest using unpredictable and non-parallelizable operations
     pub fn drill(&mut self) -> [u8; DIGEST_SIZE] {
+        let t = Instant::now();
         let mut r = self.state[0];
         let mut result = [0; DIGEST_SIZE];
         for i in 0..DIGEST_SIZE {
@@ -93,42 +93,48 @@ impl<'a> Operator<'a> {
             result[i] = n.rotate_right(r as u32 % 8);
             self.opcount = 0;
         }
+        let total_t = t.elapsed().as_nanos();
 
         // Print timers
         println!(
-            "Noise {} calls – {} ns – {} ns avg",
-            self.noisec,
+            "Noise {}% - {} calls – {} ns – {} ns avg",
+            self.t1.saturating_mul(100).saturating_div(total_t),
+            self.o1,
             self.t1,
-            self.t1.saturating_div(self.noisec)
+            self.t1.saturating_div(self.o1)
         );
         println!(
-            "Op {} calls – {} ns – {} ns avg",
-            self.op,
+            "Op {}% - {} calls – {} ns – {} ns avg",
+            self.t2.saturating_mul(100).saturating_div(total_t),
+            self.o2,
             self.t2,
-            self.t2.saturating_div(self.op)
+            self.t2.saturating_div(self.o2)
         );
         println!(
-            "Buf {} calls – {} ns – {} ns avg",
-            self.buf,
+            "Buf {}% - {} calls – {} ns – {} ns avg",
+            self.t3.saturating_mul(100).saturating_div(total_t),
+            self.o3,
             self.t3,
-            self.t3.saturating_div(self.buf)
+            self.t3.saturating_div(self.o3)
         );
-        println!("Postupdate {} ns", self.t4,);
+        println!(
+            "Sum {}% - {} calls – {} ns – {} ns avg",
+            self.t4.saturating_mul(100).saturating_div(total_t),
+            self.o4,
+            self.t4,
+            0, // self.t4.saturating_div(self.o4)
+        );
         result
     }
 
     /// Do unpredictable number of arithmetic operations on internal state
+    // TODO Loop op an unpredictable number of times.
+    //      Probability combinations of op branches must exceed what brute force can reasonably do.
     fn update(&mut self) -> bool {
         // Do arithmetic
         let mut b = self.state[0];
         for i in 0..64 {
-            let n = self.noise::<32>();
-            // TODO Loop an unpredictable number of times (combinations of op branches must exceed what brute force can reasonably do)
-            // for _ in 0..8 {
-            //     //n.max(8) {
-            //     n ^= dbg!(self.op(dbg!(n), dbg!(x)));
-            //     x ^= dbg!(self.op(dbg!(x), dbg!(n)));
-            // }
+            let n = self.noise::<64>();
             let a = self.state[n.wrapping_add(b) as usize % 64];
             self.state[i as usize] ^= self.op(a, n);
             b ^= self.state[i as usize];
@@ -139,7 +145,8 @@ impl<'a> Operator<'a> {
     }
 
     /// Build a buffer of arbitrary size from a seed and internal state
-    // TODO Reduce buf calls. Buf itself is pretty cheap (~700 ns), but we call it twice as often as op
+    // TODO Optimize buf calls.
+    //      Buf itself is pretty cheap, but we call it twice as often as op.
     fn buf(&mut self, seed: u8) -> [u8; 8] {
         let t = Instant::now();
         let buf = [
@@ -153,26 +160,20 @@ impl<'a> Operator<'a> {
             self.state[seed.rotate_right(7) as usize % 64],
         ];
         self.t3 += t.elapsed().as_nanos();
-        self.buf += 1;
+        self.o3 += 1;
         buf
     }
 
     /// Read a slice of noise in a looping and unpredictable manner
+    // TODO Do we need 2 buf calls?
+    // TODO Test alternative method of addr construction that doesn't rely on hardcoded rotations
     fn noise<const N: usize>(&mut self) -> u8 {
         // Fill the noise buffer
-        // TODO Make this cheaper? Do we need 2 buf calls?
-        //      work done in 4675261984 nanos
-        //      Noise 534242027 calls 35648 ns 14986 ns avg
-        //      Op 23731166 calls 35648 ns 665 ns avg
-        //      Buf 53349538 calls 71328 ns 747 ns avg
-        //      drill in 604834005 nanos
-        //      hash in 110673 nanos
-        let mut result = self.sum();
+        let mut result = self.state[0]; //self.sum();
         let mask = usize::from_le_bytes(self.buf(result));
         let mut addr = usize::from_le_bytes(self.buf(mask as u8));
         let t = Instant::now();
         for _ in 0..N {
-            // TODO Test alternative method of addr construction that doesn't rely on hardcoded rotations
             addr ^= usize::from_le_bytes([
                 self.noise[(addr ^ mask) % self.noise.len()],
                 self.noise[(addr ^ mask.rotate_right(8)) % self.noise.len()],
@@ -188,7 +189,7 @@ impl<'a> Operator<'a> {
 
         // Return
         self.t1 += t.elapsed().as_nanos();
-        self.noisec += 1;
+        self.o1 += 1;
         result
     }
 
@@ -199,29 +200,32 @@ impl<'a> Operator<'a> {
     }
 
     /// Execute a random operation the given operands
+    // TODO Avoid case where wrapping_div goes to zero if b > a
     fn op(&mut self, a: u8, b: u8) -> u8 {
         let t = Instant::now();
         let x = match self.opcode() {
             Opcode::Add => a.wrapping_add(b),
             Opcode::Sub => a.wrapping_sub(b),
             Opcode::Mul => a.wrapping_mul(b),
-            // TODO Avoid case where wrapping_div goes to zero if b > a
             // Opcode::Div => a.wrapping_div(b.saturating_add(2)),
             // Opcode::Nop => a,
             // Opcode::Swap => b,
         };
         self.opcount += 1;
         self.t2 += t.elapsed().as_nanos();
-        self.op += 1;
+        self.o2 += 1;
         x
     }
 
     /// Returns wrapping sum of all 512 bytes in internal state
-    fn sum(&self) -> u8 {
+    fn sum(&mut self) -> u8 {
+        let t = Instant::now();
         let mut sum = 0u8;
         for x in self.state {
             sum = sum.wrapping_add(x);
         }
+        self.t4 += t.elapsed().as_nanos();
+        self.o4 += 1;
         sum
     }
 
