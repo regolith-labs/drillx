@@ -30,11 +30,6 @@ pub struct Operator<'a> {
 
     /// Exit condition
     exit: u8,
-
-    /// Timers
-    t1: u128,
-    t2: u128,
-    t3: u128,
 }
 
 impl<'a> Operator<'a> {
@@ -68,38 +63,21 @@ impl<'a> Operator<'a> {
             state,
             exit: state[0] % EXIT_OPERAND,
             opcount: 0,
-            t1: 0,
-            t2: 0,
-            t3: 0,
         }
     }
 
     /// Build digest using unpredictable and non-parallelizable operations
     pub fn drill(&mut self) -> [u8; 64] {
-        let t = Instant::now();
         for round in 0..ROUNDS {
             while !self.do_round(round) {}
             self.opcount = 0;
         }
-        self.t1 = t.elapsed().as_nanos();
-
-        println!(
-            "Reads {} ns ({}%)",
-            self.t2,
-            self.t2.saturating_mul(100).saturating_div(self.t1)
-        );
-        println!(
-            "Ops {} ns ({}%)",
-            self.t3,
-            self.t3.saturating_mul(100).saturating_div(self.t1)
-        );
         self.state
     }
 
     /// Do unpredictable number of arithmetic operations on internal state
     fn do_round(&mut self, round: usize) -> bool {
         // Do reads
-        let t = Instant::now();
         let mut r = self.state[round % 64];
         for i in 0..READS_PER_ROUND {
             let idx = i * 4 % 64;
@@ -108,14 +86,11 @@ impl<'a> Operator<'a> {
             self.state[i % 64] ^= self.noise[addr as usize % self.noise.len()];
             r ^= self.state[i % 64];
         }
-        self.t2 += t.elapsed().as_nanos();
 
         // Do ops
-        let t = Instant::now();
         for i in 0..OPS_PER_ROUND {
             r ^= self.op(self.state[i % 64], r);
         }
-        self.t3 += t.elapsed().as_nanos();
 
         // Exit
         self.exit(r)
