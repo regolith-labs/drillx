@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 // TODO Maybe make all consts into variables (could be useful to tune later for onchain performance)
@@ -5,15 +7,14 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 /// Modulo operand for exit condition
 const EXIT_OPERAND: u8 = 7;
 
-/// Size of the digest to build
-/// This needs to be at least 8 (bare minimum) to avoid collisions.
-/// The challenge is provided to the user. So the only user input here is the u64 nonce.
-/// If the digest size is less than 8 bytes, drill is guranteed to produce collisions for different
-/// nonce values given the same challenge.
-const DIGEST_SIZE: usize = 1;
+/// Number of rounds to do before returning the digest
+const ROUNDS: usize = 8;
 
-/// How many loops to do per noise read
-const READ_HEAVINESS: u64 = 0;
+/// How many reads to do per round
+const READS_PER_ROUND: usize = 256;
+
+/// How many ops to do per round
+const OPS_PER_ROUND: usize = 256;
 
 /// Global state for drilling algorithm
 #[derive(Debug)]
@@ -29,6 +30,11 @@ pub struct Operator<'a> {
 
     /// Exit condition
     exit: u8,
+
+    /// Timers
+    t1: u128,
+    t2: u128,
+    t3: u128,
 }
 
 impl<'a> Operator<'a> {
@@ -62,83 +68,57 @@ impl<'a> Operator<'a> {
             state,
             exit: state[0] % EXIT_OPERAND,
             opcount: 0,
+            t1: 0,
+            t2: 0,
+            t3: 0,
         }
     }
 
     /// Build digest using unpredictable and non-parallelizable operations
-    pub fn drill(&mut self) -> [u8; DIGEST_SIZE] {
-        [0; DIGEST_SIZE]
-        // let mut r = self.state[0];
-        // let mut result = [0; DIGEST_SIZE];
-        // for i in 0..DIGEST_SIZE {
-        //     while !self.update() {}
-        //     let addr = usize::from_le_bytes(self.buf(self.opcount as u8));
-        //     let n = self.noise[addr % self.noise.len()];
-        //     r = r.wrapping_add(n);
-        //     result[i] = n.rotate_right(r as u32 % 8);
-        //     self.opcount = 0;
-        // }
-        // result
+    pub fn drill(&mut self) -> [u8; 64] {
+        let t = Instant::now();
+        for round in 0..ROUNDS {
+            while !self.do_round(round) {}
+            self.opcount = 0;
+        }
+        self.t1 = t.elapsed().as_nanos();
+
+        println!(
+            "Reads {} ns ({}%)",
+            self.t2,
+            self.t2.saturating_mul(100).saturating_div(self.t1)
+        );
+        println!(
+            "Ops {} ns ({}%)",
+            self.t3,
+            self.t3.saturating_mul(100).saturating_div(self.t1)
+        );
+        self.state
     }
 
     /// Do unpredictable number of arithmetic operations on internal state
-    // TODO Loop op an unpredictable number of times.
-    //      Probability combinations of op branches must exceed what brute force can reasonably do.
-    fn update(&mut self) -> bool {
-        // Do arithmetic
-        let mut b = self.state[0];
-        for i in 0..64 {
-            let n = self.noise();
-            // let a = self.state[n.wrapping_add(b) as usize % 64];
-            // self.state[i as usize] ^= self.op(a, n);
-            self.state[i as usize] ^= self.op(n, b);
-            b ^= self.state[i as usize];
+    fn do_round(&mut self, round: usize) -> bool {
+        // Do reads
+        let t = Instant::now();
+        let mut r = self.state[round % 64];
+        for i in 0..READS_PER_ROUND {
+            let idx = i * 4 % 64;
+            let addr = u32::from_le_bytes(self.state[idx..(idx + 4)].try_into().unwrap())
+                .rotate_right(r as u32 % 32);
+            self.state[i % 64] ^= self.noise[addr as usize % self.noise.len()];
+            r ^= self.state[i % 64];
         }
+        self.t2 += t.elapsed().as_nanos();
+
+        // Do ops
+        let t = Instant::now();
+        for i in 0..OPS_PER_ROUND {
+            r ^= self.op(self.state[i % 64], r);
+        }
+        self.t3 += t.elapsed().as_nanos();
 
         // Exit
-        self.exit(b)
-    }
-
-    /// Build a buffer of arbitrary size from a seed and internal state
-    // TODO Optimize buf calls.
-    //      Buf itself is pretty cheap, but we call it twice as often as op.
-    fn buf(&mut self, seed: u8) -> [u8; 8] {
-        [
-            self.state[seed as usize % 64],
-            self.state[seed.rotate_right(1) as usize % 64],
-            self.state[seed.rotate_right(2) as usize % 64],
-            self.state[seed.rotate_right(3) as usize % 64],
-            self.state[seed.rotate_right(4) as usize % 64],
-            self.state[seed.rotate_right(5) as usize % 64],
-            self.state[seed.rotate_right(6) as usize % 64],
-            self.state[seed.rotate_right(7) as usize % 64],
-        ]
-    }
-
-    /// Read a slice of noise in a looping and unpredictable manner
-    // TODO Do we need 2 buf calls?
-    // TODO Test alternative method of addr construction that doesn't rely on hardcoded rotations
-    fn noise(&mut self) -> u8 {
-        // Fill the noise buffer
-        let mut result = self.state[0]; //self.sum();
-        let mask = usize::from_le_bytes(self.buf(result));
-        let mut addr = usize::from_le_bytes(self.buf(mask as u8));
-        for _ in 0..READ_HEAVINESS {
-            addr ^= usize::from_le_bytes([
-                self.noise[(addr ^ mask) % self.noise.len()],
-                self.noise[(addr ^ mask.rotate_right(8)) % self.noise.len()],
-                self.noise[(addr ^ mask.rotate_right(16)) % self.noise.len()],
-                self.noise[(addr ^ mask.rotate_right(24)) % self.noise.len()],
-                self.noise[(addr ^ mask.rotate_right(32)) % self.noise.len()],
-                self.noise[(addr ^ mask.rotate_right(40)) % self.noise.len()],
-                self.noise[(addr ^ mask.rotate_right(48)) % self.noise.len()],
-                self.noise[(addr ^ mask.rotate_right(56)) % self.noise.len()],
-            ]);
-            result ^= self.noise[addr % self.noise.len()];
-        }
-
-        // Return
-        result
+        self.exit(r)
     }
 
     /// Select an opcode from the current state
