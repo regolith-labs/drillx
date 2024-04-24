@@ -5,6 +5,7 @@ use solana_program::{
     declare_id,
     entrypoint::ProgramResult,
     instruction::{AccountMeta, Instruction},
+    log::sol_log_compute_units,
     program_error::ProgramError,
     pubkey::Pubkey,
 };
@@ -26,12 +27,14 @@ pub fn process_instruction(
     };
 
     let challenge = [255; 32];
-    let candidate = drillx::hash(challenge, args.nonce, &noise.data.borrow());
-    if drillx::difficulty(candidate).lt(&(args.difficulty as u32)) {
-        return Err(ProgramError::Custom(0));
-    }
+    let candidate = drillx::hash(&challenge, &args.nonce, &noise.data.borrow());
+    // if drillx::difficulty(candidate).lt(&(args.difficulty as u32)) {
+    //     return Err(ProgramError::Custom(0));
+    // }
 
-    Ok(())
+    sol_log_compute_units();
+    Err(ProgramError::Custom(0))
+    // Ok(())
 }
 
 pub fn verify(signer: Pubkey, nonce: u64, difficulty: u64) -> Instruction {
@@ -41,7 +44,12 @@ pub fn verify(signer: Pubkey, nonce: u64, difficulty: u64) -> Instruction {
             AccountMeta::new(signer, true),
             AccountMeta::new_readonly(noise_address(), false),
         ],
-        data: Args { nonce, difficulty }.to_bytes().to_vec(),
+        data: Args {
+            nonce: nonce.to_le_bytes(),
+            difficulty,
+        }
+        .to_bytes()
+        .to_vec(),
     }
 }
 
@@ -54,7 +62,7 @@ pub fn noise_address() -> Pubkey {
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Pod, Zeroable)]
 pub struct Args {
-    pub nonce: u64,
+    pub nonce: [u8; 8],
     pub difficulty: u64,
 }
 
