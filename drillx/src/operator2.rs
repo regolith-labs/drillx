@@ -53,6 +53,7 @@ impl<'a> Operator2<'a> {
 
             // Do ops
             let op_timer = Instant::now();
+            let idx = self.indices();
             for j in 0..OPS {
                 r ^= self.op(idx[j % 8], r, j);
             }
@@ -140,7 +141,6 @@ impl<'a> Operator2<'a> {
 }
 
 /// Set of arbitrary compute operations to chose from
-// TODO Add more ops
 #[derive(Debug, IntoPrimitive, TryFromPrimitive)]
 #[repr(u8)]
 enum Opcode {
@@ -151,12 +151,6 @@ enum Opcode {
     Xor,
     Right,
     Left,
-    // Nop,
-    // Swap,
-    // FAdd,
-    // FSub,
-    // FMul,
-    // FSqrt,
 }
 
 impl Opcode {
