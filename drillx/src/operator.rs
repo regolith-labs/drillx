@@ -1,11 +1,10 @@
-use std::time::Instant;
-
+use fixed::{types::extra::U3, FixedU8};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 // TODO Maybe make all consts into variables (could be useful to tune later for onchain performance)
 
 /// Modulo operand for exit condition
-const EXIT_OPERAND: u8 = 7;
+const EXIT_OPERAND: u8 = 3;
 
 /// Number of rounds to do before returning the digest
 const ROUNDS: usize = 8;
@@ -14,7 +13,7 @@ const ROUNDS: usize = 8;
 const READS_PER_ROUND: usize = 256;
 
 /// How many ops to do per round
-const OPS_PER_ROUND: usize = 256;
+const OPS_PER_ROUND: usize = 128;
 
 /// Global state for drilling algorithm
 #[derive(Debug)]
@@ -75,7 +74,7 @@ impl<'a> Operator<'a> {
         self.state
     }
 
-    /// Do unpredictable number of arithmetic operations on internal state
+    /// Do looping memory reads and arithmetic operations to update internal state
     fn do_round(&mut self, round: usize) -> bool {
         // Do reads
         let mut r = self.state[round % 64];
@@ -97,6 +96,7 @@ impl<'a> Operator<'a> {
     }
 
     /// Select an opcode from the current state
+    #[inline]
     fn opcode(&mut self) -> Opcode {
         Opcode::try_from(self.state[self.opcount as usize % 64] % Opcode::cardinality() as u8)
             .expect("Unknown opcode")
@@ -104,14 +104,38 @@ impl<'a> Operator<'a> {
 
     /// Execute a random operation the given operands
     // TODO Avoid case where wrapping_div goes to zero if b > a
+    #[inline]
     fn op(&mut self, a: u8, b: u8) -> u8 {
         let x = match self.opcode() {
             Opcode::Add => a.wrapping_add(b),
             Opcode::Sub => a.wrapping_sub(b),
             Opcode::Mul => a.wrapping_mul(b),
-            // Opcode::Div => a.wrapping_div(b.saturating_add(2)),
-            // Opcode::Nop => a,
+            Opcode::Div => {
+                if a.gt(&b) {
+                    a.wrapping_div(b.saturating_add(2))
+                } else {
+                    b.wrapping_div(a.saturating_add(2))
+                }
+            }
+            Opcode::Xor => a ^ b,
+            Opcode::Right => a >> (b % 8),
+            Opcode::Left => a << (b % 8),
             // Opcode::Swap => b,
+            // Opcode::Nop => a,
+            // Opcode::FAdd => FixedU8::<U3>::from_bits(a)
+            //     .wrapping_add(FixedU8::<U3>::from_bits(b))
+            //     .to_bits(),
+            // Opcode::FSub => FixedU8::<U3>::from_bits(a)
+            //     .wrapping_sub(FixedU8::<U3>::from_bits(b))
+            //     .to_bits(),
+            // Opcode::FMul => FixedU8::<U3>::from_bits(a)
+            //     .wrapping_mul(FixedU8::<U3>::from_bits(b))
+            //     .to_bits(),
+            // Opcode::FSqrt => FixedU8::<U3>::from_bits(a)
+            //     .wrapping_sqrt()
+            //     .wrapping_add(FixedU8::<U3>::from_bits(b))
+            //     .to_bits(),
+            // Opcode::Div => a.wrapping_div(b.saturating_add(2)),
         };
         self.opcount += 1;
         x
@@ -119,7 +143,7 @@ impl<'a> Operator<'a> {
 
     /// Stop executing on the current byte of the digest
     fn exit(&mut self, seed: u8) -> bool {
-        seed % EXIT_OPERAND == self.exit.into()
+        seed % EXIT_OPERAND == self.exit
     }
 }
 
@@ -132,13 +156,20 @@ enum Opcode {
     Add = 0,
     Sub,
     Mul,
-    // Div,
-    // Nop,
+    Div,
+    Xor,
+    Right,
+    Left,
     // Swap,
+    // Nop,
+    // FAdd,
+    // FSub,
+    // FMul,
+    // FSqrt,
 }
 
 impl Opcode {
     pub fn cardinality() -> usize {
-        3 // 6
+        7
     }
 }

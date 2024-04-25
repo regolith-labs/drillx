@@ -22,6 +22,7 @@ solana = ["solana-program"]
 [dependencies]
 blake3 = { workspace = true, optional = true }
 enum_dispatch = { workspace = true }
+fixed = { workspace = true }
 num_enum = { workspace = true }
 num-traits = { workspace = true }
 primes = { workspace = true }

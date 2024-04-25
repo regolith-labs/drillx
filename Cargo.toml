@@ -10,6 +10,7 @@ blake3 = "1.5"
 bytemuck = "1.15.0"
 drillx = { path = "drillx", features = ["solana"] }
 enum_dispatch = "0.3.13"
+fixed = "1.27.0"
 num_enum = "0.5"
 num-traits = "0.2.18"
 primes = "0.3.0"
