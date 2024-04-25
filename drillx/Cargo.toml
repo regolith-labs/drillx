@@ -15,7 +15,7 @@ keywords = ["solana", "crypto", "mining"]
 name = "drillx"
 
 [features]
-default = ["blake3", "sha3"]
+  default = ["blake3", "sha3"]
 benchmark = []
 solana = ["solana-program"]
 
