@@ -1219,7 +1219,9 @@ dependencies = [
  "fixed",
  "num-traits",
  "num_enum 0.5.11",
+ "periodic-array",
  "primes",
+ "rand 0.8.5",
  "sha3 0.10.8",
  "solana-program",
  "strum 0.26.2",
@@ -2644,6 +2646,12 @@ checksum = "2fd23b938276f14057220b707937bcb42fa76dda7560e57a2da30cb52d557937"
 dependencies = [
  "num",
 ]
+
+[[package]]
+name = "periodic-array"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0763be47fce9a0738d5521df82315c3780d14798fe281c9d7e08fd38029eb0d4"
 
 [[package]]
 name = "pin-project"

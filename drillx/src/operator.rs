@@ -39,8 +39,9 @@ impl<'a> Operator<'a> {
         let b;
         #[cfg(not(feature = "solana"))]
         {
-            a = blake3::hash(&[challenge.as_slice(), nonce.as_slice()].concat()).as_bytes();
-            b = blake3::hash(&[a.as_slice()]).as_bytes();
+            // TODO
+            a = [0; 32]; // blake3::hash(&[challenge.as_slice(), nonce.as_slice()].concat()).as_bytes();
+            b = [0; 32]; // blake3::hash(a.as_slice()).as_bytes();
         }
 
         // Recursive blake3 hash (solana runtime)
