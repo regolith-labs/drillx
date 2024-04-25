@@ -19,12 +19,7 @@ pub use crate::utils::*;
 pub fn hash(challenge: &[u8; 32], nonce: &[u8; 8], noise: &[u8]) -> [u8; 32] {
     // The drill part (non-parallelizable digest)
     let timer = Instant::now();
-    let usize_slice: &[usize] =
-        unsafe { slice::from_raw_parts(noise.as_ptr() as *const usize, 32) };
-    let n = PeriodicArray::<usize, 32>::new(usize_slice[0..32].try_into().unwrap());
-    let digest = Operator2::drill(&n);
-
-    // let digest = Operator2::new(challenge, nonce, noise).drill();
+    let digest = Operator2::new(challenge, nonce, noise).drill();
     println!("drill in {} nanos", timer.elapsed().as_nanos());
 
     // The hash part (keccak proof)
