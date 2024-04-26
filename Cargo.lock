@@ -1208,12 +1208,9 @@ checksum = "1435fa1053d8b2fbbe9be7e97eca7f33d37b28409959813daefc1446a14247f1"
 name = "drillx"
 version = "0.1.0"
 dependencies = [
- "blake3",
  "enum_dispatch",
  "num-traits",
  "num_enum 0.5.11",
- "primes",
- "sha3 0.10.8",
  "solana-program",
  "strum 0.26.2",
 ]
@@ -2730,12 +2727,6 @@ dependencies = [
  "predicates-core",
  "termtree",
 ]
-
-[[package]]
-name = "primes"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "68a61082d8bceecd71a3870e9162002bb75f7ba9c7aa8b76227e887782fef9c8"
 
 [[package]]
 name = "proc-macro-crate"
