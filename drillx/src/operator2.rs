@@ -1,11 +1,9 @@
-use std::{mem, time::Instant};
+#[cfg(feature = "benchmark")]
+use std::time::Instant;
 
 use num_enum::{IntoPrimitive, TryFromPrimitive};
-#[cfg(not(feature = "solana"))]
-use sha3::{Digest, Keccak256};
 
-/// Digest size
-// const D: usize = 16;
+/// TODO Make consts variable for fine tuning on-chain
 
 /// Number of recursive reads per loop
 const READS: usize = 1024;
@@ -28,26 +26,42 @@ impl<'a> Operator2<'a> {
     }
 
     /// Build digest using unpredictable and non-parallelizable operations
+    #[cfg(not(feature = "benchmark"))]
+    pub fn drill(&mut self) -> [u8; 32] {
+        let mut r = self.initialize_r();
+        for i in 0..4 {
+            // Fetch noise
+            let idx = self.indices();
+            for j in 0..8 {
+                self.state[8 * i + j] ^= self.do_reads(idx[j], r);
+            }
+
+            // Do ops
+            let idx = self.indices();
+            for j in 0..OPS {
+                r ^= self.op(idx[j % 8], r, j);
+            }
+
+            // Hash state
+            self.hash(r);
+        }
+
+        self.state
+    }
+
+    /// Build digest using unpredictable and non-parallelizable operations
+    #[cfg(feature = "benchmark")]
     pub fn drill(&mut self) -> [u8; 32] {
         let mut hash_time = 0;
         let mut read_time = 0;
         let mut op_time = 0;
-        let mut r = usize::from_le_bytes([
-            self.state(0),
-            self.state(4),
-            self.state(8),
-            self.state(12),
-            self.state(16),
-            self.state(20),
-            self.state(24),
-            self.state(28),
-        ]);
+        let mut r = self.initialize_r();
         for i in 0..4 {
             // Fetch noise
             let read_timer = Instant::now();
             let idx = self.indices();
             for j in 0..8 {
-                self.state[8 * i + j] ^= self.do_reads::<READS>(idx[j], r);
+                self.state[8 * i + j] ^= self.do_reads(idx[j], r);
             }
             read_time += read_timer.elapsed().as_nanos();
 
@@ -65,38 +79,60 @@ impl<'a> Operator2<'a> {
             hash_time += hash_timer.elapsed().as_nanos();
         }
 
+        println!("read {read_time} op {op_time} hash {hash_time}",);
         println!(
-            "op {op_time} hash {hash_time} vs read {read_time}: {}x {}x",
+            "{}x reads to op\n{}x reads to hash",
+            read_time as f64 / op_time as f64,
             read_time as f64 / hash_time as f64,
-            read_time as f64 / op_time as f64
         );
 
         self.state
     }
 
+    // TODO Analyze this for bias
+    #[inline(always)]
+    fn initialize_r(&self) -> usize {
+        let mut r = [0u8; 8];
+        let mut c = 0;
+        for i in 0..8 {
+            r[i] = self.state(c as usize);
+            c ^= r[i];
+        }
+        usize::from_le_bytes(r)
+    }
+
+    /// Update the internal state
+    // TODO Text alternative hash functions here (keccak, blake, etc. )
     #[inline(always)]
     fn hash(&mut self, r: usize) {
         self.state = solana_program::keccak::hashv(&[&self.state, r.to_le_bytes().as_slice()]).0;
     }
 
+    /// Execute looping unpredictable reads from noise
     #[inline(always)]
-    fn do_reads<const R: usize>(&mut self, mut index: usize, r: usize) -> u8 {
-        for _ in 0..R {
-            index ^= self.noise(index);
+    fn do_reads(&mut self, mut addr: usize, r: usize) -> u8 {
+        for i in 0..READS {
+            // TODO This wrapping_mul is ~200k cus
+            // TODO This xor is ~100k cus
+            // addr ^= self.noise(addr).wrapping_mul(self.state(i) as usize);
+            addr = self.noise(addr);
         }
-        (self.noise(index) >> (r % 8)) as u8
+        (self.noise(addr) >> (r % 8)) as u8
     }
 
+    /// Fetch usize from noise
     #[inline(always)]
     fn noise(&self, addr: usize) -> usize {
         unsafe { *self.noise.get_unchecked(addr % self.noise.len()) }
     }
 
+    /// Fetch byte from internal state
     #[inline(always)]
     fn state(&self, i: usize) -> u8 {
         unsafe { *self.state.get_unchecked(i % 32) }
     }
 
+    /// Fetch addresses to begin noise lookups
     #[inline(always)]
     fn indices(&self) -> [usize; 8] {
         core::array::from_fn(|i| {
@@ -161,8 +197,8 @@ impl Opcode {
 
 // Check if the slice is properly aligned and sized
 fn as_usize_slice(bytes: &[u8]) -> Option<&[usize]> {
-    let align = mem::align_of::<usize>();
-    let size = mem::size_of::<usize>();
+    let align = std::mem::align_of::<usize>();
+    let size = std::mem::size_of::<usize>();
     if bytes.as_ptr() as usize % align == 0 && bytes.len() % size == 0 {
         Some(unsafe { as_usize_slice_unchecked(bytes) })
     } else {
@@ -171,6 +207,6 @@ fn as_usize_slice(bytes: &[u8]) -> Option<&[usize]> {
 }
 
 unsafe fn as_usize_slice_unchecked(bytes: &[u8]) -> &[usize] {
-    let len = bytes.len() / mem::size_of::<usize>();
+    let len = bytes.len() / std::mem::size_of::<usize>();
     std::slice::from_raw_parts(bytes.as_ptr() as *const usize, len)
 }

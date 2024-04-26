@@ -32,7 +32,6 @@ fn do_work(challenge: [u8; 32], noise: &[u8]) -> u64 {
     let mut nonce: u64 = 0;
     loop {
         // Calculate hash
-        println!("Nonce {}", nonce);
         let hx = drillx::hash(&challenge, &nonce.to_le_bytes(), noise);
 
         // Return if difficulty was met
