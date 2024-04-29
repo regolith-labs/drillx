@@ -22,12 +22,12 @@ pub fn process_instruction(
 ) -> ProgramResult {
     let args = Args::try_from_bytes(data)?;
 
-    let [_signer, noise] = accounts else {
+    let [_signer] = accounts else {
         return Err(ProgramError::NotEnoughAccountKeys);
     };
 
     let challenge = [255; 32];
-    let candidate = drillx::hash(&challenge, &args.nonce, &noise.data.borrow());
+    let candidate = drillx::hash(&challenge, &args.nonce);
     if drillx::difficulty(candidate).lt(&(args.difficulty as u32)) {
         return Err(ProgramError::Custom(0));
     }

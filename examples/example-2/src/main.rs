@@ -1,14 +1,8 @@
-use std::{collections::HashMap, fs::File, io::Read, time::Instant};
+use std::{collections::HashMap, time::Instant};
 
 fn main() {
     // Current challenge (255s for demo)
     let challenge = [255; 32];
-
-    // Read noise file.
-    let mut file = File::open("noise.txt").unwrap();
-    let mut buffer = Vec::new();
-    file.read_to_end(&mut buffer).unwrap();
-    let noise = buffer.as_slice();
 
     // Do work
     let timer = Instant::now();
@@ -16,7 +10,7 @@ fn main() {
     let mut nonce: u64 = 0;
     loop {
         // Track difficulties
-        let hx = drillx::hash(&challenge, &nonce.to_le_bytes(), noise);
+        let hx = drillx::hash(&challenge, &nonce.to_le_bytes());
         let d = drillx::difficulty(hx);
         hash_count.insert(d, hash_count.get(&d).unwrap_or(&0).saturating_add(1));
         if nonce % 1000 == 0 {

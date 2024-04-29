@@ -3,6 +3,8 @@ use std::time::Instant;
 
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
+use crate::noise::NOISE;
+
 /// TODO Make consts variable for fine tuning on-chain
 
 /// Number of recursive reads per loop
@@ -18,9 +20,11 @@ pub struct Operator2<'a> {
 }
 
 impl<'a> Operator2<'a> {
-    pub fn new(challenge: &'a [u8; 32], nonce: &'a [u8; 8], noise: &'a [u8]) -> Operator2<'a> {
+    pub fn new(challenge: &'a [u8; 32], nonce: &'a [u8; 8]) -> Operator2<'a> {
         Operator2 {
-            noise: as_usize_slice(noise).expect("Failed to read noise as &[usize]"),
+            noise: NOISE
+                .as_usize_slice()
+                .expect("Failed to read noise as &[usize]"),
             state: solana_program::keccak::hashv(&[&challenge.as_slice(), &nonce.as_slice()]).0,
         }
     }
@@ -193,20 +197,4 @@ impl Opcode {
     pub fn cardinality() -> usize {
         7
     }
-}
-
-// Check if the slice is properly aligned and sized
-fn as_usize_slice(bytes: &[u8]) -> Option<&[usize]> {
-    let align = std::mem::align_of::<usize>();
-    let size = std::mem::size_of::<usize>();
-    if bytes.as_ptr() as usize % align == 0 && bytes.len() % size == 0 {
-        Some(unsafe { as_usize_slice_unchecked(bytes) })
-    } else {
-        None
-    }
-}
-
-unsafe fn as_usize_slice_unchecked(bytes: &[u8]) -> &[usize] {
-    let len = bytes.len() / std::mem::size_of::<usize>();
-    std::slice::from_raw_parts(bytes.as_ptr() as *const usize, len)
 }

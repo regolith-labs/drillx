@@ -1,4 +1,4 @@
-// mod operator;
+mod noise;
 mod operator2;
 mod utils;
 
@@ -12,8 +12,8 @@ pub use crate::utils::*;
 // TODO Debug feature flag for print statements
 
 #[cfg(not(feature = "benchmark"))]
-pub fn hash(challenge: &[u8; 32], nonce: &[u8; 8], noise: &[u8]) -> [u8; 32] {
-    let digest = Operator2::new(challenge, nonce, noise).drill();
+pub fn hash(challenge: &[u8; 32], nonce: &[u8; 8]) -> [u8; 32] {
+    let digest = Operator2::new(challenge, nonce).drill();
     solana_program::keccak::hashv(&[digest.as_slice()]).0
 }
 
