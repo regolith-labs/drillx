@@ -8,10 +8,10 @@ use crate::noise::NOISE;
 /// TODO Make consts variable for fine tuning on-chain
 
 /// Number of recursive reads per loop
-const READS: usize = 1024;
+const READS: usize = 256; //512; //1024;
 
 /// Number of recursive ops per loop
-const OPS: usize = 512;
+const OPS: usize = 64; // 128; //512;
 
 /// Global state for drilling algorithm
 pub struct Operator2<'a> {
@@ -22,9 +22,7 @@ pub struct Operator2<'a> {
 impl<'a> Operator2<'a> {
     pub fn new(challenge: &'a [u8; 32], nonce: &'a [u8; 8]) -> Operator2<'a> {
         Operator2 {
-            noise: NOISE
-                .as_usize_slice()
-                .expect("Failed to read noise as &[usize]"),
+            noise: NOISE.as_usize_slice(),
             state: solana_program::keccak::hashv(&[&challenge.as_slice(), &nonce.as_slice()]).0,
         }
     }

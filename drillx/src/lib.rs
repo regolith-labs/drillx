@@ -18,11 +18,11 @@ pub fn hash(challenge: &[u8; 32], nonce: &[u8; 8]) -> [u8; 32] {
 }
 
 #[cfg(feature = "benchmark")]
-pub fn hash(challenge: &[u8; 32], nonce: &[u8; 8], noise: &[u8]) -> [u8; 32] {
+pub fn hash(challenge: &[u8; 32], nonce: &[u8; 8]) -> [u8; 32] {
     // The drill part (non-parallelizable digest)
     println!("Nonce {}", u64::from_le_bytes(*nonce));
     let timer = Instant::now();
-    let digest = Operator2::new(challenge, nonce, noise).drill();
+    let digest = Operator2::new(challenge, nonce).drill();
     println!("drill in {} nanos", timer.elapsed().as_nanos());
 
     // The hash part (keccak proof)

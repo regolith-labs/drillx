@@ -40,10 +40,7 @@ pub fn process_instruction(
 pub fn verify(signer: Pubkey, nonce: u64, difficulty: u64) -> Instruction {
     Instruction {
         program_id: crate::id(),
-        accounts: vec![
-            AccountMeta::new(signer, true),
-            AccountMeta::new_readonly(noise_address(), false),
-        ],
+        accounts: vec![AccountMeta::new(signer, true)],
         data: Args {
             nonce: nonce.to_le_bytes(),
             difficulty,
@@ -51,12 +48,6 @@ pub fn verify(signer: Pubkey, nonce: u64, difficulty: u64) -> Instruction {
         .to_bytes()
         .to_vec(),
     }
-}
-
-pub const NOISE: &str = "noise";
-
-pub fn noise_address() -> Pubkey {
-    Pubkey::find_program_address(&[NOISE.as_ref()], &crate::id()).0
 }
 
 #[repr(C)]

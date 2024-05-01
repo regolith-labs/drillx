@@ -1,8 +1,6 @@
-use program::noise_address;
-use solana_program::{hash::Hash, rent::Rent};
-use solana_program_test::{processor, read_file, BanksClient, ProgramTest};
+use solana_program::hash::Hash;
+use solana_program_test::{processor, BanksClient, ProgramTest};
 use solana_sdk::{
-    account::Account,
     compute_budget::ComputeBudgetInstruction,
     signature::{Keypair, Signer},
     transaction::Transaction,
@@ -40,19 +38,5 @@ async fn setup_program_test_env() -> (BanksClient, Keypair, Hash) {
         processor!(program::process_instruction),
     );
     program_test.prefer_bpf(true);
-
-    // Setup noise account
-    let data = read_file(&"../noise.txt");
-    program_test.add_account(
-        noise_address(),
-        Account {
-            lamports: Rent::default().minimum_balance(data.len()).max(1),
-            data,
-            owner: program::id(),
-            executable: false,
-            rent_epoch: 0,
-        },
-    );
-
     program_test.start().await
 }
