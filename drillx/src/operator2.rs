@@ -92,7 +92,7 @@ impl<'a> Operator2<'a> {
         self.state
     }
 
-    // TODO Analyze this for bias
+    // TODO Analyze this for statistical bias
     #[inline(always)]
     fn initialize_r(&self) -> usize {
         let mut r = [0u8; 8];
