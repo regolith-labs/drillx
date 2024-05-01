@@ -39,6 +39,7 @@ impl<'a> Operator2<'a> {
             }
 
             // Do ops
+            // TODO Test unpredictable op count
             let idx = self.indices();
             for j in 0..OPS {
                 r ^= self.op(idx[j % 8], r, j);
@@ -104,7 +105,7 @@ impl<'a> Operator2<'a> {
     }
 
     /// Update the internal state
-    // TODO Text alternative hash functions here (keccak, blake, etc. )
+    // TODO Test alternative hash functions here (keccak, blake, etc. )
     #[inline(always)]
     fn hash(&mut self, r: usize) {
         self.state = solana_program::keccak::hashv(&[&self.state, r.to_le_bytes().as_slice()]).0;
@@ -114,10 +115,7 @@ impl<'a> Operator2<'a> {
     #[inline(always)]
     fn do_reads(&mut self, mut addr: usize, r: usize) -> u8 {
         for i in 0..READS {
-            // TODO This wrapping_mul is ~200k cus
-            // TODO This xor is ~100k cus
-            // addr ^= self.noise(addr).wrapping_mul(self.state(i) as usize);
-            addr = self.noise(addr);
+            addr ^= self.noise(addr).wrapping_mul(self.state(i) as usize);
         }
         (self.noise(addr) >> (r % 8)) as u8
     }
