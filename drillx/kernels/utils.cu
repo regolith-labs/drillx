@@ -1,0 +1,94 @@
+#include <stdio.h>
+#include <stdint.h>
+#include "utils.h"
+
+int number_multi_processors;
+int number_blocks;
+int number_threads;
+int max_threads_per_mp;
+unsigned long long int target_cycles;
+
+// Greatest common denominator
+// Used in gpu_init() to calculate block_size
+int gcd(int a, int b)
+{
+    return (a == 0) ? b : gcd(b % a, a);
+}
+
+// Initializes gpu parameters
+extern "C" void gpu_init()
+{
+    cudaDeviceProp device_prop;
+    int block_size;
+
+    cudaError_t cudaerr = cudaGetDeviceProperties(&device_prop, 0);
+    if (cudaerr != cudaSuccess)
+    {
+        printf("getting properties for device failed with error \"%s\".\n", cudaGetErrorString(cudaerr));
+        exit(EXIT_FAILURE);
+    }
+
+    number_threads = device_prop.maxThreadsPerBlock;
+    number_multi_processors = device_prop.multiProcessorCount;
+    max_threads_per_mp = device_prop.maxThreadsPerMultiProcessor;
+    block_size = (max_threads_per_mp / gcd(max_threads_per_mp, number_threads));
+    number_threads = 256; // / block_size;
+    number_blocks = block_size * number_multi_processors;
+    target_cycles = device_prop.clockRate * 1000 * 5; // clockRate is in kHz, mine for 55 seconds
+}
+
+__device__ uint64_t saturating_add(uint64_t a, uint64_t b)
+{
+    uint64_t result = a + b;
+    if (result < a)
+    {
+        return UINT64_MAX;
+    }
+    return result;
+}
+
+__device__ uint32_t difficulty(const uint8_t *hash)
+{
+    uint32_t count = 0;
+    for (int i = 0; i < 32; i++)
+    {
+        uint32_t lz = __clz((int)hash[i]) - 24; // __clz counts leading zeros of a 32-bit int, adjust for 8-bit value
+
+        count += lz;
+        if (lz < 8)
+        {
+            break;
+        }
+    }
+    return count;
+}
+
+__global__ void test_difficulty(const uint8_t *hash, uint32_t *result)
+{
+    *result = difficulty(hash);
+}
+
+// int main()
+// {
+//     uint8_t h_hash[32] = {0b01111111, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+//     uint32_t h_result;
+
+//     uint8_t *d_hash;
+//     uint32_t *d_result;
+
+//     cudaMalloc(&d_hash, 32 * sizeof(uint8_t));
+//     cudaMalloc(&d_result, sizeof(uint32_t));
+
+//     cudaMemcpy(d_hash, h_hash, 32 * sizeof(uint8_t), cudaMemcpyHostToDevice);
+
+//     test_difficulty<<<1, 1>>>(d_hash, d_result);
+
+//     cudaMemcpy(&h_result, d_result, sizeof(uint32_t), cudaMemcpyDeviceToHost);
+
+//     printf("Computed difficulty: %u\n", h_result);
+
+//     cudaFree(d_hash);
+//     cudaFree(d_result);
+
+//     return 0;
+// }

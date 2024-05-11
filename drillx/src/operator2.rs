@@ -111,6 +111,7 @@ impl<'a> Operator2<'a> {
         self.state = solana_program::keccak::hashv(&[&self.state, r.to_le_bytes().as_slice()]).0;
     }
 
+    // TODO Test with longer reads
     /// Execute looping unpredictable reads from noise
     #[inline(always)]
     fn do_reads(&mut self, mut addr: usize, r: usize) -> u8 {
