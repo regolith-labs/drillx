@@ -14,6 +14,7 @@ fn main() {
     }
 
     // Current challenge (255s for demo)
+    let timer = Instant::now();
     let challenge = [255; 32];
     let mut gpu_nonce = [0; 8];
     unsafe {
