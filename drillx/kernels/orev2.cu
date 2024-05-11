@@ -29,22 +29,22 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
 {
     // Allocate device memory for input and output data
     uint8_t *d_challenge, *d_out;
-    uint64_t *d_nonce;
-
     cudaMalloc((void **)&d_challenge, 32);
     cudaMalloc((void **)&d_out, 32);
-    cudaMalloc((void **)&d_nonce, 8);
 
     // Copy the host data to the device
     cudaMemcpy(d_challenge, challenge, 32, cudaMemcpyHostToDevice);
-    // cudaMemcpy(d_nonce, &nonce, 8, cudaMemcpyHostToDevice);
+
+    // Reset device state
+    global_best_difficulty = 0;
+    global_best_nonce = 0;
+    iters = 0;
+    lock = 0;
 
     // Calculate target cycle time. clockRate is in kHz
     unsigned long long int target_cycles = (unsigned long long)(1000 * secs) * clock_rate;
-    printf("clockrate %llu target cycles %llu\n", clock_rate, target_cycles);
 
     // Launch the kernel to perform the hash operation
-    printf("num blocks %d threads %d\n", number_blocks, number_threads);
     uint64_t stride = number_blocks * number_threads;
     kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, d_out, stride, target_cycles);
 
