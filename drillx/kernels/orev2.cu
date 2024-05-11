@@ -41,7 +41,7 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out)
     // cudaMemcpy(d_nonce, &nonce, 8, cudaMemcpyHostToDevice);
 
     // Launch the kernel to perform the hash operation
-    printf("num blocks %d threads %d\n", number_blocks, number_threads);
+    printf("num blocks %d threads %d target cycles %d\n", number_blocks, number_threads, target_cycles);
     uint64_t stride = number_blocks * number_threads;
     kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, d_out, stride, target_cycles);
 
@@ -96,6 +96,7 @@ __global__ void kernel_start_drill(
 
         // Update elapsed time
         elapsed_cycles = clock64() - start_cycles;
+        printf("elapsed %d", elapsed_cycles);
 
         atomicAdd(&iters, 1);
     }
