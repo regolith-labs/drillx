@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use drillx::{
     difficulty,
-    gpu::{drill_hash, gpu_init, set_noise},
+    gpu::{gpu_init, set_noise, single_drill_hash},
     noise::NOISE,
 };
 
@@ -25,7 +25,7 @@ fn main() {
             gpu_out.as_mut_ptr(),
         );
     }
-    println!("{gpu_nonce:?}");
+    println!("{gpu_out:?}");
 
     // Calculate hash
     let gpu_hash = drillx::hash(&challenge, &gpu_out);
