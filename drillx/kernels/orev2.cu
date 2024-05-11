@@ -1,4 +1,3 @@
-#include <chrono>
 #include <stdint.h>
 #include <stdio.h>
 #include "orev2.h"
@@ -44,7 +43,7 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out)
     // Launch the kernel to perform the hash operation
     printf("num blocks %d threads %d\n", number_blocks, number_threads);
     uint64_t stride = number_blocks * number_threads;
-    kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, d_out, stride);
+    kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, d_out, stride, target_cycles);
 
     uint32_t host_gbd = 0;
     unsigned long long int host_iters = 0;
@@ -72,41 +71,44 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out)
 __global__ void kernel_start_drill(
     uint8_t *d_challenge,
     uint8_t *d_result,
-    uint64_t stride
-) {
-    auto start = std::chrono::high_resolution_clock::now();
+    uint64_t stride,
+    unsigned long long int target_cycles)
+{
+
+    unsigned long long int start_cycles = clock64();
+    unsigned long long int elapsed_cycles = 0;
     uint64_t nonce = threadIdx.x + (blockIdx.x * blockDim.x);
     uint64_t local_best_nonce = nonce;
     uint32_t local_best_difficulty = 0;
     uint8_t result[32];
-    while (true) {
+    while (elapsed_cycles < target_cycles)
+    {
         kernel_drill_hash(d_challenge, &nonce, result);
         uint32_t hash_difficulty = difficulty(result);
         memcpy(d_result, &local_best_difficulty, 4);
-        if (hash_difficulty > local_best_difficulty) {
+        if (hash_difficulty > local_best_difficulty)
+        {
             local_best_difficulty = hash_difficulty;
             local_best_nonce = nonce;
         }
 
         nonce += stride;
 
-        // Exit if cutoff time
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed = end - start;
-        if (elapsed.count() >= 30.0) {
-            break;
-        }
+        // Update elapsed time
+        elapsed_cycles = clock64() - start_cycles;
 
         atomicAdd(&iters, 1);
     }
 
     // take lock
-    while (!atomicMax(&lock, 1)) {}
-    if (local_best_difficulty >= global_best_difficulty) {
+    while (!atomicMax(&lock, 1))
+    {
+    }
+    if (local_best_difficulty >= global_best_difficulty)
+    {
         global_best_difficulty = local_best_difficulty;
         global_best_nonce = local_best_nonce;
     }
-
     // release lock
     atomicMin(&lock, 0);
 }
