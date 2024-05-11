@@ -8,6 +8,6 @@ The basic idea of Drillx is to make building the correct Keccak digest harder th
 
 ## GPU
 
-To build with the `gpu` feature enabled, you must have CUDA installed on your local machine. You can download the CUDA Toolkit from NVIDIA’s official [CUDA Toolkit website](https://developer.nvidia.com/cuda-downloads). Choose the version compatible with your system and graphics card.
+To run drillx on a CUDA compatible gpu, compile the crate with the `gpu` feature flag enabled. You must have CUDA installed on your local machine. You can download the CUDA toolkit from [NVIDIA’s official website](https://developer.nvidia.com/cuda-downloads). Choose the version compatible with your system and graphics card.
 
 
