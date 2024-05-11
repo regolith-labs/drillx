@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use drillx::{
     difficulty,
-    gpu::{gpu_init, set_noise, single_drill_hash},
+    gpu::{drill_hash, gpu_init, set_noise},
     noise::NOISE,
 };
 
