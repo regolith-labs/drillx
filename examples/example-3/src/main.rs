@@ -15,7 +15,7 @@ fn main() {
 
     // Current challenge (255s for demo)
     let timer = Instant::now();
-    let secs = 5;
+    let secs = 55;
     let challenge = [255; 32];
     let mut nonce = [0; 8];
     unsafe {
