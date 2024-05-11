@@ -1,0 +1,11 @@
+[package]
+name = "example-3"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "example-3"
+
+[dependencies]
+drillx = { path = "../../drillx", features = ["gpu"] }
+tokio = { workspace = true }
