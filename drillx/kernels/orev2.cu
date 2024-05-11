@@ -72,8 +72,8 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out)
 __global__ void kernel_start_drill(
     uint8_t *d_challenge,
     uint8_t *d_result,
-    uint64_t stride)
-{
+    uint64_t stride
+) {
     auto start = std::chrono::high_resolution_clock::now();
     uint64_t nonce = threadIdx.x + (blockIdx.x * blockDim.x);
     uint64_t local_best_nonce = nonce;
