@@ -25,9 +25,8 @@ extern "C" void get_noise(size_t *host_data)
     cudaMemcpyFromSymbol(host_data, noise, NOISE_SIZE_BYTES, 0, cudaMemcpyDeviceToHost);
 }
 
-extern "C" void drill_hash(uint8_t *challenge, uint8_t *out)
+extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
 {
-
     // Allocate device memory for input and output data
     uint8_t *d_challenge, *d_out;
     uint64_t *d_nonce;
@@ -39,6 +38,9 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out)
     // Copy the host data to the device
     cudaMemcpy(d_challenge, challenge, 32, cudaMemcpyHostToDevice);
     // cudaMemcpy(d_nonce, &nonce, 8, cudaMemcpyHostToDevice);
+
+    // Calculate target cycle time. clockRate is in kHz
+    unsigned long long int target_cycles = clock_rate * 1000 * secs;
 
     // Launch the kernel to perform the hash operation
     printf("num blocks %d threads %d\n", number_blocks, number_threads);
@@ -96,7 +98,6 @@ __global__ void kernel_start_drill(
 
         // Update elapsed time
         elapsed_cycles = clock64() - start_cycles;
-        // printf("elapsed %llu target %llu done %d ", elapsed_cycles, target_cycles, (int)(elapsed_cycles < target_cycles));
 
         atomicAdd(&iters, 1);
     }

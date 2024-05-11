@@ -6,7 +6,8 @@ int number_multi_processors;
 int number_blocks;
 int number_threads;
 int max_threads_per_mp;
-unsigned long long int target_cycles;
+// unsigned long long int target_cycles;
+unsigned long long int clock_rate;
 
 // Greatest common denominator
 // Used in gpu_init() to calculate block_size
@@ -34,8 +35,8 @@ extern "C" void gpu_init()
     block_size = (max_threads_per_mp / gcd(max_threads_per_mp, number_threads));
     number_threads = 256; // / block_size;
     number_blocks = block_size * number_multi_processors;
-    target_cycles = (unsigned long long)device_prop.clockRate * 5000; // clockRate is in kHz, mine for 55 seconds
-    printf("clockrate %u cycles %llu\n", device_prop.clockRate, target_cycles);
+    clock_rate = (unsigned long long)device_prop.clockRate;
+    // target_cycles = (unsigned long long)device_prop.clockRate * 55000; // clockRate is in kHz, mine for 55 seconds
 }
 
 __device__ uint64_t saturating_add(uint64_t a, uint64_t b)

@@ -15,10 +15,11 @@ fn main() {
 
     // Current challenge (255s for demo)
     let timer = Instant::now();
+    let secs = 5;
     let challenge = [255; 32];
     let mut nonce = [0; 8];
     unsafe {
-        drill_hash(challenge.as_ptr(), nonce.as_mut_ptr());
+        drill_hash(challenge.as_ptr(), nonce.as_mut_ptr(), secs);
     }
     println!("{nonce:?}");
 
