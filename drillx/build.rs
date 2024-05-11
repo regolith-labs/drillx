@@ -8,8 +8,8 @@ fn main() {
 
 #[cfg(feature = "gpu")]
 fn gpu_keccak() {
-    println!("cargo::rerun-if-changed=kernels/");
-    println!("cargo::rerun-if-changed=src/");
+    println!("cargo:rerun-if-changed=kernels/");
+    println!("cargo:rerun-if-changed=src/");
 
     cc::Build::new()
         .cuda(true)
