@@ -1,6 +1,6 @@
 # Drillx
 
-Drillx is a memory hard hashing algorithm for Ore cryptocurrency mining.
+Drillx is a memory hard hash function for Ore cryptocurrency mining.
 
 ## Summary
 
