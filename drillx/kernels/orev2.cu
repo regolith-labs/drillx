@@ -40,7 +40,7 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
     // cudaMemcpy(d_nonce, &nonce, 8, cudaMemcpyHostToDevice);
 
     // Calculate target cycle time. clockRate is in kHz
-    unsigned long long int target_cycles = clock_rate * 1000 * secs;
+    unsigned long long int target_cycles = (unsigned long long)(1000 * secs) * clock_rate;
     printf("clockrate %llu target cycles %llu\n", clock_rate, target_cycles);
 
     // Launch the kernel to perform the hash operation
