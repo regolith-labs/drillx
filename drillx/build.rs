@@ -17,8 +17,8 @@ fn gpu_keccak() {
         .file("kernels/utils.cu")
         .file("kernels/orev2.cu")
         .flag("-cudart=static")
-        .flag("-gencode=arch=compute_89,code=sm_89") // Optimize for RTX 4090
-        .flag("-gencode=arch=compute_89,code=compute_89") // PTX for future compatibility
+        // .flag("-gencode=arch=compute_89,code=sm_89") // Optimize for RTX 4090
+        // .flag("-gencode=arch=compute_89,code=compute_89") // PTX for future compatibility
         .compile("libkeccak.a");
 
     // Add link directory

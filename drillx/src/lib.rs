@@ -1,9 +1,9 @@
-mod noise;
 mod operator2;
 mod utils;
 
 #[cfg(feature = "gpu")]
 pub mod gpu;
+pub mod noise;
 
 #[cfg(feature = "benchmark")]
 use std::time::Instant;
