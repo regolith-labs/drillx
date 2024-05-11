@@ -16,23 +16,18 @@ fn main() {
     // Current challenge (255s for demo)
     let timer = Instant::now();
     let challenge = [255; 32];
-    let nonce = [2; 8];
-    let mut gpu_out = [0; 8];
+    let mut nonce = [0; 8];
     unsafe {
-        single_drill_hash(
-            challenge.as_ptr(),
-            u64::from_le_bytes(nonce),
-            gpu_out.as_mut_ptr(),
-        );
+        drill_hash(challenge.as_ptr(), nonce.as_mut_ptr());
     }
-    println!("{gpu_out:?}");
+    println!("{nonce:?}");
 
     // Calculate hash
-    let gpu_hash = drillx::hash(&challenge, &gpu_out);
+    let hx = drillx::hash(&challenge, &nonce);
     println!(
         "gpu found hash with difficulty {} in {} seconds: {}",
-        difficulty(gpu_hash),
+        difficulty(hx),
         timer.elapsed().as_secs(),
-        bs58::encode(gpu_hash).into_string(),
+        bs58::encode(hx).into_string(),
     );
 }
