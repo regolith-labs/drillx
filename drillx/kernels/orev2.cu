@@ -96,7 +96,7 @@ __global__ void kernel_start_drill(
 
         // Update elapsed time
         elapsed_cycles = clock64() - start_cycles;
-        printf("elapsed %llu target %llu done %d ", elapsed_cycles, target_cycles, (int)(elapsed_cycles < target_cycles));
+        // printf("elapsed %llu target %llu done %d ", elapsed_cycles, target_cycles, (int)(elapsed_cycles < target_cycles));
 
         atomicAdd(&iters, 1);
     }
