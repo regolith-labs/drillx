@@ -6,7 +6,6 @@ int number_multi_processors;
 int number_blocks;
 int number_threads;
 int max_threads_per_mp;
-// unsigned long long int target_cycles;
 unsigned long long int clock_rate;
 
 // Greatest common denominator
@@ -36,7 +35,6 @@ extern "C" void gpu_init()
     number_threads = 256; // / block_size;
     number_blocks = block_size * number_multi_processors;
     clock_rate = (unsigned long long)device_prop.clockRate;
-    // target_cycles = (unsigned long long)device_prop.clockRate * 55000; // clockRate is in kHz, mine for 55 seconds
 }
 
 __device__ uint64_t saturating_add(uint64_t a, uint64_t b)

@@ -6,7 +6,6 @@ extern int number_blocks;
 extern int number_threads;
 extern int max_threads_per_mp;
 extern unsigned long long int clock_rate;
-// extern unsigned long long int target_cycles;
 
 // Initializes gpu parameters
 extern "C" void gpu_init();

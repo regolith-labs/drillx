@@ -41,6 +41,7 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
 
     // Calculate target cycle time. clockRate is in kHz
     unsigned long long int target_cycles = clock_rate * 1000 * secs;
+    printf("clockrate %llu target cycles %llu\n", clock_rate, target_cycles);
 
     // Launch the kernel to perform the hash operation
     printf("num blocks %d threads %d\n", number_blocks, number_threads);
