@@ -1,4 +1,4 @@
-use std::{collections::HashMap, time::Instant};
+use std::time::Instant;
 
 use drillx::{
     difficulty,
@@ -16,14 +16,19 @@ fn main() {
     // Current challenge (255s for demo)
     let timer = Instant::now();
     let challenge = [255; 32];
-    let mut gpu_nonce = [0; 8];
+    let nonce = [2; 8];
+    let mut gpu_out = [0; 8];
     unsafe {
-        drill_hash(challenge.as_ptr(), gpu_nonce.as_mut_ptr());
+        single_drill_hash(
+            challenge.as_ptr(),
+            u64::from_le_bytes(nonce),
+            gpu_out.as_mut_ptr(),
+        );
     }
     println!("{gpu_nonce:?}");
 
     // Calculate hash
-    let gpu_hash = drillx::hash(&challenge, &gpu_nonce);
+    let gpu_hash = drillx::hash(&challenge, &gpu_out);
     println!(
         "gpu found hash with difficulty {} in {} seconds: {}",
         difficulty(gpu_hash),

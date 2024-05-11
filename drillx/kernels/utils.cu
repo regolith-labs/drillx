@@ -67,28 +67,3 @@ __global__ void test_difficulty(const uint8_t *hash, uint32_t *result)
 {
     *result = difficulty(hash);
 }
-
-// int main()
-// {
-//     uint8_t h_hash[32] = {0b01111111, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-//     uint32_t h_result;
-
-//     uint8_t *d_hash;
-//     uint32_t *d_result;
-
-//     cudaMalloc(&d_hash, 32 * sizeof(uint8_t));
-//     cudaMalloc(&d_result, sizeof(uint32_t));
-
-//     cudaMemcpy(d_hash, h_hash, 32 * sizeof(uint8_t), cudaMemcpyHostToDevice);
-
-//     test_difficulty<<<1, 1>>>(d_hash, d_result);
-
-//     cudaMemcpy(&h_result, d_result, sizeof(uint32_t), cudaMemcpyDeviceToHost);
-
-//     printf("Computed difficulty: %u\n", h_result);
-
-//     cudaFree(d_hash);
-//     cudaFree(d_result);
-
-//     return 0;
-// }
