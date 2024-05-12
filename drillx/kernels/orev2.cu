@@ -50,7 +50,7 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
     kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, stride, target_cycles);
 
     // Polling loop to check for timeout
-    printf("A %d ", secs);
+    printf("A");
     std::this_thread::sleep_for(std::chrono::seconds(secs));
     printf("B");
     long long int flag = 1;
