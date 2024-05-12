@@ -106,7 +106,6 @@ __global__ void kernel_start_drill(
             }
         }
         nonce += stride;
-        iters += 1;
 
         // elapsed_cycles = clock64() - start_cycles;
     }
