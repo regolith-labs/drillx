@@ -45,7 +45,6 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
 
     // Free device memory
     cudaFree(d_challenge);
-    cudaFree(d_out);
 
     // Print errors
     cudaError_t err = cudaGetLastError();
