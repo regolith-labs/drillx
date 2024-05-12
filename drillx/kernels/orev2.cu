@@ -59,7 +59,7 @@ __global__ void kernel_start_drill(
     uint64_t stride,
     unsigned long long int target_cycles)
 {
-
+    // Drill and track best local nonce
     unsigned long long int start_cycles = clock64();
     unsigned long long int elapsed_cycles = 0;
     uint64_t nonce = threadIdx.x + (blockIdx.x * blockDim.x);
@@ -72,6 +72,7 @@ __global__ void kernel_start_drill(
         uint32_t hash_difficulty = difficulty(result);
         if (hash_difficulty > local_best_difficulty)
         {
+            atomicMax(&global_best_difficulty, local_best_difficulty);
             local_best_difficulty = hash_difficulty;
             local_best_nonce = nonce;
         }
@@ -79,16 +80,19 @@ __global__ void kernel_start_drill(
         elapsed_cycles = clock64() - start_cycles;
     }
 
-    // Update global difficulty and nonce
-    while (!atomicMax(&lock, 1))
-    {
-    }
+    // Update best global nonce
     if (local_best_difficulty >= global_best_difficulty)
     {
-        global_best_difficulty = local_best_difficulty;
-        global_best_nonce = local_best_nonce;
+        while (!atomicMax(&lock, 1))
+        {
+        }
+        if (local_best_difficulty >= global_best_difficulty)
+        {
+            global_best_difficulty = local_best_difficulty;
+            global_best_nonce = local_best_nonce;
+        }
+        atomicMin(&lock, 0);
     }
-    atomicMin(&lock, 0);
 }
 
 extern "C" void single_drill_hash(uint8_t *challenge, uint64_t nonce, uint8_t *out)
