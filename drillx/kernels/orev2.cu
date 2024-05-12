@@ -27,19 +27,25 @@ extern "C" void get_noise(size_t *host_data)
 
 extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
 {
-    // Allocate device memory for input and output data
+    // Reset global state before starting the mining operation
+    unsigned long long int zero = 0;
+    uint32_t zero_difficulty = 0;
+
+    // Use cudaMemcpyToSymbol if the variables are device symbols
+    cudaMemcpyToSymbol(global_best_nonce, &zero, sizeof(zero), 0, cudaMemcpyHostToDevice);
+    cudaMemcpyToSymbol(global_best_difficulty, &zero_difficulty, sizeof(zero_difficulty), 0, cudaMemcpyHostToDevice);
+
+    // Setup device memory for challenge and output
     uint8_t *d_challenge, *d_out;
     cudaMalloc((void **)&d_challenge, 32);
     cudaMalloc((void **)&d_out, 32);
-
-    // Copy the host data to the device
     cudaMemcpy(d_challenge, challenge, 32, cudaMemcpyHostToDevice);
 
-    // Calculate target cycle time. clockRate is in kHz
+    // Calculate target cycle time based on clock rate and secs
     unsigned long long int target_cycles = (unsigned long long)(1000 * secs) * clock_rate;
-
-    // Launch the kernel to perform the hash operation
     uint64_t stride = number_blocks * number_threads;
+
+    // Launch the kernel
     kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, d_out, stride, target_cycles);
 
     uint32_t host_gbd = 0;
@@ -48,7 +54,7 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
     cudaMemcpyFromSymbol(&host_iters, iters, sizeof(host_iters), 0, cudaMemcpyDeviceToHost);
 
     printf("best difficulty %u in %lld iters\n", host_gbd, host_iters);
-    cudaMemcpy(out, d_out, 32, cudaMemcpyDeviceToHost);
+    cudaMemcpy(out, &d_out, 32, cudaMemcpyDeviceToHost);
 
     // Retrieve the results back to the host
     cudaMemcpyFromSymbol(out, global_best_nonce, sizeof(global_best_nonce), 0, cudaMemcpyDeviceToHost);
