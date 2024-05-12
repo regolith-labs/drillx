@@ -53,7 +53,7 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
 
     // Launch the kernel to perform the hash operation
     uint64_t stride = number_blocks * number_threads;
-    kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, stride, target_cycles);
+    kernel_start_drill<<<number_blocks, number_threads, 0, stream>>>(d_challenge, stride, target_cycles);
 
     // Start timing
     auto start = std::chrono::high_resolution_clock::now();
