@@ -27,9 +27,8 @@ extern "C" void get_noise(size_t *host_data)
 extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
 {
     // Allocate device memory for input and output data
-    uint8_t *d_challenge, *d_out;
+    uint8_t *d_challenge;
     cudaMalloc((void **)&d_challenge, 32);
-    cudaMalloc((void **)&d_out, 32);
 
     // Copy the host data to the device
     cudaMemcpy(d_challenge, challenge, 32, cudaMemcpyHostToDevice);
@@ -39,11 +38,7 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
 
     // Launch the kernel to perform the hash operation
     uint64_t stride = number_blocks * number_threads;
-    kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, d_out, stride, target_cycles);
-
-    uint32_t host_gbd = 0;
-    cudaMemcpyFromSymbol(&host_gbd, global_best_difficulty, sizeof(host_gbd), 0, cudaMemcpyDeviceToHost);
-    cudaMemcpy(out, d_out, 32, cudaMemcpyDeviceToHost);
+    kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, stride, target_cycles);
 
     // Retrieve the results back to the host
     cudaMemcpyFromSymbol(out, global_best_nonce, sizeof(global_best_nonce), 0, cudaMemcpyDeviceToHost);
@@ -52,6 +47,7 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
     cudaFree(d_challenge);
     cudaFree(d_out);
 
+    // Print errors
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess)
     {
@@ -61,7 +57,6 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
 
 __global__ void kernel_start_drill(
     uint8_t *d_challenge,
-    uint8_t *d_result,
     uint64_t stride,
     unsigned long long int target_cycles)
 {
@@ -76,20 +71,16 @@ __global__ void kernel_start_drill(
     {
         kernel_drill_hash(d_challenge, &nonce, result);
         uint32_t hash_difficulty = difficulty(result);
-        memcpy(d_result, &local_best_difficulty, 4);
         if (hash_difficulty > local_best_difficulty)
         {
             local_best_difficulty = hash_difficulty;
             local_best_nonce = nonce;
         }
-
         nonce += stride;
-
-        // Update elapsed time
         elapsed_cycles = clock64() - start_cycles;
     }
 
-    // take lock
+    // Update global difficulty and nonce
     while (!atomicMax(&lock, 1))
     {
     }
@@ -98,7 +89,6 @@ __global__ void kernel_start_drill(
         global_best_difficulty = local_best_difficulty;
         global_best_nonce = local_best_nonce;
     }
-    // release lock
     atomicMin(&lock, 0);
 }
 
