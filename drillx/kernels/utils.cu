@@ -6,7 +6,7 @@ int number_multi_processors;
 int number_blocks;
 int number_threads;
 int max_threads_per_mp;
-unsigned long long int clock_rate;
+// unsigned long long int clock_rate;
 
 // Greatest common denominator
 // Used in gpu_init() to calculate block_size
@@ -34,7 +34,7 @@ extern "C" void gpu_init()
     block_size = (max_threads_per_mp / gcd(max_threads_per_mp, number_threads));
     number_threads = 256; // / block_size;
     number_blocks = block_size * number_multi_processors;
-    clock_rate = 1800000; // (unsigned long long)device_prop.clockRate;
+    // clock_rate = 1800000; // (unsigned long long)device_prop.clockRate;
 }
 
 __device__ uint64_t saturating_add(uint64_t a, uint64_t b)
