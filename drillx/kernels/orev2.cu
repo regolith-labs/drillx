@@ -9,7 +9,7 @@
 
 __device__ uint32_t global_best_difficulty = 0;
 __device__ unsigned long long int global_best_nonce = 0;
-__device__ unsigned long long int lock = 0;
+__device__ volatile unsigned long long int lock = 0;
 
 // Define the static array globally
 __device__ size_t noise[NOISE_SIZE_BYTES / USIZE_BYTE_SIZE];
@@ -58,29 +58,10 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
     auto start = std::chrono::high_resolution_clock::now();
 
     // Polling loop to check for timeout
-    while (true) {
-        auto now = std::chrono::high_resolution_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start);
-        if (elapsed.count() >= secs) {
-            atomicMax(&lock, 1);
-            cudaDeviceSynchronize();  // Ensure all previous operations are complete
-            cudaDeviceReset();  // Resets the device to clear all ongoing operations
-            std::cerr << "Operation timed out and was terminated." << std::endl;
-            break;
-        }
-
-        // Check if the kernel execution has completed
-        cudaError_t status = cudaStreamQuery(stream);
-        if (status == cudaSuccess) {
-            break;  // Kernel finished successfully
-        } else if (status != cudaErrorNotReady) {
-            std::cerr << "CUDA error: " << cudaGetErrorString(status) << std::endl;
-            break;
-        }
-
-        // Sleep to reduce CPU usage during polling
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    } 
+    std::this_thread::sleep_for(std::chrono::seconds(secs));
+    long long int flag = 1;
+    cudaMemcpyToSymbol(lock, &flag, sizeof(long long int)); 
+    cudaDeviceSynchronize();  // Ensure all previous operations are complete
 
     // Retrieve the results back to the host
     cudaMemcpyFromSymbol(out, global_best_nonce, sizeof(global_best_nonce), 0, cudaMemcpyDeviceToHost);
@@ -104,13 +85,12 @@ __global__ void kernel_start_drill(
     // Drill and track best local nonce
     unsigned long long int start_cycles = clock64();
     unsigned long long int elapsed_cycles = 0;
-    uint64_t iters = 0;
     uint64_t nonce = threadIdx.x + (blockIdx.x * blockDim.x);
     uint64_t local_best_nonce = nonce;
     uint32_t local_best_difficulty = 0;
     uint8_t result[32];
     // while (elapsed_cycles < target_cycles)
-    while (true)
+    while (!lock)
     {
         kernel_drill_hash(d_challenge, &nonce, result);
         uint32_t hash_difficulty = difficulty(result);
@@ -127,11 +107,6 @@ __global__ void kernel_start_drill(
         }
         nonce += stride;
         iters += 1;
-
-        if (iters % 10000 == 0 && lock > 0) 
-        {
-            break;
-        }
 
         // elapsed_cycles = clock64() - start_cycles;
     }
