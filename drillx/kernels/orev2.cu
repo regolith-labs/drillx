@@ -46,16 +46,14 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
     unsigned long long int target_cycles = (unsigned long long)(1000 * secs) * clock_rate;
 
     // Launch the kernel to perform the hash operation
+    printf("Secs: %ld", secs);
     uint64_t stride = number_blocks * number_threads;
     kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, stride, target_cycles);
 
     // Polling loop to check for timeout
-    printf("A");
     std::this_thread::sleep_for(std::chrono::seconds(secs));
-    printf("B");
     long long int flag = 1;
     cudaMemcpyToSymbol(lock, &flag, sizeof(long long int)); 
-    printf("C");
     cudaDeviceSynchronize();  // Ensure all previous operations are complete
 
     // Retrieve the results back to the host
@@ -79,12 +77,10 @@ __global__ void kernel_start_drill(
 {
     // Drill and track best local nonce
     unsigned long long int start_cycles = clock64();
-    unsigned long long int elapsed_cycles = 0;
     uint64_t nonce = threadIdx.x + (blockIdx.x * blockDim.x);
     uint64_t local_best_nonce = nonce;
     uint32_t local_best_difficulty = 0;
     uint8_t result[32];
-    // while (elapsed_cycles < target_cycles)
     while (!lock)
     {
         kernel_drill_hash(d_challenge, &nonce, result);
@@ -101,20 +97,7 @@ __global__ void kernel_start_drill(
             }
         }
         nonce += stride;
-
-        // elapsed_cycles = clock64() - start_cycles;
     }
-
-    // // Update best global nonce
-    // while (!atomicMax(&lock, 1))
-    // {
-    // }
-    // if (local_best_difficulty >= global_best_difficulty)
-    // {
-    //     global_best_difficulty = local_best_difficulty;
-    //     global_best_nonce = local_best_nonce;
-    // }
-    // atomicMin(&lock, 0);
 }
 
 extern "C" void single_drill_hash(uint8_t *challenge, uint64_t nonce, uint8_t *out)
