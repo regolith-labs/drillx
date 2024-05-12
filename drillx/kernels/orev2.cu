@@ -26,6 +26,14 @@ extern "C" void get_noise(size_t *host_data)
 
 extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
 {
+    // Reset global state before starting the mining operation
+    unsigned long long int zero = 0;
+    uint32_t zero_difficulty = 0;
+
+    // Use cudaMemcpyToSymbol if the variables are device symbols
+    cudaMemcpyToSymbol(global_best_nonce, &zero, sizeof(zero), 0, cudaMemcpyHostToDevice);
+    cudaMemcpyToSymbol(global_best_difficulty, &zero_difficulty, sizeof(zero_difficulty), 0, cudaMemcpyHostToDevice);
+
     // Allocate device memory for input and output data
     uint8_t *d_challenge;
     cudaMalloc((void **)&d_challenge, 32);
