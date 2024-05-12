@@ -79,7 +79,7 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
         }
 
         // Sleep to reduce CPU usage during polling
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
     } 
 
     // Retrieve the results back to the host
