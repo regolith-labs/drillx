@@ -62,7 +62,7 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
     while (true) {
         auto now = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start);
-        if (elapsed.count() >= 30) {  // 30 second timeout
+        if (elapsed.count() >= secs) {  // 30 second timeout
             cudaDeviceSynchronize();  // Ensure all previous operations are complete
             cudaDeviceReset();  // Resets the device to clear all ongoing operations
             std::cerr << "Operation timed out and was terminated." << std::endl;
