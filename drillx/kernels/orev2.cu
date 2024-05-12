@@ -35,12 +35,6 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
     // Copy the host data to the device
     cudaMemcpy(d_challenge, challenge, 32, cudaMemcpyHostToDevice);
 
-    // Reset device state
-    global_best_difficulty = 0;
-    global_best_nonce = 0;
-    iters = 0;
-    lock = 0;
-
     // Calculate target cycle time. clockRate is in kHz
     unsigned long long int target_cycles = (unsigned long long)(1000 * secs) * clock_rate;
 
@@ -62,7 +56,6 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
     // Free device memory
     cudaFree(d_challenge);
     cudaFree(d_out);
-    cudaFree(d_nonce);
 
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess)
