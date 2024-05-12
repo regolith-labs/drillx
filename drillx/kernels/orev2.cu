@@ -128,7 +128,8 @@ __global__ void kernel_start_drill(
         nonce += stride;
         iters += 1;
 
-        if iters % 10000 == 0 && lock > 0 {
+        if (iters % 10000 == 0 && lock > 0) 
+        {
             break;
         }
 
