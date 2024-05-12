@@ -89,7 +89,7 @@ __global__ void kernel_start_drill(
     }
 
     // Update best global nonce
-    while (!atomicMax(&lock, 1))
+    while (atomicMax(&lock, 1))
     {
     }
     if (local_best_difficulty >= global_best_difficulty)
