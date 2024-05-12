@@ -81,18 +81,15 @@ __global__ void kernel_start_drill(
     }
 
     // Update best global nonce
+    while (!atomicMax(&lock, 1))
+    {
+    }
     if (local_best_difficulty >= global_best_difficulty)
     {
-        while (!atomicMax(&lock, 1))
-        {
-        }
-        if (local_best_difficulty >= global_best_difficulty)
-        {
-            global_best_difficulty = local_best_difficulty;
-            global_best_nonce = local_best_nonce;
-        }
-        atomicMin(&lock, 0);
+        global_best_difficulty = local_best_difficulty;
+        global_best_nonce = local_best_nonce;
     }
+    atomicMin(&lock, 0);
 }
 
 extern "C" void single_drill_hash(uint8_t *challenge, uint64_t nonce, uint8_t *out)
