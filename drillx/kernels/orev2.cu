@@ -6,7 +6,6 @@
 
 __device__ uint32_t global_best_difficulty = 0;
 __device__ unsigned long long int global_best_nonce = 0;
-__device__ unsigned long long int iters = 0;
 __device__ unsigned long long int lock = 0;
 
 // Define the static array globally
@@ -43,11 +42,7 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
     kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, d_out, stride, target_cycles);
 
     uint32_t host_gbd = 0;
-    unsigned long long int host_iters = 0;
     cudaMemcpyFromSymbol(&host_gbd, global_best_difficulty, sizeof(host_gbd), 0, cudaMemcpyDeviceToHost);
-    cudaMemcpyFromSymbol(&host_iters, iters, sizeof(host_iters), 0, cudaMemcpyDeviceToHost);
-
-    printf("best difficulty %u in %lld iters\n", host_gbd, host_iters);
     cudaMemcpy(out, d_out, 32, cudaMemcpyDeviceToHost);
 
     // Retrieve the results back to the host
@@ -92,8 +87,6 @@ __global__ void kernel_start_drill(
 
         // Update elapsed time
         elapsed_cycles = clock64() - start_cycles;
-
-        atomicAdd(&iters, 1);
     }
 
     // take lock
