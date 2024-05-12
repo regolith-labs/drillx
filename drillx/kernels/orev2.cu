@@ -1,5 +1,4 @@
 #include <chrono>
-#include <iostream>
 #include <thread>
 #include <stdint.h>
 #include <stdio.h>
@@ -29,10 +28,6 @@ extern "C" void get_noise(size_t *host_data)
 
 extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
 {
-    // Create stream for synchronization
-    cudaStream_t stream;
-    cudaStreamCreate(&stream);
-
     // Reset global state before starting the mining operation
     unsigned long long int zero = 0;
     uint32_t zero_difficulty = 0;
@@ -52,15 +47,15 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
 
     // Launch the kernel to perform the hash operation
     uint64_t stride = number_blocks * number_threads;
-    kernel_start_drill<<<number_blocks, number_threads, 0, stream>>>(d_challenge, stride, target_cycles);
-
-    // Start timing
-    auto start = std::chrono::high_resolution_clock::now();
+    kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, stride, target_cycles);
 
     // Polling loop to check for timeout
+    printf("A %d ", secs);
     std::this_thread::sleep_for(std::chrono::seconds(secs));
+    printf("B");
     long long int flag = 1;
     cudaMemcpyToSymbol(lock, &flag, sizeof(long long int)); 
+    printf("C");
     cudaDeviceSynchronize();  // Ensure all previous operations are complete
 
     // Retrieve the results back to the host
