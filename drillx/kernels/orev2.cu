@@ -48,7 +48,7 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
     cudaMemcpyFromSymbol(&host_iters, iters, sizeof(host_iters), 0, cudaMemcpyDeviceToHost);
 
     printf("best difficulty %u in %lld iters\n", host_gbd, host_iters);
-    cudaMemcpy(out, &d_out, 32, cudaMemcpyDeviceToHost);
+    cudaMemcpy(out, d_out, 32, cudaMemcpyDeviceToHost);
 
     // Retrieve the results back to the host
     cudaMemcpyFromSymbol(out, global_best_nonce, sizeof(global_best_nonce), 0, cudaMemcpyDeviceToHost);
