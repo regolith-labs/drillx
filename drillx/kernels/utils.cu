@@ -34,7 +34,7 @@ extern "C" void gpu_init()
     block_size = (max_threads_per_mp / gcd(max_threads_per_mp, number_threads));
     number_threads = 256; // / block_size;
     number_blocks = block_size * number_multi_processors;
-    clock_rate = (unsigned long long)device_prop.clockRate;
+    clock_rate = 1800000; // (unsigned long long)device_prop.clockRate;
 }
 
 __device__ uint64_t saturating_add(uint64_t a, uint64_t b)
