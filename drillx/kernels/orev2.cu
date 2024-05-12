@@ -1,3 +1,5 @@
+#include <chrono>
+#include <iostream>
 #include <stdint.h>
 #include <stdio.h>
 #include "orev2.h"
@@ -26,6 +28,10 @@ extern "C" void get_noise(size_t *host_data)
 
 extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
 {
+    // Create stream for synchronization
+    cudaStream_t stream;
+    cudaStreamCreate(&stream);
+
     // Reset global state before starting the mining operation
     unsigned long long int zero = 0;
     uint32_t zero_difficulty = 0;
@@ -47,6 +53,33 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
     // Launch the kernel to perform the hash operation
     uint64_t stride = number_blocks * number_threads;
     kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, stride, target_cycles);
+
+    // Start timing
+    auto start = std::chrono::high_resolution_clock::now();
+
+    // Polling loop to check for timeout
+    while (true) {
+        auto now = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start);
+        if (elapsed.count() >= 30) {  // 30 second timeout
+            cudaDeviceSynchronize();  // Ensure all previous operations are complete
+            cudaDeviceReset();  // Resets the device to clear all ongoing operations
+            std::cerr << "Operation timed out and was terminated." << std::endl;
+            break;
+        }
+
+        // Check if the kernel execution has completed
+        cudaError_t status = cudaStreamQuery(stream);
+        if (status == cudaSuccess) {
+            break;  // Kernel finished successfully
+        } else if (status != cudaErrorNotReady) {
+            std::cerr << "CUDA error: " << cudaGetErrorString(status) << std::endl;
+            break;
+        }
+
+        // Sleep to reduce CPU usage during polling
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    } 
 
     // Retrieve the results back to the host
     cudaMemcpyFromSymbol(out, global_best_nonce, sizeof(global_best_nonce), 0, cudaMemcpyDeviceToHost);
