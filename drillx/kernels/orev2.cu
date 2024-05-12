@@ -8,7 +8,7 @@
 
 __device__ uint32_t global_best_difficulty = 0;
 __device__ unsigned long long int global_best_nonce = 0;
-__device__ volatile unsigned long long int lock = 0;
+__device__ volatile int lock = 0;
 
 // Define the static array globally
 __device__ size_t noise[NOISE_SIZE_BYTES / USIZE_BYTE_SIZE];
@@ -29,9 +29,10 @@ extern "C" void get_noise(size_t *host_data)
 extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
 {
     // Reset global state before starting the mining operation
+    int zeroi = 0;
     unsigned long long int zero = 0;
     uint32_t zero_difficulty = 0;
-    cudaMemcpyToSymbol(lock, &zero, sizeof(zero), 0, cudaMemcpyHostToDevice);
+    cudaMemcpyToSymbol(lock, &zeroi, sizeof(zeroi), 0, cudaMemcpyHostToDevice);
     cudaMemcpyToSymbol(global_best_nonce, &zero, sizeof(zero), 0, cudaMemcpyHostToDevice);
     cudaMemcpyToSymbol(global_best_difficulty, &zero_difficulty, sizeof(zero_difficulty), 0, cudaMemcpyHostToDevice);
 
@@ -52,8 +53,8 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
 
     // Polling loop to check for timeout
     std::this_thread::sleep_for(std::chrono::seconds(secs));
-    long long int flag = 1;
-    cudaMemcpyToSymbol(lock, &flag, sizeof(long long int)); 
+    int flag = 1;
+    cudaMemcpyToSymbol(lock, &flag, sizeof(int)); 
     cudaDeviceSynchronize();  // Ensure all previous operations are complete
 
     // Retrieve the results back to the host
