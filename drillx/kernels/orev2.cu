@@ -36,8 +36,7 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
     // Reset global state before starting the mining operation
     unsigned long long int zero = 0;
     uint32_t zero_difficulty = 0;
-
-    // Use cudaMemcpyToSymbol if the variables are device symbols
+    cudaMemcpyToSymbol(lock, &zero, sizeof(zero), 0, cudaMemcpyHostToDevice);
     cudaMemcpyToSymbol(global_best_nonce, &zero, sizeof(zero), 0, cudaMemcpyHostToDevice);
     cudaMemcpyToSymbol(global_best_difficulty, &zero_difficulty, sizeof(zero_difficulty), 0, cudaMemcpyHostToDevice);
 
@@ -62,7 +61,8 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs)
     while (true) {
         auto now = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start);
-        if (elapsed.count() >= secs) {  // 30 second timeout
+        if (elapsed.count() >= secs) {
+            atomicMax(&lock, 1);
             cudaDeviceSynchronize();  // Ensure all previous operations are complete
             cudaDeviceReset();  // Resets the device to clear all ongoing operations
             std::cerr << "Operation timed out and was terminated." << std::endl;
@@ -104,6 +104,7 @@ __global__ void kernel_start_drill(
     // Drill and track best local nonce
     unsigned long long int start_cycles = clock64();
     unsigned long long int elapsed_cycles = 0;
+    uint64_t iters = 0;
     uint64_t nonce = threadIdx.x + (blockIdx.x * blockDim.x);
     uint64_t local_best_nonce = nonce;
     uint32_t local_best_difficulty = 0;
@@ -125,6 +126,12 @@ __global__ void kernel_start_drill(
             }
         }
         nonce += stride;
+        iters += 1;
+
+        if iters % 10000 == 0 && lock > 0 {
+            break;
+        }
+
         // elapsed_cycles = clock64() - start_cycles;
     }
 
