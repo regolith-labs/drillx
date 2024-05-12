@@ -1,5 +1,6 @@
 #include <chrono>
 #include <iostream>
+#include <thread>
 #include <stdint.h>
 #include <stdio.h>
 #include "orev2.h"
