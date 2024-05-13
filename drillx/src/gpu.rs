@@ -1,5 +1,5 @@
 extern "C" {
-    pub fn drill_hash(challenge: *const u8, out: *mut u8, reset: bool);
+    pub fn drill_hash(challenge: *const u8, out: *mut u8, round: u64);
     pub fn single_drill_hash(challenge: *const u8, nonce: u64, out: *mut u8);
     pub fn set_noise(noise: *const usize);
     pub fn get_noise(noise: *const usize);

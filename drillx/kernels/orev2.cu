@@ -23,10 +23,10 @@ extern "C" void get_noise(size_t *host_data)
     cudaMemcpyFromSymbol(host_data, noise, NOISE_SIZE_BYTES, 0, cudaMemcpyDeviceToHost);
 }
 
-extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, reset bool)
+extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t round)
 {
     // Reset global state before starting the mining operation
-    if (reset)
+    if (round == 0)
     {
         unsigned long long int zero = 0;
         uint32_t zero_difficulty = 0;
@@ -45,7 +45,7 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, reset bool)
 
     // Launch the kernel to perform the hash operation
     uint64_t stride = number_blocks * number_threads;
-    kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, stride);
+    kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, stride, round);
 
     // Retrieve the results back to the host
     cudaMemcpyFromSymbol(out, global_best_nonce, sizeof(global_best_nonce), 0, cudaMemcpyDeviceToHost);
@@ -63,11 +63,12 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, reset bool)
 
 __global__ void kernel_start_drill(
     uint8_t *d_challenge,
-    uint64_t stride)
+    uint64_t stride,
+    uint64_t round)
 {
     // Drill and track best local nonce
     uint64_t iters = 0;
-    uint64_t nonce = threadIdx.x + (blockIdx.x * blockDim.x);
+    uint64_t nonce = threadIdx.x + (blockIdx.x * blockDim.x); // TODO Initialize based on round
     uint64_t local_best_nonce = nonce;
     uint32_t local_best_difficulty = 0;
     uint8_t result[32];
