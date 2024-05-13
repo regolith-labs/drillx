@@ -92,7 +92,7 @@ __global__ void kernel_start_drill(
         }
         nonce += stride;
         iters += 1;
-        printf("iters %d limit %d", iters, limit);
+        printf("iters %llu limit %llu", iters, limit);
     }
 }
 
