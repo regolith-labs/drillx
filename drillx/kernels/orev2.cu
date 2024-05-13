@@ -80,24 +80,30 @@ __global__ void kernel_start_drill(
         uint32_t hash_difficulty = difficulty(result);
         if (hash_difficulty > local_best_difficulty)
         {
-            atomicMax(&global_best_difficulty, local_best_difficulty);
             local_best_difficulty = hash_difficulty;
             local_best_nonce = nonce;
+            for (int i = 0; i < 4; i++)
+            {
+                if (local_best_difficulty >= atomicMax(&global_best_difficulty, local_best_difficulty)) 
+                {
+                   global_best_nonce = local_best_nonce; 
+                } 
+            }
         }
         nonce += stride;
         elapsed_cycles = clock64() - start_cycles;
     }
 
     // Update best global nonce
-    while (!atomicMax(&lock, 1))
-    {
-    }
-    if (local_best_difficulty >= global_best_difficulty)
-    {
-        global_best_difficulty = local_best_difficulty;
-        global_best_nonce = local_best_nonce;
-    }
-    atomicMin(&lock, 0);
+    // while (!atomicMax(&lock, 1))
+    // {
+    // }
+    // if (local_best_difficulty >= global_best_difficulty)
+    // {
+    //     global_best_difficulty = local_best_difficulty;
+    //     global_best_nonce = local_best_nonce;
+    // }
+    // atomicMin(&lock, 0);
 }
 
 extern "C" void single_drill_hash(uint8_t *challenge, uint64_t nonce, uint8_t *out)
