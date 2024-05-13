@@ -67,12 +67,13 @@ __global__ void kernel_start_drill(
     uint64_t round)
 {
     // Drill and track best local nonce
+    uint64_t limit = 100000;
     uint64_t iters = 0;
-    uint64_t nonce = threadIdx.x + (blockIdx.x * blockDim.x); // TODO Initialize based on round
+    uint64_t nonce = threadIdx.x + (blockIdx.x * blockDim.x) + (round * stride * limit);
     uint64_t local_best_nonce = nonce;
     uint32_t local_best_difficulty = 0;
     uint8_t result[32];
-    while (iters < 1000000)
+    while (iters < limit)
     {
         kernel_drill_hash(d_challenge, &nonce, result);
         uint32_t hash_difficulty = difficulty(result);
