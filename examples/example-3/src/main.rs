@@ -19,7 +19,7 @@ fn main() {
     let challenge = [255; 32];
     let mut nonce = [0; 8];
     unsafe {
-        drill_hash(challenge.as_ptr(), nonce.as_mut_ptr(), 1800000, secs);
+        drill_hash(challenge.as_ptr(), nonce.as_mut_ptr(), secs);
     }
     println!("{nonce:?}");
 
