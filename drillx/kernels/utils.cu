@@ -16,7 +16,7 @@ int gcd(int a, int b)
 }
 
 // Initializes gpu parameters
-extern "C" void gpu_init(uint32_t batchsize, uint32_t threads_per_block)
+extern "C" void gpu_init(uint32_t batchsize)
 {
     cudaDeviceProp device_prop;
     int block_size;
@@ -28,7 +28,7 @@ extern "C" void gpu_init(uint32_t batchsize, uint32_t threads_per_block)
         exit(EXIT_FAILURE);
     }
 
-    number_threads = min(device_prop.maxThreadsPerBlock, threads_per_block);
+    number_threads = min(device_prop.maxThreadsPerBlock, 256);
     number_multi_processors = device_prop.multiProcessorCount;
     max_threads_per_mp = device_prop.maxThreadsPerMultiProcessor;
     block_size = max_threads_per_mp / gcd(max_threads_per_mp, number_threads);

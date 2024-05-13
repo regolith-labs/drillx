@@ -8,7 +8,7 @@ extern int max_threads_per_mp;
 extern int batch_size;
 
 // Initializes gpu parameters
-extern "C" void gpu_init(uint32_t batchsize, uint32_t threads_per_block);
+extern "C" void gpu_init(uint32_t batchsize);
 
 // Greatest common denominator
 // Used in gpu_init() to calculate block_size

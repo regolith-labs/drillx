@@ -3,7 +3,7 @@ extern "C" {
     pub fn single_drill_hash(challenge: *const u8, nonce: u64, out: *mut u8);
     pub fn set_noise(noise: *const usize);
     pub fn get_noise(noise: *const usize);
-    pub fn gpu_init(batch_size: u32, threads_per_block: u32);
+    pub fn gpu_init(batch_size: u32);
 }
 
 #[cfg(test)]
@@ -16,7 +16,7 @@ mod tests {
     fn test_gpu() {
         let mut noise = vec![0_usize; 1000 * 1000 / 8];
         unsafe {
-            gpu_init(64, 256);
+            gpu_init(64);
             set_noise(NOISE.as_usize_slice().as_ptr());
             get_noise(noise.as_mut_ptr());
         }
