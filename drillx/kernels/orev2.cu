@@ -68,7 +68,7 @@ __global__ void kernel_start_drill(
     uint64_t round)
 {
     // Drill and track best local nonce
-    uint64_t limit = 100000;
+    uint64_t limit = 1000;
     uint64_t iters = 0;
     uint64_t nonce = threadIdx.x + (blockIdx.x * blockDim.x) + (round * stride * limit);
     uint64_t local_best_nonce = nonce;
@@ -92,10 +92,6 @@ __global__ void kernel_start_drill(
         }
         nonce += stride;
         iters += 1;
-        if (threadIdx.x == 0) 
-        {
-            printf("iters %llu limit %llu break %d", iters, limit, iters < limit);
-        }
     }
 }
 
