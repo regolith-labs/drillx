@@ -92,7 +92,7 @@ __global__ void kernel_start_drill(
         }
         nonce += stride;
         iters += 1;
-        if threadIdx.x == 0 
+        if (threadIdx.x == 0) 
         {
             printf("iters %llu limit %llu break %d", iters, limit, iters < limit);
         }
