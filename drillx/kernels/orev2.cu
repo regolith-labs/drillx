@@ -45,7 +45,7 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t round)
 
     // Launch the kernel to perform the hash operation
     uint64_t stride = number_blocks * number_threads;
-    kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, stride, round);
+    kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, stride, round, batch_size);
     cudaDeviceSynchronize();
 
     // Retrieve the results back to the host
@@ -65,16 +65,15 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t round)
 __global__ void kernel_start_drill(
     uint8_t *d_challenge,
     uint64_t stride,
-    uint64_t round)
+    uint64_t round,
+    uint32_t batch_size)
 {
-    // Drill and track best local nonce
-    uint64_t limit = 1000;
     uint64_t iters = 0;
-    uint64_t nonce = threadIdx.x + (blockIdx.x * blockDim.x) + (round * stride * limit);
+    uint64_t nonce = threadIdx.x + (blockIdx.x * blockDim.x) + (round * stride * batch_size);
     uint64_t local_best_nonce = nonce;
     uint32_t local_best_difficulty = 0;
     uint8_t result[32];
-    while (iters < limit)
+    while (iters < batch_size)
     {
         kernel_drill_hash(d_challenge, &nonce, result);
         uint32_t hash_difficulty = difficulty(result);
@@ -86,7 +85,8 @@ __global__ void kernel_start_drill(
             {
                 if (local_best_difficulty >= atomicMax(&global_best_difficulty, local_best_difficulty)) 
                 {
-                   global_best_nonce = local_best_nonce; 
+                    global_best_nonce = local_best_nonce; 
+                    break;
                 } 
             }
         }

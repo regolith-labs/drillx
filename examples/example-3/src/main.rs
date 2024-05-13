@@ -9,7 +9,7 @@ use drillx::{
 fn main() {
     // Initialize gpu
     unsafe {
-        gpu_init();
+        gpu_init(256);
         set_noise(NOISE.as_usize_slice().as_ptr());
     }
 
