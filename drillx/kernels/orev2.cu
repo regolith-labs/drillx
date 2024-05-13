@@ -6,7 +6,6 @@
 
 __device__ uint32_t global_best_difficulty = 0;
 __device__ unsigned long long int global_best_nonce = 0;
-__device__ unsigned long long int lock = 0;
 
 // Define the static array globally
 __device__ size_t noise[NOISE_SIZE_BYTES / USIZE_BYTE_SIZE];
@@ -24,15 +23,18 @@ extern "C" void get_noise(size_t *host_data)
     cudaMemcpyFromSymbol(host_data, noise, NOISE_SIZE_BYTES, 0, cudaMemcpyDeviceToHost);
 }
 
-extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t clockrate, uint64_t secs)
+extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t round)
 {
     // Reset global state before starting the mining operation
-    unsigned long long int zero = 0;
-    uint32_t zero_difficulty = 0;
+    if (round == 0)
+    {
+        unsigned long long int zero = 0;
+        uint32_t zero_difficulty = 0;
 
-    // Use cudaMemcpyToSymbol if the variables are device symbols
-    cudaMemcpyToSymbol(global_best_nonce, &zero, sizeof(zero), 0, cudaMemcpyHostToDevice);
-    cudaMemcpyToSymbol(global_best_difficulty, &zero_difficulty, sizeof(zero_difficulty), 0, cudaMemcpyHostToDevice);
+        // Use cudaMemcpyToSymbol if the variables are device symbols
+        cudaMemcpyToSymbol(global_best_nonce, &zero, sizeof(zero), 0, cudaMemcpyHostToDevice);
+        cudaMemcpyToSymbol(global_best_difficulty, &zero_difficulty, sizeof(zero_difficulty), 0, cudaMemcpyHostToDevice);
+    }
 
     // Allocate device memory for input and output data
     uint8_t *d_challenge;
@@ -41,12 +43,10 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t clockrate,
     // Copy the host data to the device
     cudaMemcpy(d_challenge, challenge, 32, cudaMemcpyHostToDevice);
 
-    // Calculate target cycle time. clockRate is in kHz
-    unsigned long long int target_cycles =  (unsigned long long)clockrate * (unsigned long long)(1000 * secs);
-
     // Launch the kernel to perform the hash operation
     uint64_t stride = number_blocks * number_threads;
-    kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, stride, target_cycles);
+    kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, stride, round);
+    cudaDeviceSynchronize();
 
     // Retrieve the results back to the host
     cudaMemcpyFromSymbol(out, global_best_nonce, sizeof(global_best_nonce), 0, cudaMemcpyDeviceToHost);
@@ -65,16 +65,16 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t clockrate,
 __global__ void kernel_start_drill(
     uint8_t *d_challenge,
     uint64_t stride,
-    unsigned long long int target_cycles)
+    uint64_t round)
 {
     // Drill and track best local nonce
-    unsigned long long int start_cycles = clock64();
-    unsigned long long int elapsed_cycles = 0;
-    uint64_t nonce = threadIdx.x + (blockIdx.x * blockDim.x);
+    uint64_t limit = 1000;
+    uint64_t iters = 0;
+    uint64_t nonce = threadIdx.x + (blockIdx.x * blockDim.x) + (round * stride * limit);
     uint64_t local_best_nonce = nonce;
     uint32_t local_best_difficulty = 0;
     uint8_t result[32];
-    while (elapsed_cycles < target_cycles)
+    while (iters < limit)
     {
         kernel_drill_hash(d_challenge, &nonce, result);
         uint32_t hash_difficulty = difficulty(result);
@@ -91,19 +91,8 @@ __global__ void kernel_start_drill(
             }
         }
         nonce += stride;
-        elapsed_cycles = clock64() - start_cycles;
+        iters += 1;
     }
-
-    // Update best global nonce
-    // while (!atomicMax(&lock, 1))
-    // {
-    // }
-    // if (local_best_difficulty >= global_best_difficulty)
-    // {
-    //     global_best_difficulty = local_best_difficulty;
-    //     global_best_nonce = local_best_nonce;
-    // }
-    // atomicMin(&lock, 0);
 }
 
 extern "C" void single_drill_hash(uint8_t *challenge, uint64_t nonce, uint8_t *out)
