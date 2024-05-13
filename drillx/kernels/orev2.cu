@@ -46,6 +46,7 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t round)
     // Launch the kernel to perform the hash operation
     uint64_t stride = number_blocks * number_threads;
     kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, stride, round);
+    cudaDeviceSynchronize();
 
     // Retrieve the results back to the host
     cudaMemcpyFromSymbol(out, global_best_nonce, sizeof(global_best_nonce), 0, cudaMemcpyDeviceToHost);
