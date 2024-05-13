@@ -14,8 +14,8 @@ extern "C" void set_noise(const uint64_t *data);
 extern "C" void get_noise(uint64_t *data);
 
 // host function that calls kernel_start_drill, a kernel that initializes the parallel routine that mines hashes for some time,
-extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t secs);
-__global__ void kernel_start_drill(uint8_t *d_challenge, uint64_t stride, unsigned long long int target_cycles);
+extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, bool secs);
+__global__ void kernel_start_drill(uint8_t *d_challenge, uint64_t stride);
 __device__ void mine(uint8_t *d_challenge, uint64_t nonce, uint32_t *local_best_difficulty, uint64_t *local_best_nonce);
 
 // host function that calls kernel_single_drill_hash, a non-parallel routine that does one hash
