@@ -1,3 +1,5 @@
+// TODO Update for equihash integration
+
 extern "C" {
     pub fn drill_hash(challenge: *const u8, out: *mut u8, round: u64);
     pub fn single_drill_hash(challenge: *const u8, nonce: u64, out: *mut u8);
