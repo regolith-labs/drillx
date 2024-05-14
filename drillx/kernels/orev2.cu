@@ -76,8 +76,6 @@ __global__ void kernel_start_drill(
 {
     uint64_t iters = 0;
     uint64_t nonce = threadIdx.x + (blockIdx.x * blockDim.x) + (round * stride * batch_size);
-    uint64_t local_best_nonce = nonce;
-    uint32_t local_best_difficulty = 0;
     uint8_t result[32];
     while (iters < batch_size)
     {
