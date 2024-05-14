@@ -6,7 +6,7 @@ use solana_program::{
     declare_id,
     entrypoint::ProgramResult,
     instruction::{AccountMeta, Instruction},
-    log::{sol_log, sol_log_compute_units},
+    log::sol_log_compute_units,
     program_error::ProgramError,
     pubkey::Pubkey,
 };
@@ -27,25 +27,17 @@ pub fn process_instruction(
     };
 
     // Prove that the solution is valid.
+    let challenge = [255; 32];
+
     let solution = Solution {
         d: args.digest,
         n: args.nonce,
     };
 
-    // let res = is_valid_solution(n, k, input, &nonce, soln);
-    let challenge = [255; 32];
-    // sol_log(&format!(
-    //     "Hash is valid: {:?}",
-    //     solution.is_valid(&challenge)
-    // ));
-    // sol_log(&format!(
-    //     "Difficulty: {:?}",
-    //     solution.to_hash().difficulty()
-    // ));
-
     if !solution.is_valid(&challenge) {
         return Err(ProgramError::Custom(0));
     }
+
     if solution.to_hash().difficulty() < args.difficulty as u32 {
         return Err(ProgramError::Custom(1));
     }
