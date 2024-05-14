@@ -3,31 +3,8 @@ pub fn hash(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<Hash, DrillxError> 
     let digest = build_digest(challenge, nonce)?;
     Ok(Hash {
         d: digest,
-        h: solana_program::keccak::hashv(&[&digest.as_slice()]).to_bytes(),
+        h: solana_program::keccak::hashv(&[&digest.as_slice(), &nonce.as_slice()]).to_bytes(),
     })
-}
-
-/// Constructs a keccak digest from a challenge and nonce using equix hashes
-fn build_digest(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<[u8; 16], DrillxError> {
-    // Equix
-    let seed = seed(challenge, nonce);
-    let Ok(solutions) = equix::solve(&seed) else {
-        return Err(DrillxError::BadEquix);
-    };
-    let Some(solution) = solutions.first() else {
-        return Err(DrillxError::BadEquix);
-    };
-
-    // Build digest
-    let mut digest = [0u8; 16];
-    digest.copy_from_slice(solution.to_bytes().as_slice());
-    Ok(digest)
-}
-
-/// Returns true if a digest if valid construction from the challenge and nonce
-pub fn is_valid_digest(challenge: &[u8; 32], nonce: &[u8; 8], digest: &[u8; 16]) -> bool {
-    let seed = seed(challenge, nonce);
-    equix::verify_bytes(&seed, digest).is_ok()
 }
 
 /// Generates a seed from the given challenge and nonce
@@ -36,6 +13,31 @@ fn seed(challenge: &[u8; 32], nonce: &[u8; 8]) -> [u8; 40] {
     buf[0..32].copy_from_slice(&challenge[..]);
     buf[32..40].copy_from_slice(&nonce[..]);
     buf
+}
+
+/// Constructs a keccak digest from a challenge and nonce using equix hashes
+fn build_digest(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<[u8; 16], DrillxError> {
+    // Seed
+    let seed = seed(challenge, nonce);
+
+    // Equix
+    let Ok(solutions) = equix::solve(&seed) else {
+        return Err(DrillxError::BadEquix);
+    };
+    let Some(solution) = solutions.first() else {
+        return Err(DrillxError::BadEquix);
+    };
+
+    // Digest
+    let mut digest = [0u8; 16];
+    digest.copy_from_slice(solution.to_bytes().as_slice());
+    Ok(digest)
+}
+
+/// Returns true if the digest if valid equihash construction from the challenge and nonce
+pub fn is_valid_digest(challenge: &[u8; 32], nonce: &[u8; 8], digest: &[u8; 16]) -> bool {
+    let seed = seed(challenge, nonce);
+    equix::verify_bytes(&seed, digest).is_ok()
 }
 
 /// Returns the number of leading zeros on a 32 byte buffer
@@ -88,7 +90,7 @@ impl Solution {
     pub fn to_hash(&self) -> Hash {
         Hash {
             d: self.d,
-            h: solana_program::keccak::hashv(&[self.d.as_slice()]).to_bytes(),
+            h: solana_program::keccak::hashv(&[self.d.as_slice(), self.n.as_slice()]).to_bytes(),
         }
     }
 }
