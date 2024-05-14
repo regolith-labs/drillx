@@ -6,55 +6,108 @@
 
 __device__ uint32_t global_best_difficulty = 0;
 __device__ unsigned long long int global_best_nonce = 0;
+__device__ uint32_t device_best_difficulty; 
+__device__ unsigned long long int device_best_nonce; 
 
-// Define the static array globally
 __device__ size_t noise[NOISE_SIZE_BYTES / USIZE_BYTE_SIZE];
 
-// Function to set the static array's contents from the host
 extern "C" void set_noise(const size_t *data)
 {
-    cudaMemcpyToSymbol(noise, data, NOISE_SIZE_BYTES, 0, cudaMemcpyHostToDevice);
+    for (int device = 0; device < device_count; ++device)
+    {
+        cudaSetDevice(device);
+        cudaMemcpyToSymbol(noise, data, NOISE_SIZE_BYTES, 0, cudaMemcpyHostToDevice);
+    }
 }
 
-// Function to read the static array's contents from the host.
-// Mostly just for development (to ensure it is set properly).
 extern "C" void get_noise(size_t *host_data)
 {
-    cudaMemcpyFromSymbol(host_data, noise, NOISE_SIZE_BYTES, 0, cudaMemcpyDeviceToHost);
+    for (int device = 0; device < device_count; ++device)
+    {
+        cudaSetDevice(device);
+        cudaMemcpyFromSymbol(host_data, noise, NOISE_SIZE_BYTES, 0, cudaMemcpyDeviceToHost);
+    }
 }
 
 extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t round)
 {
-    // Reset global state before starting the mining operation
+    const uint64_t FIXED_NONCE_RANGE = 1000000000ULL; // 1 billion
+
     if (round == 0)
     {
         unsigned long long int zero = 0;
         uint32_t zero_difficulty = 0;
 
-        // Use cudaMemcpyToSymbol if the variables are device symbols
         cudaMemcpyToSymbol(global_best_nonce, &zero, sizeof(zero), 0, cudaMemcpyHostToDevice);
         cudaMemcpyToSymbol(global_best_difficulty, &zero_difficulty, sizeof(zero_difficulty), 0, cudaMemcpyHostToDevice);
     }
 
-    // Allocate device memory for input and output data
-    uint8_t *d_challenge;
-    cudaMalloc((void **)&d_challenge, 32);
+    // Allocate device memory for input data and results
+    uint8_t *d_challenge[device_count];
+    uint64_t *d_best_nonce[device_count];
+    uint32_t *d_best_difficulty[device_count];
+    for (int device = 0; device < device_count; ++device)
+    {
+        cudaSetDevice(device);
+        cudaMalloc((void **)&d_challenge[device], 32);
+        cudaMemcpy(d_challenge[device], challenge, 32, cudaMemcpyHostToDevice);
+        cudaMalloc((void **)&d_best_nonce[device], sizeof(uint64_t));
+        cudaMalloc((void **)&d_best_difficulty[device], sizeof(uint32_t));
+    }
 
-    // Copy the host data to the device
-    cudaMemcpy(d_challenge, challenge, 32, cudaMemcpyHostToDevice);
+    uint64_t total_stride = number_blocks * number_threads;
+    uint64_t nonce_per_device = FIXED_NONCE_RANGE / device_count;
 
-    // Launch the kernel to perform the hash operation
-    uint64_t stride = number_blocks * number_threads;
-    kernel_start_drill<<<number_blocks, number_threads>>>(d_challenge, stride, round, batch_size);
-    cudaDeviceSynchronize();
+    for (int device = 0; device < device_count; ++device)
+    {
+        cudaSetDevice(device);
+        uint64_t start_nonce = device * nonce_per_device;
+        printf("Launching kernel on GPU %d with start nonce %llu\n", device, start_nonce);
+        kernel_start_drill<<<number_blocks / device_count, number_threads>>>(d_challenge[device], total_stride, round, batch_size, start_nonce, d_best_nonce[device], d_best_difficulty[device]);
+    }
 
-    // Retrieve the results back to the host
-    cudaMemcpyFromSymbol(out, global_best_nonce, sizeof(global_best_nonce), 0, cudaMemcpyDeviceToHost);
+    for (int device = 0; device < device_count; ++device)
+    {
+        cudaSetDevice(device);
+        cudaDeviceSynchronize();
+    }
 
-    // Free device memory
-    cudaFree(d_challenge);
+    unsigned long long int best_nonce = 0;
+    uint32_t best_difficulty = 0;
+    int best_device = -1;
+    for (int device = 0; device < device_count; ++device)
+    {
+        unsigned long long int device_nonce;
+        uint32_t device_difficulty;
+        cudaSetDevice(device);
+        cudaMemcpy(&device_nonce, d_best_nonce[device], sizeof(device_nonce), cudaMemcpyDeviceToHost);
+        cudaMemcpy(&device_difficulty, d_best_difficulty[device], sizeof(device_difficulty), cudaMemcpyDeviceToHost);
 
-    // Print errors
+        if (device_difficulty > best_difficulty)
+        {
+            best_difficulty = device_difficulty;
+            best_nonce = device_nonce;
+            best_device = device;
+        }
+    }
+
+    uint64_t global_best_nonce_value;
+    uint32_t global_best_difficulty_value;
+    cudaMemcpyFromSymbol(&global_best_nonce_value, global_best_nonce, sizeof(global_best_nonce), 0, cudaMemcpyDeviceToHost);
+    cudaMemcpyFromSymbol(&global_best_difficulty_value, global_best_difficulty, sizeof(global_best_difficulty), 0, cudaMemcpyDeviceToHost);
+
+    printf("Best Hash Found By Device %d\n", best_device);
+
+    memcpy(out, &global_best_nonce_value, sizeof(global_best_nonce_value));
+
+    for (int device = 0; device < device_count; ++device)
+    {
+        cudaSetDevice(device);
+        cudaFree(d_challenge[device]);
+        cudaFree(d_best_nonce[device]);
+        cudaFree(d_best_difficulty[device]);
+    }
+
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess)
     {
@@ -62,17 +115,22 @@ extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t round)
     }
 }
 
+
 __global__ void kernel_start_drill(
     uint8_t *d_challenge,
     uint64_t stride,
     uint64_t round,
-    uint32_t batch_size)
+    uint32_t batch_size,
+    uint64_t start_nonce,
+    uint64_t *device_best_nonce,
+    uint32_t *device_best_difficulty)
 {
     uint64_t iters = 0;
-    uint64_t nonce = threadIdx.x + (blockIdx.x * blockDim.x) + (round * stride * batch_size);
+    uint64_t nonce = start_nonce + threadIdx.x + (blockIdx.x * blockDim.x);
     uint64_t local_best_nonce = nonce;
     uint32_t local_best_difficulty = 0;
     uint8_t result[32];
+
     while (iters < batch_size)
     {
         kernel_drill_hash(d_challenge, &nonce, result);
@@ -81,19 +139,21 @@ __global__ void kernel_start_drill(
         {
             local_best_difficulty = hash_difficulty;
             local_best_nonce = nonce;
-            for (int i = 0; i < 4; i++)
-            {
-                if (local_best_difficulty >= atomicMax(&global_best_difficulty, local_best_difficulty)) 
-                {
-                    global_best_nonce = local_best_nonce; 
-                    break;
-                } 
-            }
         }
-        nonce += stride;
+        nonce += stride; 
         iters += 1;
     }
+
+    *device_best_difficulty = local_best_difficulty;
+    *device_best_nonce = local_best_nonce;
+
+    uint32_t prev_global_best_difficulty = atomicMax(&global_best_difficulty, local_best_difficulty);
+    if (local_best_difficulty > prev_global_best_difficulty) {
+        atomicExch(&global_best_nonce, local_best_nonce);
+    }
 }
+
+
 
 extern "C" void single_drill_hash(uint8_t *challenge, uint64_t nonce, uint8_t *out)
 {

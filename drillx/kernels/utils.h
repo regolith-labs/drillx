@@ -6,6 +6,7 @@ extern int number_blocks;
 extern int number_threads;
 extern int max_threads_per_mp;
 extern int batch_size;
+extern int device_count; // Add this line
 
 // Initializes gpu parameters
 extern "C" void gpu_init(uint32_t batchsize);
