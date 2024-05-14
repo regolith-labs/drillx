@@ -1,3 +1,4 @@
+use drillx::Solution;
 use solana_program::hash::Hash;
 use solana_program_test::{processor, BanksClient, ProgramTest};
 use solana_sdk::{
@@ -11,18 +12,27 @@ async fn test_initialize() {
     // Setup
     let (mut banks, payer, blockhash) = setup_program_test_env().await;
 
-    // Should fail
-    let tx = build_tx(&payer, 0, 4, blockhash);
-    assert!(banks.process_transaction(tx).await.is_err());
+    // Hash
+    let challenge = [255; 32];
+    let nonce = 0u64;
+    let hash = drillx::hash(&challenge, &nonce.to_le_bytes()).unwrap();
 
     // Should succeed
-    let tx = build_tx(&payer, 6, 4, blockhash);
+    let tx = build_tx(&payer, 0, Solution::new(&hash, &nonce), blockhash);
     assert!(banks.process_transaction(tx).await.is_ok());
+
+    // Should fail
+    let tx = build_tx(&payer, 24, Solution::new(&hash, &nonce), blockhash);
+    assert!(banks.process_transaction(tx).await.is_err());
+
+    // Should fail
+    let tx = build_tx(&payer, 0, Solution::new(&hash, &1), blockhash);
+    assert!(banks.process_transaction(tx).await.is_err());
 }
 
-fn build_tx(payer: &Keypair, nonce: u64, difficulty: u64, blockhash: Hash) -> Transaction {
+fn build_tx(payer: &Keypair, difficulty: u64, solution: Solution, blockhash: Hash) -> Transaction {
     let cu_budget_ix = ComputeBudgetInstruction::set_compute_unit_limit(1_400_000);
-    let ix = program::verify(payer.pubkey(), nonce, difficulty);
+    let ix = program::verify(payer.pubkey(), difficulty, solution.n, solution.d);
     Transaction::new_signed_with_payer(
         &[cu_budget_ix, ix],
         Some(&payer.pubkey()),

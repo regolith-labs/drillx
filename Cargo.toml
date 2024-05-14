@@ -1,7 +1,9 @@
 [workspace]
 members = [
     "drillx",
-    "examples/*",
+    "examples/example-1",
+    "examples/example-2",
+    # "examples/*",
     "program"
 ]
 
