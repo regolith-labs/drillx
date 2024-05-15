@@ -18,15 +18,19 @@ async fn test_initialize() {
     let hash = drillx::hash(&challenge, &nonce.to_le_bytes()).unwrap();
 
     // Should succeed
-    let tx = build_tx(&payer, 0, Solution::new(&hash, &nonce), blockhash);
+    let s = Solution::new(hash.d, nonce.to_le_bytes());
+    let tx = build_tx(&payer, 0, s, blockhash);
     assert!(banks.process_transaction(tx).await.is_ok());
 
     // Should fail
-    let tx = build_tx(&payer, 24, Solution::new(&hash, &nonce), blockhash);
+    let s = Solution::new(hash.d, nonce.to_le_bytes());
+    let tx = build_tx(&payer, 24, s, blockhash);
     assert!(banks.process_transaction(tx).await.is_err());
 
     // Should fail
-    let tx = build_tx(&payer, 0, Solution::new(&hash, &1), blockhash);
+    let bad_nonce = 1u64;
+    let s = Solution::new(hash.d, bad_nonce.to_le_bytes());
+    let tx = build_tx(&payer, 0, s, blockhash);
     assert!(banks.process_transaction(tx).await.is_err());
 }
 

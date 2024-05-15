@@ -15,7 +15,7 @@ fn main() {
 
     // Now proof
     let proof_timer = Instant::now();
-    prove_work(challenge, Solution::new(&hash, &nonce));
+    prove_work(challenge, Solution::new(hash.d, nonce.to_le_bytes()));
     println!("proof done in {} nanos", proof_timer.elapsed().as_nanos());
     println!(
         "work took {}x vs proof",

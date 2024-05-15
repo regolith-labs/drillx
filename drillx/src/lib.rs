@@ -74,10 +74,10 @@ pub struct Solution {
 
 impl Solution {
     /// Builds a new verifiable solution from a hash and nonce
-    pub fn new(hash: &Hash, nonce: &u64) -> Solution {
+    pub fn new(digest: [u8; 16], nonce: [u8; 8]) -> Solution {
         Solution {
-            d: hash.d,
-            n: nonce.to_le_bytes(),
+            d: digest,
+            n: nonce,
         }
     }
 
