@@ -17,21 +17,14 @@ fn seed(challenge: &[u8; 32], nonce: &[u8; 8]) -> [u8; 40] {
 
 /// Constructs a keccak digest from a challenge and nonce using equix hashes
 fn build_digest(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<[u8; 16], DrillxError> {
-    // Seed
     let seed = seed(challenge, nonce);
-
-    // Equix
     let Ok(solutions) = equix::solve(&seed) else {
         return Err(DrillxError::BadEquix);
     };
     let Some(solution) = solutions.first() else {
         return Err(DrillxError::BadEquix);
     };
-
-    // Digest
-    let mut digest = [0u8; 16];
-    digest.copy_from_slice(solution.to_bytes().as_slice());
-    Ok(digest)
+    Ok(solution.to_bytes())
 }
 
 /// Returns true if the digest if valid equihash construction from the challenge and nonce
@@ -40,9 +33,15 @@ pub fn is_valid_digest(challenge: &[u8; 32], nonce: &[u8; 8], digest: &[u8; 16])
     equix::verify_bytes(&seed, digest).is_ok()
 }
 
-/// Calculates a hash from the provided digest and nonce
+/// Calculates a hash from the provided digest and nonce.
+/// The digest is sorted prior to hashing to prevent malleability.
 fn hashv(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
-    solana_program::blake3::hashv(&[&digest.as_slice(), &nonce.as_slice()]).to_bytes()
+    unsafe {
+        let mut u16_slice: [u16; 8] = std::mem::transmute_copy(digest);
+        u16_slice.sort_unstable();
+        let u8_slice: [u8; 16] = std::mem::transmute(u16_slice);
+        solana_program::blake3::hashv(&[u8_slice.as_slice(), &nonce.as_slice()]).to_bytes()
+    }
 }
 
 /// Returns the number of leading zeros on a 32 byte buffer
