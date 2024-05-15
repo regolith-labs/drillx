@@ -1,6 +1,6 @@
 pub use equix;
 
-/// Generates a new drillx hash from a challenge and nonce
+/// Generates a new drillx hash from a challenge and nonce.
 pub fn hash(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<Hash, DrillxError> {
     let mut digest = digest(challenge, nonce)?;
     Ok(Hash {
@@ -9,21 +9,21 @@ pub fn hash(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<Hash, DrillxError> 
     })
 }
 
-/// Generates a new drillx hash from a challenge and nonce using shared memory
+/// Generates a new drillx hash from a challenge and nonce using pre-allocated memory.
 #[inline(always)]
-pub fn hash_with_shared_memory(
+pub fn hash_with_memory(
     memory: &mut equix::SolverMemory,
     challenge: &[u8; 32],
     nonce: &[u8; 8],
 ) -> Result<Hash, DrillxError> {
-    let mut digest = digest_with_shared_memory(challenge, nonce, memory)?;
+    let mut digest = digest_with_memory(challenge, nonce, memory)?;
     Ok(Hash {
         d: digest,
         h: hashv(&mut digest, nonce),
     })
 }
 
-/// Concatenates a challenge and a nonce into a single buffer
+/// Concatenates a challenge and a nonce into a single buffer.
 #[inline(always)]
 fn seed(a: &[u8; 32], b: &[u8; 8]) -> [u8; 40] {
     let mut result = std::mem::MaybeUninit::uninit();
@@ -38,7 +38,7 @@ fn seed(a: &[u8; 32], b: &[u8; 8]) -> [u8; 40] {
     }
 }
 
-/// Constructs a blake3 digest from a challenge and nonce using equix hashes
+/// Constructs a blake3 digest from a challenge and nonce using equix hashes.
 fn digest(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<[u8; 16], DrillxError> {
     let seed = seed(challenge, nonce);
     let solutions = equix::solve(&seed).map_err(|_| DrillxError::BadEquix)?;
@@ -47,9 +47,9 @@ fn digest(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<[u8; 16], DrillxError
     Ok(solution.to_bytes())
 }
 
-/// Constructs a blake3 digest from a challenge and nonce using equix hashes
+/// Constructs a blake3 digest from a challenge and nonce using equix hashes and pre-allocated memory.
 #[inline(always)]
-fn digest_with_shared_memory(
+fn digest_with_memory(
     challenge: &[u8; 32],
     nonce: &[u8; 8],
     memory: &mut equix::SolverMemory,
@@ -65,7 +65,7 @@ fn digest_with_shared_memory(
     Ok(solution.to_bytes())
 }
 
-/// Returns true if the digest if valid equihash construction from the challenge and nonce
+/// Returns true if the digest if valid equihash construction from the challenge and nonce.
 pub fn is_valid_digest(challenge: &[u8; 32], nonce: &[u8; 8], digest: &[u8; 16]) -> bool {
     let seed = seed(challenge, nonce);
     equix::verify_bytes(&seed, digest).is_ok()
@@ -98,7 +98,7 @@ fn hashv(digest: &mut [u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
     hasher.finalize().into()
 }
 
-/// Returns the number of leading zeros on a 32 byte buffer
+/// Returns the number of leading zeros on a 32 byte buffer.
 pub fn difficulty(hash: [u8; 32]) -> u32 {
     let mut count = 0;
     for &byte in &hash {
