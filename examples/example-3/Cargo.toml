@@ -1,10 +1,10 @@
 [package]
-name = "example-1"
+name = "example-3"
 version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "example-1"
+name = "example-3"
 
 [dependencies]
 drillx = { path = "../../drillx" }

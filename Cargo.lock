@@ -1437,7 +1437,6 @@ name = "example-1"
 version = "0.1.0"
 dependencies = [
  "drillx",
- "tokio",
 ]
 
 [[package]]
@@ -1445,7 +1444,13 @@ name = "example-2"
 version = "0.1.0"
 dependencies = [
  "drillx",
- "tokio",
+]
+
+[[package]]
+name = "example-3"
+version = "0.1.0"
+dependencies = [
+ "drillx",
 ]
 
 [[package]]
