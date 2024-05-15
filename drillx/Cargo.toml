@@ -15,17 +15,30 @@ keywords = ["solana", "crypto", "mining"]
 name = "drillx"
 
 [features]
-default = []
+default = ["full", "native"]
+program = ["dep:solana-program"]
+native = ["dep:blake3"]
 benchmark = []
+compiler = ["equix/compiler"]
+full = ["equix/full"]
 gpu = ["cc"]
 
 [dependencies]
 enum_dispatch = { workspace = true }
 num_enum = { workspace = true }
 num-traits = { workspace = true }
-solana-program = { workspace = true }
+solana-program = { workspace = true, optional = true }
 strum = { workspace = true }
 equix = "0.1.4"
+blake3 = { workspace = true, optional = true }
+
+[dev-dependencies]
+criterion = { workspace = true, default-features = true, features = ["html_reports"] }
 
 [build-dependencies]
 cc = { version = "1.0", optional = true }
+
+
+[[bench]]
+name = "drillx_compiled"
+harness = false
