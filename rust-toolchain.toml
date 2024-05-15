@@ -1,0 +1,6 @@
+[toolchain]
+channel = "nightly"
+components = [ "rustfmt", "rust-analyzer", "rust-src" ]
+targets = ["x86_64-unknown-linux-musl"]
+profile = "minimal"
+
