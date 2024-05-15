@@ -1,37 +1,60 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <cuda_runtime.h>
+#include <algorithm>
 #include "utils.h"
 
+// Global variables
 int number_multi_processors;
 int number_blocks;
 int number_threads;
 int max_threads_per_mp;
 int batch_size;
+int device_count; 
 
-// Greatest common denominator
-// Used in gpu_init() to calculate block_size
 int gcd(int a, int b)
 {
     return (a == 0) ? b : gcd(b % a, a);
 }
 
-// Initializes gpu parameters
 extern "C" void gpu_init(uint32_t batchsize)
 {
-    cudaDeviceProp device_prop;
-    int block_size;
-
-    cudaError_t cudaerr = cudaGetDeviceProperties(&device_prop, 0);
+    cudaError_t cudaerr = cudaGetDeviceCount(&device_count);
     if (cudaerr != cudaSuccess)
     {
-        printf("getting properties for device failed with error \"%s\".\n", cudaGetErrorString(cudaerr));
+        printf("cudaGetDeviceCount failed with error \"%s\".\n", cudaGetErrorString(cudaerr));
         exit(EXIT_FAILURE);
     }
 
-    number_threads = min(device_prop.maxThreadsPerBlock, 256);
-    number_multi_processors = device_prop.multiProcessorCount;
-    max_threads_per_mp = device_prop.maxThreadsPerMultiProcessor;
-    block_size = max_threads_per_mp / gcd(max_threads_per_mp, number_threads);
+    printf("Found %d CUDA devices\n", device_count);
+
+    number_multi_processors = 0;
+    max_threads_per_mp = 0;
+
+    for (int device = 0; device < device_count; ++device)
+    {
+        cudaDeviceProp device_prop;
+        cudaerr = cudaGetDeviceProperties(&device_prop, device);
+        if (cudaerr != cudaSuccess)
+        {
+            printf("Getting properties for device %d failed with error \"%s\".\n", device, cudaGetErrorString(cudaerr));
+            exit(EXIT_FAILURE);
+        }
+
+        printf("Device %d: \"%s\"\n", device, device_prop.name);
+
+        number_multi_processors += device_prop.multiProcessorCount;
+        max_threads_per_mp += device_prop.maxThreadsPerMultiProcessor;
+
+        if (device == 0)
+        {
+            number_threads = std::min(device_prop.maxThreadsPerBlock, 256);
+        }
+
+        cudaSetDevice(device);
+    }
+
+    int block_size = max_threads_per_mp / gcd(max_threads_per_mp, number_threads);
     number_blocks = block_size * number_multi_processors;
     batch_size = batchsize;
 }
