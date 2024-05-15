@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use drillx::Solution;
+use drillx::{equix::SolverMemory, Solution};
 
 const TARGET_DIFFICULTY: u32 = 8; // 12; // 8; //10;
 
@@ -25,10 +25,11 @@ fn main() {
 
 // Parallelize
 fn do_work(challenge: [u8; 32]) -> (drillx::Hash, u64) {
+    let mut memory = SolverMemory::new();
     let mut nonce: u64 = 0;
     loop {
         // Calculate hash
-        if let Ok(hx) = drillx::hash(&challenge, &nonce.to_le_bytes()) {
+        if let Ok(hx) = drillx::hash_with_memory(&mut memory, &challenge, &nonce.to_le_bytes()) {
             if hx.difficulty() >= TARGET_DIFFICULTY {
                 return (hx, nonce);
             }

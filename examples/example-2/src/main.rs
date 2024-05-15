@@ -1,13 +1,16 @@
 use std::{collections::HashMap, time::Instant};
 
+use drillx::equix::SolverMemory;
+
 fn main() {
     let timer = Instant::now();
     let challenge = [255; 32];
+    let mut memory = SolverMemory::new();
     let mut hash_count = HashMap::<u32, u64>::new();
     let mut nonce: u64 = 0;
     loop {
         // Track difficulties
-        if let Ok(hx) = drillx::hash(&challenge, &nonce.to_le_bytes()) {
+        if let Ok(hx) = drillx::hash_with_memory(&mut memory, &challenge, &nonce.to_le_bytes()) {
             let diff = hx.difficulty();
             hash_count.insert(diff, hash_count.get(&diff).unwrap_or(&0).saturating_add(1));
             if nonce % 100 == 0 {
