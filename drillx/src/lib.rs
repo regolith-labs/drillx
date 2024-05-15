@@ -3,10 +3,10 @@ pub use equix;
 
 /// Generates a new drillx hash from a challenge and nonce
 pub fn hash(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<Hash, DrillxError> {
-    let digest = build_digest(challenge, nonce)?;
+    let mut digest = build_digest(challenge, nonce)?;
     Ok(Hash {
         d: digest,
-        h: hashv(&digest, nonce),
+        h: hashv(&mut digest, nonce),
     })
 }
 
@@ -19,10 +19,10 @@ pub fn hash_with_shared_memory(
 ) -> Result<Hash, DrillxError> {
     // Seed
     let seed = construct_seed(challenge, nonce);
-    let digest = build_digest_with_shared_memory(memory, &seed)?;
+    let mut digest = build_digest_with_shared_memory(memory, &seed)?;
     Ok(Hash {
         d: digest,
-        h: hashv(&digest, nonce),
+        h: hashv(&mut digest, nonce),
     })
 }
 
@@ -92,13 +92,13 @@ pub fn is_valid_digest(challenge: &[u8; 32], nonce: &[u8; 8], digest: &[u8; 16])
 /// Calculates a hash from the provided digest and nonce.
 /// The digest is sorted prior to hashing to prevent malleability.
 #[cfg(all(feature = "program", not(feature = "native")))]
-fn hashv(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
-    unsafe {
-        let mut u16_slice: [u16; 8] = std::mem::transmute_copy(digest);
+fn hashv(digest: &mut [u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
+    let u8_slice: &mut [u8; 16] = unsafe {
+        let u16_slice: &mut [u16; 8] = core::mem::transmute(digest);
         u16_slice.sort_unstable();
-        let u8_slice: [u8; 16] = std::mem::transmute(u16_slice);
-        solana_program::blake3::hashv(&[u8_slice.as_slice(), &nonce.as_slice()]).to_bytes()
-    }
+        core::mem::transmute(u16_slice)
+    };
+    solana_program::blake3::hashv(&[u8_slice.as_slice(), &nonce.as_slice()]).to_bytes()
 }
 
 /// Calculates a hash from the provided digest and nonce
@@ -108,7 +108,7 @@ fn hashv(digest: &mut [u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
     let u8_slice: &mut [u8; 16] = unsafe {
         let u16_slice: &mut [u16; 8] = core::mem::transmute(digest);
         u16_slice.sort_unstable();
-        core::mem::transmute(u16_slice);
+        core::mem::transmute(u16_slice)
     };
     // Hash an input incrementally.
     let mut hasher = blake3::Hasher::new();
@@ -166,9 +166,10 @@ impl Solution {
 
     /// Calculates the result hash for a given solution
     pub fn to_hash(&self) -> Hash {
+        let mut d = self.d;
         Hash {
             d: self.d,
-            h: hashv(&self.d, &self.n),
+            h: hashv(&mut d, &self.n),
         }
     }
 }
