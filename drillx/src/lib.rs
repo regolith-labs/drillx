@@ -1,42 +1,31 @@
-/// Re-export the equix crate
 pub use equix;
 
 /// Generates a new drillx hash from a challenge and nonce
 pub fn hash(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<Hash, DrillxError> {
-    let mut digest = build_digest(challenge, nonce)?;
+    let mut digest = digest(challenge, nonce)?;
     Ok(Hash {
         d: digest,
         h: hashv(&mut digest, nonce),
     })
 }
 
-/// Generates a new drillx hash from a challenge and nonce
+/// Generates a new drillx hash from a challenge and nonce using shared memory
 #[inline(always)]
 pub fn hash_with_shared_memory(
     memory: &mut equix::SolverMemory,
     challenge: &[u8; 32],
     nonce: &[u8; 8],
 ) -> Result<Hash, DrillxError> {
-    // Seed
-    let seed = construct_seed(challenge, nonce);
-    let mut digest = build_digest_with_shared_memory(memory, &seed)?;
+    let mut digest = digest_with_shared_memory(challenge, nonce, memory)?;
     Ok(Hash {
         d: digest,
         h: hashv(&mut digest, nonce),
     })
 }
 
-/// Generates a seed from the given challenge and nonce
-fn seed(challenge: &[u8; 32], nonce: &[u8; 8]) -> [u8; 40] {
-    let mut buf = [0; 40];
-    buf[0..32].copy_from_slice(&challenge[..]);
-    buf[32..40].copy_from_slice(&nonce[..]);
-    buf
-}
-
-/// Concatenates two arrays into a single array
+/// Concatenates a challenge and a nonce into a single buffer
 #[inline(always)]
-fn construct_seed(a: &[u8; 32], b: &[u8; 8]) -> [u8; 40] {
+fn seed(a: &[u8; 32], b: &[u8; 8]) -> [u8; 40] {
     let mut result = std::mem::MaybeUninit::uninit();
     let dest = result.as_mut_ptr() as *mut u8;
     // SAFETY: `dest` is valid for `40` elements.
@@ -50,36 +39,29 @@ fn construct_seed(a: &[u8; 32], b: &[u8; 8]) -> [u8; 40] {
 }
 
 /// Constructs a blake3 digest from a challenge and nonce using equix hashes
-fn build_digest(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<[u8; 16], DrillxError> {
+fn digest(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<[u8; 16], DrillxError> {
     let seed = seed(challenge, nonce);
-    let Ok(solutions) = equix::solve(&seed) else {
-        return Err(DrillxError::BadEquix);
-    };
-    let Some(solution) = solutions.first() else {
-        return Err(DrillxError::BadEquix);
-    };
-
-    // Digest
+    let solutions = equix::solve(&seed).map_err(|_| DrillxError::BadEquix)?;
+    // SAFETY: The equix solver guarantees that the first solution is always valid
+    let solution = unsafe { solutions.get_unchecked(0) };
     Ok(solution.to_bytes())
 }
 
 /// Constructs a blake3 digest from a challenge and nonce using equix hashes
 #[inline(always)]
-fn build_digest_with_shared_memory(
+fn digest_with_shared_memory(
+    challenge: &[u8; 32],
+    nonce: &[u8; 8],
     memory: &mut equix::SolverMemory,
-    seed: &[u8],
 ) -> Result<[u8; 16], DrillxError> {
+    let seed = seed(challenge, nonce);
     let equix = equix::EquiXBuilder::new()
         .runtime(equix::RuntimeOption::CompileOnly)
         .build(&seed)
         .map_err(|_| DrillxError::BadEquix)?;
-
-    // Equix
     let solutions = equix.solve_with_memory(memory);
     // SAFETY: The equix solver guarantees that the first solution is always valid
     let solution = unsafe { solutions.get_unchecked(0) };
-
-    // Digest
     Ok(solution.to_bytes())
 }
 
@@ -89,30 +71,29 @@ pub fn is_valid_digest(challenge: &[u8; 32], nonce: &[u8; 8], digest: &[u8; 16])
     equix::verify_bytes(&seed, digest).is_ok()
 }
 
-/// Calculates a hash from the provided digest and nonce.
-/// The digest is sorted prior to hashing to prevent malleability.
-#[cfg(all(feature = "program", not(feature = "native")))]
-fn hashv(digest: &mut [u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
-    let u8_slice: &mut [u8; 16] = unsafe {
+/// Sorts the provided digest as a list of u16 values.
+fn sorted(digest: &mut [u8; 16]) -> &mut [u8; 16] {
+    unsafe {
         let u16_slice: &mut [u16; 8] = core::mem::transmute(digest);
         u16_slice.sort_unstable();
         core::mem::transmute(u16_slice)
-    };
-    solana_program::blake3::hashv(&[u8_slice.as_slice(), &nonce.as_slice()]).to_bytes()
+    }
 }
 
-/// Calculates a hash from the provided digest and nonce
+/// Returns a blake3 hash of the provided digest and nonce.
 /// The digest is sorted prior to hashing to prevent malleability.
-#[cfg(all(feature = "native", not(feature = "program")))]
+/// Delegates the hash to a syscall if compiled for the solana runtime.
+#[cfg(feature = "solana")]
 fn hashv(digest: &mut [u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
-    let u8_slice: &mut [u8; 16] = unsafe {
-        let u16_slice: &mut [u16; 8] = core::mem::transmute(digest);
-        u16_slice.sort_unstable();
-        core::mem::transmute(u16_slice)
-    };
-    // Hash an input incrementally.
+    solana_program::blake3::hashv(&[sorted(digest).as_slice(), &nonce.as_slice()]).to_bytes()
+}
+
+/// Calculates a hash from the provided digest and nonce.
+/// The digest is sorted prior to hashing to prevent malleability.
+#[cfg(not(feature = "solana"))]
+fn hashv(digest: &mut [u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
     let mut hasher = blake3::Hasher::new();
-    hasher.update(u8_slice);
+    hasher.update(sorted(digest));
     hasher.update(nonce);
     hasher.finalize().into()
 }

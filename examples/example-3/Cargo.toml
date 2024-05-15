@@ -7,4 +7,4 @@ edition = "2021"
 name = "example-3"
 
 [dependencies]
-drillx = { path = "../../drillx", features = ["full"] }
+drillx = { path = "../../drillx" }

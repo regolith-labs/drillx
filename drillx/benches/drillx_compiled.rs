@@ -13,7 +13,6 @@ fn drillx_compiled(nonces: u64) {
 
 fn different_sizes(c: &mut Criterion) {
     static KH: usize = 1000;
-
     let mut group = c.benchmark_group("from_elem");
     for size in [KH, 2 * KH, 4 * KH].iter() {
         group.throughput(Throughput::Elements(*size as u64));
