@@ -1,7 +1,7 @@
 [package]
 name = "drillx"
 version = "0.2.0"
-description = "Drillx is a proof-of-work function for Ore cryptocurrency mining."
+description = "Drillx is a proof-of-work algorithm for Ore cryptocurrency mining."
 edition = "2021"
 license = "Apache-2.0"
 homepage = "https://ore.supply"
