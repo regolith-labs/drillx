@@ -25,17 +25,11 @@ pub fn hash_with_memory(
 
 /// Concatenates a challenge and a nonce into a single buffer.
 #[inline(always)]
-fn seed(a: &[u8; 32], b: &[u8; 8]) -> [u8; 40] {
-    let mut result = std::mem::MaybeUninit::uninit();
-    let dest = result.as_mut_ptr() as *mut u8;
-    // SAFETY: `dest` is valid for `40` elements.
-    // SAFETY: `a` and `b` are valid for `32` and `8` elements respectively.
-    // SAFETY: `a` and `b` are non-overlapping with `dest`.
-    unsafe {
-        core::ptr::copy_nonoverlapping(a.as_ptr(), dest, 32);
-        core::ptr::copy_nonoverlapping(b.as_ptr(), dest.add(32), 8);
-        result.assume_init()
-    }
+pub fn seed(a: &[u8; 32], b: &[u8; 8]) -> [u8; 40] {
+    let mut result = [0; 40];
+    result[00..32].copy_from_slice(a);
+    result[32..40].copy_from_slice(b);
+    result
 }
 
 /// Constructs a blake3 digest from a challenge and nonce using equix hashes.
