@@ -32,132 +32,109 @@ extern "C" void get_noise(size_t *host_data)
 extern "C" void drill_hash(uint8_t *challenge, uint8_t *out, uint64_t round)
 {
     const uint64_t FIXED_NONCE_RANGE = 1000000000ULL; // 1 billion
+    uint8_t *d_challenge[device_count];
 
-    if (round == 0)
+     // Host variables for output difficulty
+    uint64_t h_output[device_count][MAX_DIFFICULTY];
+    memset(h_output, 0, sizeof(h_output));
+
+    // Device variables  for output difficulty
+    uint64_t *d_output[device_count];
+
+    for (int device = 0; device < device_count; ++device)
     {
-        unsigned long long int zero = 0;
-        uint32_t zero_difficulty = 0;
+        cudaSetDevice(device);
+        cudaError_t cuda_status;
 
-        cudaMemcpyToSymbol(global_best_nonce, &zero, sizeof(zero), 0, cudaMemcpyHostToDevice);
-        cudaMemcpyToSymbol(global_best_difficulty, &zero_difficulty, sizeof(zero_difficulty), 0, cudaMemcpyHostToDevice);
-    }
-
- // Allocate device memory for input data and results
-uint8_t *d_challenge[device_count];
-uint64_t *d_best_nonce[device_count];
-uint32_t *d_best_difficulty[device_count];
-for (int device = 0; device < device_count; ++device)
-{
-    cudaSetDevice(device);
-    cudaError_t cuda_status;
-
-    cuda_status = cudaMalloc((void **)&d_challenge[device], 32);
-    if (cuda_status != cudaSuccess) {
-        printf("cudaMalloc failed for d_challenge on GPU %d: %s\n", device, cudaGetErrorString(cuda_status));
-        // Handle error
+        cuda_status = cudaMalloc((void **)&d_challenge[device], 32);
         
+        if (cuda_status != cudaSuccess) {
+            printf("cudaMalloc failed for d_challenge on GPU %d: %s\n", device, cudaGetErrorString(cuda_status));
+            // Handle error
+        }
+
+        // Copy the host data to the device
+
+        cuda_status = cudaMemcpy(d_challenge[device], challenge, 32, cudaMemcpyHostToDevice);
+        if (cuda_status != cudaSuccess) {
+            printf("cudaMemcpy failed for d_challenge on GPU %d: %s\n", device, cudaGetErrorString(cuda_status));
+            // Handle error
+        }
+    
+        // Allocate memory for d_output[device] on each device
+        cuda_status = cudaMalloc((void **)&d_output[device], sizeof(h_output[device]));
+        if (cuda_status != cudaSuccess) {
+            printf("cudaMalloc failed for d_output on GPU %d: %s\n", device, cudaGetErrorString(cuda_status));
+            // Handle error
+        }
+
+        // Copy h_output[device] to d_output[device]
+        cuda_status = cudaMemcpy(d_output[device], h_output[device], sizeof(h_output[device]), cudaMemcpyHostToDevice);
+        if (cuda_status != cudaSuccess) {
+            printf("cudaMemcpy failed for d_output on GPU %d: %s\n", device, cudaGetErrorString(cuda_status));
+            // Handle error
+        }
     }
 
-    cuda_status = cudaMemcpy(d_challenge[device], challenge, 32, cudaMemcpyHostToDevice);
-    if (cuda_status != cudaSuccess) {
-        printf("cudaMemcpy failed for d_challenge on GPU %d: %s\n", device, cudaGetErrorString(cuda_status));
-        // Handle error
-        
+    uint64_t total_stride = number_blocks * number_threads;
+    uint64_t nonce_per_device = FIXED_NONCE_RANGE / device_count;
+
+    for (int device = 0; device < device_count; ++device)
+    {
+        cudaSetDevice(device);
+        uint64_t start_nonce = device * nonce_per_device;
+        printf("Launching kernel on GPU %d with start nonce %llu\n", device, (unsigned long long int)start_nonce);
+
+        cudaError_t cuda_status;
+        // Launch the kernel with error checking
+        cuda_status = cudaGetLastError();
+        if (cuda_status != cudaSuccess) {
+            printf("Previous CUDA error before kernel launch on GPU %d: %s\n", device, cudaGetErrorString(cuda_status));
+            // Handle error
+        }
+
+        kernel_start_drill<<<number_blocks / device_count, number_threads>>>(d_challenge[device], total_stride, round, batch_size, start_nonce, d_output[device]);
+
+        cuda_status = cudaGetLastError();
+        if (cuda_status != cudaSuccess) {
+            printf("CUDA error during kernel launch on GPU %d: %s\n", device, cudaGetErrorString(cuda_status));
+            // Handle error
+        }
     }
 
-    cuda_status = cudaMalloc((void **)&d_best_nonce[device], sizeof(uint64_t));
-    if (cuda_status != cudaSuccess) {
-        printf("cudaMalloc failed for d_best_nonce on GPU %d: %s\n", device, cudaGetErrorString(cuda_status));
-        // Handle error
-        
-    }
-
-    cuda_status = cudaMalloc((void **)&d_best_difficulty[device], sizeof(uint32_t));
-    if (cuda_status != cudaSuccess) {
-        printf("cudaMalloc failed for d_best_difficulty on GPU %d: %s\n", device, cudaGetErrorString(cuda_status));
-        // Handle error
-        
-    }
-}
-
-uint64_t total_stride = number_blocks * number_threads;
-uint64_t nonce_per_device = FIXED_NONCE_RANGE / device_count;
-
-for (int device = 0; device < device_count; ++device)
-{
-    cudaSetDevice(device);
-    uint64_t start_nonce = device * nonce_per_device;
-    printf("Launching kernel on GPU %d with start nonce %llu\n", device, (unsigned long long int)start_nonce);
-
-    // Print all arguments before launching the kernel
-    printf("Kernel arguments for GPU %d:\n", device);
-    printf("d_challenge: %p\n", d_challenge[device]);
-    printf("total_stride: %llu\n", total_stride);
-    printf("round: %llu\n", round);
-    printf("batch_size: %u\n", batch_size);
-    printf("start_nonce: %llu\n", (unsigned long long int)start_nonce);
-    printf("d_best_nonce: %p\n", d_best_nonce[device]);
-    printf("d_best_difficulty: %p\n", d_best_difficulty[device]);
-
-    cudaError_t cuda_status;
-    // Launch the kernel with error checking
-    cuda_status = cudaGetLastError();
-    if (cuda_status != cudaSuccess) {
-        printf("Previous CUDA error before kernel launch on GPU %d: %s\n", device, cudaGetErrorString(cuda_status));
-        // Handle error
-        
-    }
-
-    kernel_start_drill<<<number_blocks / device_count, number_threads>>>(d_challenge[device], total_stride, round, batch_size, start_nonce, d_best_nonce[device], d_best_difficulty[device]);
-
-    cuda_status = cudaGetLastError();
-    if (cuda_status != cudaSuccess) {
-        printf("CUDA error during kernel launch on GPU %d: %s\n", device, cudaGetErrorString(cuda_status));
-        // Handle error
-        
-    }
-}
 
     for (int device = 0; device < device_count; ++device)
     {
         cudaSetDevice(device);
         cudaDeviceSynchronize();
+        cudaMemcpy(h_output[device], d_output[device], sizeof(h_output[device]), cudaMemcpyDeviceToHost);
     }
 
-    unsigned long long int best_nonce = 0;
-    uint32_t best_difficulty = 0;
     int best_device = -1;
-    for (int device = 0; device < device_count; ++device)
-    {
-        unsigned long long int device_nonce;
-        uint32_t device_difficulty;
-        cudaSetDevice(device);
-        cudaMemcpy(&device_nonce, d_best_nonce[device], sizeof(device_nonce), cudaMemcpyDeviceToHost);
-        cudaMemcpy(&device_difficulty, d_best_difficulty[device], sizeof(device_difficulty), cudaMemcpyDeviceToHost);
+    bool best_found = false; 
 
-        if (device_difficulty > best_difficulty)
-        {
-            best_difficulty = device_difficulty;
-            best_nonce = device_nonce;
-            best_device = device;
+    for (int i = MAX_DIFFICULTY - 1; i >= MIN_DIFFICULTY; i--) {
+        if (best_found) { 
+            break; // Exit the outer loop if the best nonce is found
+        }
+        for (int device = 0; device < device_count; ++device) {
+        // Find the best nonce
+            
+            if (h_output[device][i]) {
+                printf("found best\n");
+                best_device = device;
+                memcpy(out, &h_output[device][i], 8);
+                best_found = true;
+                break;
+            }
         }
     }
-
-    uint64_t global_best_nonce_value;
-    uint32_t global_best_difficulty_value;
-    cudaMemcpyFromSymbol(&global_best_nonce_value, global_best_nonce, sizeof(global_best_nonce), 0, cudaMemcpyDeviceToHost);
-    cudaMemcpyFromSymbol(&global_best_difficulty_value, global_best_difficulty, sizeof(global_best_difficulty), 0, cudaMemcpyDeviceToHost);
-
-    printf("Best Hash Found By Device %d\n", best_device);
-
-    memcpy(out, &global_best_nonce_value, sizeof(global_best_nonce_value));
 
     for (int device = 0; device < device_count; ++device)
     {
         cudaSetDevice(device);
         cudaFree(d_challenge[device]);
-        cudaFree(d_best_nonce[device]);
-        cudaFree(d_best_difficulty[device]);
+        cudaFree(d_output[device]);
     }
 
     cudaError_t err = cudaGetLastError();
@@ -174,10 +151,10 @@ __global__ void kernel_start_drill(
     uint64_t round,
     uint32_t batch_size,
     uint64_t start_nonce,
-    uint64_t *device_best_nonce,
-    uint32_t *device_best_difficulty)
+    uint64_t *output
+    )
 {
-    printf("here\n");
+
     uint64_t iters = 0;
     uint64_t nonce = start_nonce + threadIdx.x + (blockIdx.x * blockDim.x);
     uint64_t local_best_nonce = nonce;
@@ -189,23 +166,19 @@ __global__ void kernel_start_drill(
     {
         kernel_drill_hash(d_challenge, &nonce, result);
         uint32_t hash_difficulty = difficulty(result);
-        if (hash_difficulty > local_best_difficulty)
-        {
-            local_best_difficulty = hash_difficulty;
-            local_best_nonce = nonce;
+
+        if (hash_difficulty >= MIN_DIFFICULTY && !output[hash_difficulty]) {
+            output[hash_difficulty] = nonce;
         }
+
         nonce += stride; 
         iters += 1;
     }
 
-    *device_best_difficulty = local_best_difficulty;
-    *device_best_nonce = local_best_nonce;
-
-    uint32_t prev_global_best_difficulty = atomicMax(&global_best_difficulty, local_best_difficulty);
-    if (local_best_difficulty > prev_global_best_difficulty) {
-        atomicExch(&global_best_nonce, local_best_nonce);
-    }
 }
+
+
+    
 
 
 

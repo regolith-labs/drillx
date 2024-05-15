@@ -24,7 +24,7 @@ fn gpu_keccak() {
     // Add link directory
     println!("cargo:rustc-link-search=native=/usr/local/cuda/lib64");
     println!("cargo:rustc-link-lib=cudart");
-    println!("cargo:rustc-link-lib=cuda");
+    //println!("cargo:rustc-link-lib=cuda");
 
     // Emit the location of the compiled library
     let out_dir = std::env::var("OUT_DIR").unwrap();
