@@ -7,5 +7,4 @@ edition = "2021"
 name = "example-2"
 
 [dependencies]
-drillx = { path = "../../drillx", features = [] }
-tokio = { workspace = true }
+drillx = { path = "../../drillx" }

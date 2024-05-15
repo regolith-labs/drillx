@@ -7,6 +7,4 @@ edition = "2021"
 name = "example-3"
 
 [dependencies]
-bs58 = "0.5.1"
-drillx = { path = "../../drillx", features = ["gpu"] }
-tokio = { workspace = true }
+drillx = { path = "../../drillx" }

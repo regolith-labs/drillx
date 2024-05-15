@@ -1,33 +1,21 @@
 use std::time::Instant;
 
-use drillx::{
-    difficulty,
-    gpu::{drill_hash, gpu_init, set_noise},
-    noise::NOISE,
-};
+const TEST_SIZE: u64 = 1000;
 
 fn main() {
-    // Initialize gpu
-    unsafe {
-        gpu_init(256);
-        set_noise(NOISE.as_usize_slice().as_ptr());
-    }
-
-    // Current challenge (255s for demo)
-    let timer = Instant::now();
+    println!("Benchmarking...");
+    let mut memory = drillx::equix::SolverMemory::new();
     let challenge = [255; 32];
-    let mut nonce = [0; 8];
-    unsafe {
-        drill_hash(challenge.as_ptr(), nonce.as_mut_ptr(), 0);
+    let timer = Instant::now();
+    for nonce in 0..TEST_SIZE {
+        drillx::hash_with_memory(&mut memory, &challenge, &nonce.to_le_bytes()).ok();
     }
-    println!("{nonce:?}");
-
-    // Calculate hash
-    let hx = drillx::hash(&challenge, &nonce);
     println!(
-        "gpu found hash with difficulty {} in {} seconds: {}",
-        difficulty(hx),
-        timer.elapsed().as_secs(),
-        bs58::encode(hx).into_string(),
+        "Did {} hashes in {} ms\nHashrate: {} H/s",
+        TEST_SIZE,
+        timer.elapsed().as_millis(),
+        (TEST_SIZE as u128)
+            .saturating_mul(1000)
+            .saturating_div(timer.elapsed().as_millis())
     );
 }

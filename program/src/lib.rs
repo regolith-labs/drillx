@@ -1,4 +1,5 @@
 use bytemuck::{Pod, Zeroable};
+use drillx::Solution;
 use solana_program::{
     self,
     account_info::AccountInfo,
@@ -21,29 +22,38 @@ pub fn process_instruction(
     data: &[u8],
 ) -> ProgramResult {
     let args = Args::try_from_bytes(data)?;
-
     let [_signer] = accounts else {
         return Err(ProgramError::NotEnoughAccountKeys);
     };
 
+    // Prove that the solution is valid.
     let challenge = [255; 32];
-    let candidate = drillx::hash(&challenge, &args.nonce);
-    if drillx::difficulty(candidate).lt(&(args.difficulty as u32)) {
+
+    let solution = Solution {
+        d: args.digest,
+        n: args.nonce,
+    };
+
+    if !solution.is_valid(&challenge) {
         return Err(ProgramError::Custom(0));
     }
 
+    if solution.to_hash().difficulty() < args.difficulty as u32 {
+        return Err(ProgramError::Custom(1));
+    }
+
     sol_log_compute_units();
-    Err(ProgramError::Custom(0))
-    // Ok(())
+    Ok(())
 }
 
-pub fn verify(signer: Pubkey, nonce: u64, difficulty: u64) -> Instruction {
+pub fn verify(signer: Pubkey, difficulty: u64, nonce: [u8; 8], digest: [u8; 16]) -> Instruction {
     Instruction {
         program_id: crate::id(),
         accounts: vec![AccountMeta::new(signer, true)],
         data: Args {
-            nonce: nonce.to_le_bytes(),
             difficulty,
+            digest,
+            nonce,
         }
         .to_bytes()
         .to_vec(),
@@ -53,8 +63,9 @@ pub fn verify(signer: Pubkey, nonce: u64, difficulty: u64) -> Instruction {
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Pod, Zeroable)]
 pub struct Args {
-    pub nonce: [u8; 8],
     pub difficulty: u64,
+    pub digest: [u8; 16],
+    pub nonce: [u8; 8],
 }
 
 impl Args {
