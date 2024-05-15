@@ -1,6 +1,7 @@
 pub use equix;
 
 /// Generates a new drillx hash from a challenge and nonce.
+#[inline(always)]
 pub fn hash(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<Hash, DrillxError> {
     let mut digest = digest(challenge, nonce)?;
     Ok(Hash {
@@ -33,6 +34,7 @@ pub fn seed(a: &[u8; 32], b: &[u8; 8]) -> [u8; 40] {
 }
 
 /// Constructs a blake3 digest from a challenge and nonce using equix hashes.
+#[inline(always)]
 fn digest(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<[u8; 16], DrillxError> {
     let seed = seed(challenge, nonce);
     let solutions = equix::solve(&seed).map_err(|_| DrillxError::BadEquix)?;
@@ -59,13 +61,8 @@ fn digest_with_memory(
     Ok(solution.to_bytes())
 }
 
-/// Returns true if the digest if valid equihash construction from the challenge and nonce.
-pub fn is_valid_digest(challenge: &[u8; 32], nonce: &[u8; 8], digest: &[u8; 16]) -> bool {
-    let seed = seed(challenge, nonce);
-    equix::verify_bytes(&seed, digest).is_ok()
-}
-
 /// Sorts the provided digest as a list of u16 values.
+#[inline(always)]
 fn sorted(digest: &mut [u8; 16]) -> &mut [u8; 16] {
     unsafe {
         let u16_slice: &mut [u16; 8] = core::mem::transmute(digest);
@@ -78,6 +75,7 @@ fn sorted(digest: &mut [u8; 16]) -> &mut [u8; 16] {
 /// The digest is sorted prior to hashing to prevent malleability.
 /// Delegates the hash to a syscall if compiled for the solana runtime.
 #[cfg(feature = "solana")]
+#[inline(always)]
 fn hashv(digest: &mut [u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
     solana_program::blake3::hashv(&[sorted(digest).as_slice(), &nonce.as_slice()]).to_bytes()
 }
@@ -85,11 +83,18 @@ fn hashv(digest: &mut [u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
 /// Calculates a hash from the provided digest and nonce.
 /// The digest is sorted prior to hashing to prevent malleability.
 #[cfg(not(feature = "solana"))]
+#[inline(always)]
 fn hashv(digest: &mut [u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
     let mut hasher = blake3::Hasher::new();
     hasher.update(sorted(digest));
     hasher.update(nonce);
     hasher.finalize().into()
+}
+
+/// Returns true if the digest if valid equihash construction from the challenge and nonce.
+pub fn is_valid_digest(challenge: &[u8; 32], nonce: &[u8; 8], digest: &[u8; 16]) -> bool {
+    let seed = seed(challenge, nonce);
+    equix::verify_bytes(&seed, digest).is_ok()
 }
 
 /// Returns the number of leading zeros on a 32 byte buffer.
