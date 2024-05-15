@@ -16,7 +16,7 @@ pub fn hash_with_memory(
     challenge: &[u8; 32],
     nonce: &[u8; 8],
 ) -> Result<Hash, DrillxError> {
-    let mut digest = digest_with_memory(challenge, nonce, memory)?;
+    let mut digest = digest_with_memory(memory, challenge, nonce)?;
     Ok(Hash {
         d: digest,
         h: hashv(&mut digest, nonce),
@@ -50,9 +50,9 @@ fn digest(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<[u8; 16], DrillxError
 /// Constructs a blake3 digest from a challenge and nonce using equix hashes and pre-allocated memory.
 #[inline(always)]
 fn digest_with_memory(
+    memory: &mut equix::SolverMemory,
     challenge: &[u8; 32],
     nonce: &[u8; 8],
-    memory: &mut equix::SolverMemory,
 ) -> Result<[u8; 16], DrillxError> {
     let seed = seed(challenge, nonce);
     let equix = equix::EquiXBuilder::new()
