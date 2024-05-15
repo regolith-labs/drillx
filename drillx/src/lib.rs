@@ -59,6 +59,7 @@ pub fn difficulty(hash: [u8; 32]) -> u32 {
 }
 
 /// The result of a drillx hash
+#[derive(Default)]
 pub struct Hash {
     pub d: [u8; 16], // digest
     pub h: [u8; 32], // hash
