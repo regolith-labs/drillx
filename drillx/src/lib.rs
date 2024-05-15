@@ -3,7 +3,7 @@ pub fn hash(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<Hash, DrillxError> 
     let digest = build_digest(challenge, nonce)?;
     Ok(Hash {
         d: digest,
-        h: solana_program::keccak::hashv(&[&digest.as_slice(), &nonce.as_slice()]).to_bytes(),
+        h: hashv(&digest, nonce),
     })
 }
 
@@ -38,6 +38,11 @@ fn build_digest(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<[u8; 16], Drill
 pub fn is_valid_digest(challenge: &[u8; 32], nonce: &[u8; 8], digest: &[u8; 16]) -> bool {
     let seed = seed(challenge, nonce);
     equix::verify_bytes(&seed, digest).is_ok()
+}
+
+/// Calculates a hash from the provided digest and nonce
+fn hashv(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
+    solana_program::blake3::hashv(&[&digest.as_slice(), &nonce.as_slice()]).to_bytes()
 }
 
 /// Returns the number of leading zeros on a 32 byte buffer
@@ -90,7 +95,7 @@ impl Solution {
     pub fn to_hash(&self) -> Hash {
         Hash {
             d: self.d,
-            h: solana_program::keccak::hashv(&[self.d.as_slice(), self.n.as_slice()]).to_bytes(),
+            h: hashv(&self.d, &self.n),
         }
     }
 }
