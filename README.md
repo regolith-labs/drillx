@@ -1,13 +1,7 @@
 # Drillx
 
-Drillx is a memory hard hash function for Ore cryptocurrency mining.
+Drillx is a CPU-friendly proof-of-work function for Ore cryptocurrency mining.
 
 ## Summary
 
-The basic idea of Drillx is to make building the correct Keccak digest harder than the hash itself. This process should be long, non-parallelizable, and I/O bound. Drillx additionally borrows a number of ideas from RandomX including the use of a large scratchspace, random instruction execution, and unpredictable memory access patterns. It adapts these mechanics to make them fit within the limited constraints of the Solana runtime.
-
-## GPU
-
-To run drillx on a CUDA compatible gpu, compile the crate with the `gpu` feature flag enabled. You must have CUDA installed on your local machine. You can download the CUDA toolkit from [NVIDIA’s official website](https://developer.nvidia.com/cuda-downloads). Choose the version compatible with your system and graphics card.
-
-
+Drillx builds upon Equix, the [CPU-friendly client puzzle](https://gitlab.torproject.org/tpo/core/tor/-/blob/main/src/ext/equix/devlog.md) created to protect the Tor network from DOS attacks. Equix itself is a variation of [Equihash](https://core.ac.uk/download/pdf/31227294.pdf), an asymmetric proof-of-work function with cheap verification. Drillx adds a Blake3 hashing step to Equix to provide a guaranteed difficulty distribution of `p(N) = 2^-N` where N is the numbrer of leading zeros on the hash. A challenge `C` in Drillx is a securely generated 256-bit hash, seeded by a recent Solana blockhash. Miners aim to find a 64-bit nonce `N` that produces a hash of their target difficulty. A solution to Drillx is present in the form `(E, N)` where `E = Equix(C, N)`. The difficulty is calculated from `Blake3(E', N)` where `E'` is the Equix hash, lexographically sorted to prevent malleability. Since `E` can be efficiently verified on chain and Blake3 is available as a Solana syscall, Drillx is ideally suited to serve as a proof-of- work function for Ore cryptocurrency mining. 
