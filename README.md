@@ -1,6 +1,6 @@
 # Drillx
 
-Drillx is a proof-of-work algorithm for smart-contract based cryptocurrency mining.
+Drillx is a proof-of-work algorithm for smart contract based cryptocurrency mining.
 
 ## Summary
 
