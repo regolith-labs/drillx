@@ -1,0 +1,3 @@
+[submodule "drillx/equix"]
+	path = drillx/equix
+	url = https://github.com/tevador/equix.git
