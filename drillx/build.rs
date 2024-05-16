@@ -10,8 +10,8 @@ fn main() {
 
     // Compile hashx C code
     cc::Build::new()
-        .include("equix/hashx/src")
         .include("equix/hashx/include")
+        .include("equix/hashx/src")
         .file("equix/hashx/src/blake2.c")
         .file("equix/hashx/src/compiler.c")
         .file("equix/hashx/src/compiler_a64.c")
@@ -29,9 +29,10 @@ fn main() {
 
     // Compile equix C code
     cc::Build::new()
-        .include("equix/src")
         .include("equix/include")
+        .include("equix/src")
         .include("equix/hashx/include")
+        .include("equix/hashx/src")
         .file("equix/src/context.c")
         .file("equix/src/equix.c")
         .file("equix/src/solver.c")
