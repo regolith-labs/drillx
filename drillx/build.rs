@@ -3,11 +3,6 @@ fn main() {}
 
 #[cfg(feature = "cuda")]
 fn main() {
-    gpu_keccak();
-}
-
-#[cfg(feature = "cuda")]
-fn gpu_keccak() {
     println!("cargo:rerun-if-changed=cuda/");
     println!("cargo:rerun-if-changed=src/");
 
@@ -17,10 +12,10 @@ fn gpu_keccak() {
         // .file("kernels/utils.cu")
         .file("cuda/drillx.cu")
         .flag("-cudart=static")
-        // .flag("-gencode=arch=compute_89,code=sm_89") // Optimize for RTX 4090
-        // .flag("-gencode=arch=compute_89,code=compute_89") // PTX for future compatibility
-        // .compile("libkeccak.a");
-    ;
+        .compile("drillx.a");
+    // .flag("-gencode=arch=compute_89,code=sm_89") // Optimize for RTX 4090
+    // .flag("-gencode=arch=compute_89,code=compute_89") // PTX for future compatibility
+    // .compile("libkeccak.a");
 
     // Add link directory
     println!("cargo:rustc-link-search=native=/usr/local/cuda/lib64");
