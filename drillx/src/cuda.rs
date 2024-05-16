@@ -8,7 +8,7 @@ fn test_gpu() {
     let nonce = [2; 8];
     let mut out = [0; 16];
     unsafe {
-        super::hash(challenge.as_ptr(), nonce.as_ptr(), out.as_mut_ptr());
+        super::cuda::hash(challenge.as_ptr(), nonce.as_ptr(), out.as_mut_ptr());
     }
     assert_eq!(42, u128::from_le_bytes(out));
 }
