@@ -14,6 +14,7 @@ use drillx::{equix::SolverMemory, Solution};
 fn main() {
     let challenge = [255; 32]; // Should be provided by a program
     let target = 8;
+    let mut memory = SolverMemory::new();
     for nonce in 0..u64::MAX {
         let hx = drillx::hash_with_memory(&mut memory, &challenge, &nonce.to_le_bytes());
         if hx.difficuty() >= target {
