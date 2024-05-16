@@ -9,18 +9,18 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     cudaMalloc((void **)&d_nonce, 8);
     cudaMalloc((void **)&d_out, 16);
 	cudaMemcpy(d_challenge, challenge, 32, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_nonce, &nonce, 8, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_nonce, nonce, 8, cudaMemcpyHostToDevice);
 
     // Launch kernel
     do_hash<<<1, 1>>>(d_challenge, d_nonce, d_out);
 
     // Copy results back to host
-    cudaMemcpy(out, &d_out, 16, cudaMemcpyDeviceToHost);
+    cudaMemcpy(out, d_out, 16, cudaMemcpyDeviceToHost);
 
     // Free device memory
     cudaFree(d_challenge);
-    cudaFree(d_out);
     cudaFree(d_nonce);
+    cudaFree(d_out);
 
     // Print errors
     cudaError_t err = cudaGetLastError();

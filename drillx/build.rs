@@ -8,14 +8,11 @@ fn main() {
 
     cc::Build::new()
         .cuda(true)
-        // .file("kernels/keccak.cu")
-        // .file("kernels/utils.cu")
         .file("cuda/drillx.cu")
         .flag("-cudart=static")
+        // .flag("-gencode=arch=compute_89,code=sm_89") // Optimize for RTX 4090
+        // .flag("-gencode=arch=compute_89,code=compute_89") // PTX for future compatibility
         .compile("drillx.a");
-    // .flag("-gencode=arch=compute_89,code=sm_89") // Optimize for RTX 4090
-    // .flag("-gencode=arch=compute_89,code=compute_89") // PTX for future compatibility
-    // .compile("libkeccak.a");
 
     // Add link directory
     println!("cargo:rustc-link-search=native=/usr/local/cuda/lib64");
