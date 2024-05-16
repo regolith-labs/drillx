@@ -5,7 +5,20 @@ fn main() {}
 fn main() {
     println!("cargo:rerun-if-changed=cuda/");
     println!("cargo:rerun-if-changed=equix/");
+    println!("cargo:rerun-if-changed=equix/hashx/");
     println!("cargo:rerun-if-changed=src/");
+
+    // Compile hashx C code
+    cc::Build::new()
+        .include("equix/hashx/include")
+        .include("equix/hashx/src")
+        .include("equix/include")
+        .include("equix/src")
+        .file("equix/hashx/src/bench.c")
+        .file("equix/hashx/src/context.c")
+        .file("equix/hashx/src/solver.c")
+        .file("equix/hashx/src/equix.c")
+        .compile("hashx.a");
 
     // Compile equix C code
     cc::Build::new()
@@ -19,6 +32,10 @@ fn main() {
 
     cc::Build::new()
         .cuda(true)
+        .include("equix/include")
+        .include("equix/src")
+        .include("equix/hashx/include")
+        .include("equix/hashx/src")
         .file("cuda/drillx.cu")
         .flag("-cudart=static")
         // .flag("-gencode=arch=compute_89,code=sm_89") // Optimize for RTX 4090
