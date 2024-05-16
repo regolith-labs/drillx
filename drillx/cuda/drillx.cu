@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
-#include "orev2.h"
+#include "drillx.h"
 
 extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     // Allocate device memory for input and output data
