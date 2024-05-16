@@ -8,14 +8,14 @@ fn main() {
 
 #[cfg(feature = "cuda")]
 fn gpu_keccak() {
-    println!("cargo:rerun-if-changed=kernels/");
+    println!("cargo:rerun-if-changed=cuda/");
     println!("cargo:rerun-if-changed=src/");
 
     cc::Build::new()
         .cuda(true)
         // .file("kernels/keccak.cu")
         // .file("kernels/utils.cu")
-        .file("kernels/drillx.cu")
+        .file("cuda/drillx.cu")
         .flag("-cudart=static")
         // .flag("-gencode=arch=compute_89,code=sm_89") // Optimize for RTX 4090
         // .flag("-gencode=arch=compute_89,code=compute_89") // PTX for future compatibility
