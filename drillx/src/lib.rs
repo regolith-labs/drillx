@@ -95,7 +95,7 @@ fn hashv(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
 #[inline(always)]
 fn hashv(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
     let mut hasher = blake3::Hasher::new();
-    hasher.update(sorted(*digest));
+    hasher.update(&sorted(*digest));
     hasher.update(nonce);
     hasher.finalize().into()
 }
