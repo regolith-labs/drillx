@@ -4,7 +4,18 @@ fn main() {}
 #[cfg(feature = "cuda")]
 fn main() {
     println!("cargo:rerun-if-changed=cuda/");
+    println!("cargo:rerun-if-changed=equix/");
     println!("cargo:rerun-if-changed=src/");
+
+    // Compile equix C code
+    cc::Build::new()
+        .include("equix/include")
+        .include("equix/src")
+        .file("equix/src/bench.c")
+        .file("equix/src/context.c")
+        .file("equix/src/equix.c")
+        .file("equix/src/solver.c")
+        .compile("equix.a");
 
     cc::Build::new()
         .cuda(true)

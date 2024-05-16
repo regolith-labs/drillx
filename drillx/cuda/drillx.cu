@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "drillx.h"
+#include "equix.h"
 
 extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     // Allocate device memory for input and output data
@@ -30,7 +31,25 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 }
 
 __global__ void do_hash(uint8_t *d_challenge, uint8_t *d_nonce, uint8_t *d_out) {
-    // TODO Run equix code
-    *d_out = 42;
+    // Create an equix context
+    equix_ctx* ctx = equix_alloc(EQUIX_CTX_SOLVE);
+    if (ctx == nullptr) {
+        printf("Failed to allocate equix context\n");
+        return;
+    }
+
+    // Create a solutions buffer
+    equix_solutions_buffer output;
+    equix_result result = equix_solve(ctx, d_challenge, 32, &output);
+
+    // Check the result
+    if (result == EQUIX_OK && output.count > 0) {
+        *d_out = output.sols[0].idx[0]; 
+    } else {
+        *d_out = 42;
+    }
+
+    // Free the equix context
+    equix_free(ctx);
 }
 

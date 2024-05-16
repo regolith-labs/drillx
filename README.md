@@ -36,3 +36,11 @@ fn verify(solution: Solution) {
     assert!(solution.to_hash().difficulty() >= target);
 }
 ```
+
+## Build
+
+To build for cuda gpus:
+```
+git submodule update --init --recursive
+cargo build --release --features cuda
+```
