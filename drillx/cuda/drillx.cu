@@ -39,12 +39,13 @@ __global__ void do_hash(uint8_t *d_challenge, uint8_t *d_nonce, uint8_t *d_out) 
     }
 
     // Create a solutions buffer
-    equix_solutions_buffer output;
-    equix_result result = equix_solve(ctx, d_challenge, 32, &output);
+    equix_solution solutions[EQUIX_MAX_SOLS];
+    int num_solutions = equix_solve(ctx, d_challenge, 32, solutions);
 
     // Check the result
-    if (result == EQUIX_OK && output.count > 0) {
-        *d_out = output.sols[0].idx[0]; 
+    // TODO Output full solution
+    if (num_solutions > 0) {
+        *d_out = solutions[0].idx[0]; 
     } else {
         *d_out = 42;
     }
