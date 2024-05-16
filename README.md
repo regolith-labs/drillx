@@ -17,7 +17,7 @@ fn main() {
     for nonce in 0..u64::MAX {
         let hx = drillx::hash_with_memory(&mut memory, &challenge, &nonce.to_le_bytes());
         if hx.difficuty() >= target {
-            println!("Solution: {:?}", Solution::new(hash.d, nonce));
+            println!("Solution: {:?}", Solution::new(hx.d, nonce));
             return
         }
     }
