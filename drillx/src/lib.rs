@@ -18,6 +18,9 @@ pub fn hash_with_memory(
     nonce: &[u8; 8],
 ) -> Result<Hash, DrillxError> {
     let digest = digest_with_memory(memory, challenge, nonce)?;
+    if !is_valid_digest(challenge, nonce, &digest) {
+        panic!("WTH {:?}", digest);
+    };
     Ok(Hash {
         d: digest,
         h: hashv(&digest, nonce),
@@ -38,6 +41,9 @@ pub fn seed(challenge: &[u8; 32], nonce: &[u8; 8]) -> [u8; 40] {
 fn digest(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<[u8; 16], DrillxError> {
     let seed = seed(challenge, nonce);
     let solutions = equix::solve(&seed).map_err(|_| DrillxError::BadEquix)?;
+    if solutions.is_empty() {
+        return Err(DrillxError::BadEquix);
+    }
     // SAFETY: The equix solver guarantees that the first solution is always valid
     let solution = unsafe { solutions.get_unchecked(0) };
     Ok(solution.to_bytes())
@@ -56,6 +62,9 @@ fn digest_with_memory(
         .build(&seed)
         .map_err(|_| DrillxError::BadEquix)?;
     let solutions = equix.solve_with_memory(memory);
+    if solutions.is_empty() {
+        return Err(DrillxError::BadEquix);
+    }
     // SAFETY: The equix solver guarantees that the first solution is always valid
     let solution = unsafe { solutions.get_unchecked(0) };
     Ok(solution.to_bytes())
@@ -125,6 +134,7 @@ impl Hash {
 }
 
 /// A drillx solution which can be efficiently validated on-chain
+#[derive(Debug)]
 pub struct Solution {
     pub d: [u8; 16], // digest
     pub n: [u8; 8],  // nonce
