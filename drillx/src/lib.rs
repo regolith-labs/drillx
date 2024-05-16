@@ -3,10 +3,10 @@ pub use equix;
 /// Generates a new drillx hash from a challenge and nonce.
 #[inline(always)]
 pub fn hash(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<Hash, DrillxError> {
-    let mut digest = digest(challenge, nonce)?;
+    let digest = digest(challenge, nonce)?;
     Ok(Hash {
         d: digest,
-        h: hashv(&mut digest, nonce),
+        h: hashv(&digest, nonce),
     })
 }
 
@@ -17,19 +17,19 @@ pub fn hash_with_memory(
     challenge: &[u8; 32],
     nonce: &[u8; 8],
 ) -> Result<Hash, DrillxError> {
-    let mut digest = digest_with_memory(memory, challenge, nonce)?;
+    let digest = digest_with_memory(memory, challenge, nonce)?;
     Ok(Hash {
         d: digest,
-        h: hashv(&mut digest, nonce),
+        h: hashv(&digest, nonce),
     })
 }
 
 /// Concatenates a challenge and a nonce into a single buffer.
 #[inline(always)]
-pub fn seed(a: &[u8; 32], b: &[u8; 8]) -> [u8; 40] {
+pub fn seed(challenge: &[u8; 32], nonce: &[u8; 8]) -> [u8; 40] {
     let mut result = [0; 40];
-    result[00..32].copy_from_slice(a);
-    result[32..40].copy_from_slice(b);
+    result[00..32].copy_from_slice(challenge);
+    result[32..40].copy_from_slice(nonce);
     result
 }
 
@@ -63,11 +63,11 @@ fn digest_with_memory(
 
 /// Sorts the provided digest as a list of u16 values.
 #[inline(always)]
-fn sorted(digest: &mut [u8; 16]) -> &mut [u8; 16] {
+fn sorted(mut digest: [u8; 16]) -> [u8; 16] {
     unsafe {
-        let u16_slice: &mut [u16; 8] = core::mem::transmute(digest);
+        let u16_slice: &mut [u16; 8] = core::mem::transmute(&mut digest);
         u16_slice.sort_unstable();
-        core::mem::transmute(u16_slice)
+        digest
     }
 }
 
@@ -76,17 +76,17 @@ fn sorted(digest: &mut [u8; 16]) -> &mut [u8; 16] {
 /// Delegates the hash to a syscall if compiled for the solana runtime.
 #[cfg(feature = "solana")]
 #[inline(always)]
-fn hashv(digest: &mut [u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
-    solana_program::blake3::hashv(&[sorted(digest).as_slice(), &nonce.as_slice()]).to_bytes()
+fn hashv(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
+    solana_program::blake3::hashv(&[sorted(*digest).as_slice(), &nonce.as_slice()]).to_bytes()
 }
 
 /// Calculates a hash from the provided digest and nonce.
 /// The digest is sorted prior to hashing to prevent malleability.
 #[cfg(not(feature = "solana"))]
 #[inline(always)]
-fn hashv(digest: &mut [u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
+fn hashv(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
     let mut hasher = blake3::Hasher::new();
-    hasher.update(sorted(digest));
+    hasher.update(sorted(*digest));
     hasher.update(nonce);
     hasher.finalize().into()
 }
