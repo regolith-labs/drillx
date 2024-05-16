@@ -1,3 +1,5 @@
+#[cfg(feature = "cuda")]
+pub mod cuda;
 pub use equix;
 
 /// Generates a new drillx hash from a challenge and nonce.

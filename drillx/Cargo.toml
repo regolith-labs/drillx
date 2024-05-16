@@ -18,9 +18,9 @@ name = "drillx"
 default = ["full"]
 benchmark = []
 compiler = ["equix/compiler"]
+cuda = ["cc"]
 full = ["equix/full"]
 solana = ["solana-program"]
-gpu = ["cc"]
 
 [dependencies]
 blake3 = { workspace = true }
