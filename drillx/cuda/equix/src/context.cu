@@ -39,9 +39,9 @@ failure:
 __device__ void equix_free(equix_ctx* ctx) {
 	if (ctx != NULL && ctx != EQUIX_NOTSUPP) {
 		if (ctx->flags & EQUIX_CTX_SOLVE) {
-			free(ctx->heap);
+			cudaFree(ctx->heap);
 		}
 		hashx_free(ctx->hash_func);
-		free(ctx);
+		cudaFree(ctx);
 	}
 }
