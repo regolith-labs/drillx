@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 #include <equix.h>
-#include <virtual_memory.h>
 #include "context.h"
 #include "solver_heap.h"
 

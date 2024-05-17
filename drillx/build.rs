@@ -6,41 +6,6 @@ fn main() {
     println!("cargo:rerun-if-changed=cuda/");
     println!("cargo:rerun-if-changed=src/");
 
-    // Compile hashx C code
-    // cc::Build::new()
-    //     .cuda(true)
-    //     .compiler("nvcc")
-    //     .include("cuda/equix/hashx/include")
-    //     .include("cuda/equix/hashx/src")
-    //     .file("cuda/equix/hashx/src/blake2.c")
-    //     .file("cuda/equix/hashx/src/compiler.c")
-    //     .file("cuda/equix/hashx/src/compiler_a64.c")
-    //     .file("cuda/equix/hashx/src/compiler_x86.c")
-    //     .file("cuda/equix/hashx/src/context.c")
-    //     .file("cuda/equix/hashx/src/hashx.c")
-    //     .file("cuda/equix/hashx/src/hashx_thread.c")
-    //     .file("cuda/equix/hashx/src/program.c")
-    //     .file("cuda/equix/hashx/src/program_exec.c")
-    //     .file("cuda/equix/hashx/src/siphash.c")
-    //     .file("cuda/equix/hashx/src/siphash_rng.c")
-    //     .file("cuda/equix/hashx/src/virtual_memory.c")
-    //     .flag("-cudart=static")
-    //     .compile("hashx.a");
-
-    // Compile equix C code
-    // cc::Build::new()
-    //     .cuda(true)
-    //     .compiler("nvcc")
-    //     .include("cuda/equix/include")
-    //     .include("cuda/equix/src")
-    //     .include("cuda/equix/hashx/include")
-    //     .include("cuda/equix/hashx/src")
-    //     .file("cuda/equix/src/context.c")
-    //     .file("cuda/equix/src/equix.c")
-    //     .file("cuda/equix/src/solver.c")
-    //     .flag("-cudart=static")
-    //     .compile("equix.a");
-
     // Compile drillx
     cc::Build::new()
         .cuda(true)
@@ -54,15 +19,12 @@ fn main() {
         .file("cuda/equix/src/solver.cu")
         .file("cuda/hashx/src/blake2.cu")
         .file("cuda/hashx/src/compiler.cu")
-        // .file("cuda/hashx/src/compiler_a64.cu")
-        // .file("cuda/hashx/src/compiler_x86.cu")
         .file("cuda/hashx/src/context.cu")
         .file("cuda/hashx/src/hashx.cu")
         .file("cuda/hashx/src/program.cu")
         .file("cuda/hashx/src/program_exec.cu")
         .file("cuda/hashx/src/siphash.cu")
         .file("cuda/hashx/src/siphash_rng.cu")
-        .file("cuda/hashx/src/virtual_memory.cu")
         .flag("-cudart=static")
         // .flag("-gencode=arch=compute_89,code=sm_89") // Optimize for RTX 4090
         // .flag("-gencode=arch=compute_89,code=compute_89") // PTX for future compatibility

@@ -13,15 +13,12 @@ project(hashx)
 set(hashx_sources
 src/blake2.c 
 src/compiler.c
-src/compiler_a64.c
-src/compiler_x86.c
 src/context.c
 src/hashx.c
 src/program.c
 src/program_exec.c
 src/siphash.c
-src/siphash_rng.c
-src/virtual_memory.c)
+src/siphash_rng.c)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
