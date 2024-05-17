@@ -47,7 +47,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 
     // Copy results back to host
     if (sols > 0) {
-        // cudaMemcpy(out, output.idx[0], 128, cudaMemcpyDeviceToHost);        
+        memcpy(out, output.idx[0], 128);
     }
 
     // Print errors

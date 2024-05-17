@@ -78,7 +78,6 @@ __device__ unsigned int atomicSub_u16(uint16_t *address, uint16_t val) {
   return old;
 }
 
-
 static void build_solution_stage1(equix_idx* output, solver_heap* heap, s2_idx root) {
 	u32 bucket = ITEM_BUCKET(root);
 	u32 bucket_inv = INVERT_BUCKET(bucket);
