@@ -3,6 +3,8 @@
 #include "drillx.h"
 #include "equix.h"
 #include "hashx.h"
+#include "equix/context.h"
+#include "hashx/context.h"
 
 extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     // Allocate device memory for input and output data
@@ -22,7 +24,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 
     // Make hashx function
 	  if (!hashx_make(ctx->hash_func, challenge, 32)) {
-	  	return 0;
+	  	return;
 	  }
 
     // Launch kernel to parallelize hashx operations
@@ -50,7 +52,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 }
 
 __global__ void do_solve_stage0(hashx_ctx* hash_func, solver_heap* heap) {
-    u32 i = 0;
+    uint16_t i = 0;
     uint64_t value = hash_value(hash_func, i);
     printf("%lld", value);
 

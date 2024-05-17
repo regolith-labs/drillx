@@ -34,7 +34,7 @@ __device__ const blake2b_param hashx_blake2_params = {
 	{ 0 }
 };
 
-__device__ hashx_ctx* hashx_alloc(hashx_type type) {
+hashx_ctx* hashx_alloc(hashx_type type) {
 	if (!HASHX_COMPILER && (type & HASHX_COMPILED)) {
 		return HASHX_NOTSUPP;
 	}
@@ -69,7 +69,7 @@ failure:
 	return NULL;
 }
 
-__device__ void hashx_free(hashx_ctx* ctx) {
+void hashx_free(hashx_ctx* ctx) {
 	if (ctx != NULL && ctx != HASHX_NOTSUPP) {
 		if (ctx->code != NULL) {
 			if (ctx->type & HASHX_COMPILED) {
