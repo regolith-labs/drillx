@@ -9,15 +9,16 @@
 #include "context.h"
 
 __device__ bool hashx_compiler_init(hashx_ctx* ctx) {
-	if (cudaMalloc(&ctx->code, COMP_CODE_SIZE) != cudaSuccess) {
-        return false;
+	ctx->code = (uint8_t*)malloc(COMP_CODE_SIZE);
+    if (ctx->code == NULL) {
+    	return false;
     }
     return true;
 }
 
 __device__ void hashx_compiler_destroy(hashx_ctx* ctx) {
 	if (ctx->code != NULL) {
-        cudaFree(ctx->code);
+        free(ctx->code);
         ctx->code = NULL;
     }
 }
