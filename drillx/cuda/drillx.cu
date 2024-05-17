@@ -38,7 +38,6 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     equix_solution solutions[EQUIX_MAX_SOLS];
     int num_sols = solve_stage123(ctx->heap, solutions);
     printf("sols %d\n", num_sols);
-
     for (int i = 0; i < num_sols; ++i) {
         for (int j = 0; j < EQUIX_NUM_IDX; ++j) {
             printf("%u ", solutions[i].idx[i]);
