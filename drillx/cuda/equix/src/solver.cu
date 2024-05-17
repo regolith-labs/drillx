@@ -60,7 +60,7 @@ static void build_solution_stage1(equix_idx* output, solver_heap* heap, s2_idx r
 	u32 right_parent_idx = ITEM_RIGHT_IDX(root);
 	s1_idx left_parent = STAGE1_IDX(bucket, left_parent_idx);
 	s1_idx right_parent = STAGE1_IDX(bucket_inv, right_parent_idx);
-	printf("%d", STAGE1_IDX(bucket_idx, left_parent_idx));
+	printf("%d", STAGE1_IDX(bucket, left_parent_idx));
 	output[0] = left_parent;
 	output[1] = right_parent;
 	if (!tree_cmp1(&output[0], &output[1])) {
