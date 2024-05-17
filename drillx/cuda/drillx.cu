@@ -44,15 +44,15 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     printf("sols %d\n", sols);
 
     for (int i = 0; i < sols; ++i) {
-        for (in j = 0; j < EQUIX_NUM_IDX; ++j) {
+        for (int j = 0; j < EQUIX_NUM_IDX; ++j) {
             printf("%u ", output[i].idx[i]);
         }
     }
 
     // Copy results back to host
     if (sols > 0) {
-        printf("hmm %d\n", output[6].idx[2]);
-        memcpy(out, output[6].idx, sizeof(output[6].idx));
+        // printf("hmm %d\n", output[6].idx[2]);
+        // memcpy(out, output[6].idx, sizeof(output[6].idx));
     }
 
     // Free memory
