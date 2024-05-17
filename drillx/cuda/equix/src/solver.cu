@@ -56,7 +56,6 @@ __device__ FORCE_INLINE uint64_t hash_value(hashx_ctx* hash_func, equix_idx inde
 
 __device__ unsigned int atomicAdd_u16(uint16_t *address, uint16_t val) {
 	unsigned int* base_address = (unsigned int*)((char*)address - ((size_t)address & 2));
-  unsigned int long_val = (val << 16) | val;
   unsigned int old, assumed;
   old = *base_address;
   do {
@@ -69,7 +68,6 @@ __device__ unsigned int atomicAdd_u16(uint16_t *address, uint16_t val) {
 
 __device__ unsigned int atomicSub_u16(uint16_t *address, uint16_t val) {
 	unsigned int* base_address = (unsigned int*)((char*)address - ((size_t)address & 2));
-  unsigned int long_val = (val << 16) | val;
   unsigned int old, assumed;
   old = *base_address;
   do {
