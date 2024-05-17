@@ -33,7 +33,7 @@
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* If the instruction is a multiplication.  */
-__host__ static inline bool is_mul(instr_type type) {
+static inline bool is_mul(instr_type type) {
 	return type <= INSTR_MUL_R;
 }
 
@@ -48,7 +48,7 @@ typedef enum execution_port {
 	PORT_P015 = PORT_P0 | PORT_P1 | PORT_P5
 } execution_port;
 
-__host__ static const char* execution_port_names[] = {
+static const char* execution_port_names[] = {
 	"PORT_NONE", "PORT_P0", "PORT_P1", "PORT_P01", "PORT_P5", "PORT_P05", "PORT_P15", "PORT_P015"
 };
 
@@ -92,7 +92,7 @@ typedef struct generator_ctx {
 	execution_port ports[PORT_MAP_SIZE][NUM_PORTS];
 } generator_ctx;
 
-__host__ const static instr_template tpl_umulh_r = {
+const static instr_template tpl_umulh_r = {
 	.type = INSTR_UMULH_R,
 	.x86_asm = "mul r",
 	.x86_size = 9, /* mov, mul, mov */
@@ -108,7 +108,7 @@ __host__ const static instr_template tpl_umulh_r = {
 	.has_dst = true,
 };
 
-__host__ const static instr_template tpl_smulh_r = {
+const static instr_template tpl_smulh_r = {
 	.type = INSTR_SMULH_R,
 	.x86_asm = "imul r",
 	.x86_size = 9, /* mov, mul, mov */
@@ -124,7 +124,7 @@ __host__ const static instr_template tpl_smulh_r = {
 	.has_dst = true,
 };
 
-__host__ const static instr_template tpl_mul_r = {
+const static instr_template tpl_mul_r = {
 	.type = INSTR_MUL_R,
 	.x86_asm = "imul r,r",
 	.x86_size = 4,
@@ -140,7 +140,7 @@ __host__ const static instr_template tpl_mul_r = {
 	.has_dst = true,
 };
 
-__host__ const static instr_template tpl_sub_r = {
+const static instr_template tpl_sub_r = {
 	.type = INSTR_SUB_R,
 	.x86_asm = "sub r,r",
 	.x86_size = 3,
@@ -156,7 +156,7 @@ __host__ const static instr_template tpl_sub_r = {
 	.has_dst = true,
 };
 
-__host__ const static instr_template tpl_xor_r = {
+const static instr_template tpl_xor_r = {
 	.type = INSTR_XOR_R,
 	.x86_asm = "xor r,r",
 	.x86_size = 3,
@@ -172,7 +172,7 @@ __host__ const static instr_template tpl_xor_r = {
 	.has_dst = true,
 };
 
-__host__ const static instr_template tpl_add_rs = {
+const static instr_template tpl_add_rs = {
 	.type = INSTR_ADD_RS,
 	.x86_asm = "lea r,r+r*s",
 	.x86_size = 4,
@@ -188,7 +188,7 @@ __host__ const static instr_template tpl_add_rs = {
 	.has_dst = true,
 };
 
-__host__ const static instr_template tpl_ror_c = {
+const static instr_template tpl_ror_c = {
 	.type = INSTR_ROR_C,
 	.x86_asm = "ror r,i",
 	.x86_size = 4,
@@ -204,7 +204,7 @@ __host__ const static instr_template tpl_ror_c = {
 	.has_dst = true,
 };
 
-__host__ const static instr_template tpl_add_c = {
+const static instr_template tpl_add_c = {
 	.type = INSTR_ADD_C,
 	.x86_asm = "add r,i",
 	.x86_size = 7,
@@ -220,7 +220,7 @@ __host__ const static instr_template tpl_add_c = {
 	.has_dst = true,
 };
 
-__host__ const static instr_template tpl_xor_c = {
+const static instr_template tpl_xor_c = {
 	.type = INSTR_XOR_C,
 	.x86_asm = "xor r,i",
 	.x86_size = 7,
@@ -237,7 +237,7 @@ __host__ const static instr_template tpl_xor_c = {
 };
 
 
-__host__ const static instr_template tpl_target = {
+const static instr_template tpl_target = {
 	.type = INSTR_TARGET,
 	.x86_asm = "cmovz esi, edi",
 	.x86_size = 5, /* test, cmovz */
@@ -253,7 +253,7 @@ __host__ const static instr_template tpl_target = {
 	.has_dst = false,
 };
 
-__host__ const static instr_template tpl_branch = {
+const static instr_template tpl_branch = {
 	.type = INSTR_BRANCH,
 	.x86_asm = "jz target",
 	.x86_size = 10, /* or, test, jz */
@@ -269,7 +269,7 @@ __host__ const static instr_template tpl_branch = {
 	.has_dst = false,
 };
 
-__host__ const static instr_template* instr_lookup[] = {
+const static instr_template* instr_lookup[] = {
 	&tpl_ror_c,
 	&tpl_xor_c,
 	&tpl_add_c,
@@ -280,51 +280,51 @@ __host__ const static instr_template* instr_lookup[] = {
 	&tpl_add_rs,
 };
 
-__host__ const static instr_template* wide_mul_lookup[] = {
+const static instr_template* wide_mul_lookup[] = {
 	&tpl_smulh_r,
 	&tpl_umulh_r
 };
 
-__host__ const static instr_template* mul_lookup = &tpl_mul_r;
-__host__ const static instr_template* target_lookup = &tpl_target;
-__host__ const static instr_template* branch_lookup = &tpl_branch;
+const static instr_template* mul_lookup = &tpl_mul_r;
+const static instr_template* target_lookup = &tpl_target;
+const static instr_template* branch_lookup = &tpl_branch;
 
-__host__ const static program_item item_mul = {
+const static program_item item_mul = {
 	.templates = &mul_lookup,
 	.mask0 = 0,
 	.mask1 = 0,
 	.duplicates = true
 };
 
-__host__ const static program_item item_target = {
+const static program_item item_target = {
 	.templates = &target_lookup,
 	.mask0 = 0,
 	.mask1 = 0,
 	.duplicates = true
 };
 
-__host__ const static program_item item_branch = {
+const static program_item item_branch = {
 	.templates = &branch_lookup,
 	.mask0 = 0,
 	.mask1 = 0,
 	.duplicates = true
 };
 
-__host__ const static program_item item_wide_mul = {
+const static program_item item_wide_mul = {
 	.templates = wide_mul_lookup,
 	.mask0 = 1,
 	.mask1 = 1,
 	.duplicates = true
 };
 
-__host__ const static program_item item_any = {
+const static program_item item_any = {
 	.templates = instr_lookup,
 	.mask0 = 7,
 	.mask1 = 3, /* instructions that don't need a src register */
 	.duplicates = false
 };
 
-__host__ const static program_item* program_layout[] = {
+const static program_item* program_layout[] = {
 	&item_mul,
 	&item_target,
 	&item_any,
@@ -363,7 +363,7 @@ __host__ const static program_item* program_layout[] = {
 	&item_any,
 };
 
-__host__ static const instr_template* select_template(generator_ctx* ctx, instr_type last_instr, int attempt) {
+static const instr_template* select_template(generator_ctx* ctx, instr_type last_instr, int attempt) {
 	const program_item* item = program_layout[ctx->sub_cycle % 36];
 	const instr_template* tpl;
 	do {
@@ -373,7 +373,7 @@ __host__ static const instr_template* select_template(generator_ctx* ctx, instr_
 	return tpl;
 }
 
-__host__ static uint32_t branch_mask(siphash_rng* gen) {
+static uint32_t branch_mask(siphash_rng* gen) {
 	uint32_t mask = 0;
 	int popcnt = 0;
 	while (popcnt < LOG2_BRANCH_PROB) {
@@ -387,7 +387,7 @@ __host__ static uint32_t branch_mask(siphash_rng* gen) {
 	return mask;
 }
 
-__host__ static void instr_from_template(const instr_template* tpl, siphash_rng* gen, instruction* instr) {
+static void instr_from_template(const instr_template* tpl, siphash_rng* gen, instruction* instr) {
 	instr->opcode = tpl->type;
 	if (tpl->immediate_mask) {
 		if (tpl->immediate_mask == BRANCH_MASK) {
@@ -413,7 +413,7 @@ __host__ static void instr_from_template(const instr_template* tpl, siphash_rng*
 	}
 }
 
-__host__ static bool select_register(int available_regs[8], int regs_count, siphash_rng* gen, int* reg_out) {
+static bool select_register(int available_regs[8], int regs_count, siphash_rng* gen, int* reg_out) {
 	if (regs_count == 0)
 		return false;
 
@@ -429,7 +429,7 @@ __host__ static bool select_register(int available_regs[8], int regs_count, siph
 	return true;
 }
 
-__host__ static bool select_destination(const instr_template* tpl, instruction* instr, generator_ctx* ctx, int cycle) {
+static bool select_destination(const instr_template* tpl, instruction* instr, generator_ctx* ctx, int cycle) {
 	int available_regs[8];
 	int regs_count = 0;
 	/* Conditions for the destination register:
@@ -454,7 +454,7 @@ __host__ static bool select_destination(const instr_template* tpl, instruction* 
 	return select_register(available_regs, regs_count, &ctx->gen, &instr->dst);
 }
 
-__host__ static bool select_source(const instr_template* tpl, instruction* instr, generator_ctx* ctx, int cycle) {
+static bool select_source(const instr_template* tpl, instruction* instr, generator_ctx* ctx, int cycle) {
 	int available_regs[8];
 	int regs_count = 0;
 	/* all registers that are ready at the cycle */
@@ -477,7 +477,7 @@ __host__ static bool select_source(const instr_template* tpl, instruction* instr
 	return false;
 }
 
-__host__ static int schedule_uop(execution_port uop, generator_ctx* ctx, int cycle, bool commit) {
+static int schedule_uop(execution_port uop, generator_ctx* ctx, int cycle, bool commit) {
 	/* The scheduling here is done optimistically by checking port availability in order P5 -> P0 -> P1 to not overload
 	   port P1 (multiplication) by instructions that can go to any port. */
 	for (; cycle < PORT_MAP_SIZE; ++cycle) {
@@ -506,7 +506,7 @@ __host__ static int schedule_uop(execution_port uop, generator_ctx* ctx, int cyc
 	return -1;
 }
 
-__host__ static int schedule_instr(const instr_template* tpl, generator_ctx* ctx, bool commit) {
+static int schedule_instr(const instr_template* tpl, generator_ctx* ctx, bool commit) {
 	if (tpl->uop2 == PORT_NONE) {
 		/* this instruction has only one uOP */
 		return schedule_uop(tpl->uop1, ctx, ctx->cycle, commit);
@@ -531,13 +531,13 @@ __host__ static int schedule_instr(const instr_template* tpl, generator_ctx* ctx
 	return -1;
 }
 
-__host__ static void print_registers(const generator_ctx* ctx) {
+static void print_registers(const generator_ctx* ctx) {
 	for (int i = 0; i < 8; ++i) {
 		printf("   R%i = %i\n", i, ctx->registers[i].latency);
 	}
 }
 
-__host__ bool hashx_program_generate(const siphash_state* key, hashx_program* program) {
+bool hashx_program_generate(const siphash_state* key, hashx_program* program) {
 	generator_ctx ctx = {
 		.cycle = 0,
 		.sub_cycle = 0, /* 3 sub-cycles = 1 cycle */
