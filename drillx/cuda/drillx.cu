@@ -9,10 +9,9 @@
 
 extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     // Allocate device memory for input and output data
-    uint8_t *d_challenge, *d_nonce, *d_out;
+    uint8_t *d_challenge, *d_nonce;
     cudaMalloc((void **)&d_challenge, 32);
     cudaMalloc((void **)&d_nonce, 8);
-    cudaMalloc((void **)&d_out, 16);
 	  cudaMemcpy(d_challenge, challenge, 32, cudaMemcpyHostToDevice);
     cudaMemcpy(d_nonce, nonce, 8, cudaMemcpyHostToDevice);
 
@@ -40,18 +39,21 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
         return;
     }
     int sols = solve_stage123(ctx->heap, output);
-    printf("sols %d", sols);
+    printf("sols %d\n", sols);
 
     // Free equix context
     equix_free(ctx);
 
     // Copy results back to host
-    cudaMemcpy(out, d_out, 16, cudaMemcpyDeviceToHost);
+    if sols > 0 {
+        cudaMemcpy(out, output.idx[0], 16, cudaMemcpyDeviceToHost);        
+    }
+    // cudaMemcpy(out, d_out, 16, cudaMemcpyDeviceToHost);
 
     // Free device memory
     cudaFree(d_challenge);
     cudaFree(d_nonce);
-    cudaFree(d_out);
+    // cudaFree(d_out);
 
     // Print errors
     cudaError_t err = cudaGetLastError();
