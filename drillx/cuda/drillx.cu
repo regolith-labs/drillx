@@ -32,7 +32,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 
 __global__ void do_hash(uint8_t *d_challenge, uint8_t *d_nonce, uint8_t *d_out) {
     // Create an equix context
-    equix_ctx* ctx = equix_alloc(EQUIX_CTX_SOLVE | HASHX_INTERPRETED);
+    equix_ctx* ctx = equix_alloc(EQUIX_CTX_SOLVE);
     if (ctx == nullptr) {
         printf("Failed to allocate equix context\n");
         return;
