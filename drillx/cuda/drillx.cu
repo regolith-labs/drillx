@@ -34,7 +34,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     do_solve_stage0<<<blocksPerGrid, threadsPerBlock>>>(ctx->hash_func, ctx->heap);
     cudaDeviceSynchronize();
 
-    // TODO Do the remaining stages
+    // Do the remaining stages
     equix_solution* output = (equix_solution*)malloc(EQUIX_MAX_SOLS * sizeof(equix_solution));
     if (output == NULL) {
         return;
@@ -47,7 +47,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 
     // Copy results back to host
     if (sols > 0) {
-        memcpy(out, output, 128);
+        memcpy(out, output[0].idx, sizeof(output[0].idx));
     }
 
     // Free output
