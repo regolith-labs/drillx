@@ -37,10 +37,17 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     // Do the remaining stages
     equix_solution* output = (equix_solution*)malloc(EQUIX_MAX_SOLS * sizeof(equix_solution));
     if (output == NULL) {
+        equix_free(ctx);
         return;
     }
     int sols = solve_stage123(ctx->heap, output);
     printf("sols %d\n", sols);
+
+    for (int i = 0; i < sols; ++i) {
+        for (in j = 0; j < EQUIX_NUM_IDX; ++j) {
+            printf("%u ", output[i].idx[i]);
+        }
+    }
 
     // Copy results back to host
     if (sols > 0) {
