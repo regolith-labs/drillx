@@ -44,8 +44,8 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 
     // Copy results back to host
     if (sols > 0) {
-        printf("hmm %d\n", output[1].idx[2]);
-        memcpy(out, output[0].idx, sizeof(output[0].idx));
+        printf("hmm %d\n", output[6].idx[2]);
+        memcpy(out, output[6].idx, sizeof(output[6].idx));
     }
 
     // Free memory
