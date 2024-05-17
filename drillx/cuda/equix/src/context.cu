@@ -24,12 +24,7 @@ __device__ equix_ctx* equix_alloc(equix_ctx_flags flags) {
 		goto failure;
 	}
 	if (flags & EQUIX_CTX_SOLVE) {
-		if (flags & EQUIX_CTX_HUGEPAGES) {
-			ctx->heap = hashx_vm_alloc_huge(sizeof(solver_heap));
-		}
-		else {
-			ctx->heap = malloc(sizeof(solver_heap));
-		}
+		ctx->heap = malloc(sizeof(solver_heap));
 		if (ctx->heap == NULL) {
 			goto failure;
 		}
@@ -44,12 +39,7 @@ failure:
 __device__ void equix_free(equix_ctx* ctx) {
 	if (ctx != NULL && ctx != EQUIX_NOTSUPP) {
 		if (ctx->flags & EQUIX_CTX_SOLVE) {
-			if (ctx->flags & EQUIX_CTX_HUGEPAGES) {
-				hashx_vm_free(ctx->heap, sizeof(solver_heap));
-			}
-			else {
-				free(ctx->heap);
-			}
+			free(ctx->heap);
 		}
 		hashx_free(ctx->hash_func);
 		free(ctx);

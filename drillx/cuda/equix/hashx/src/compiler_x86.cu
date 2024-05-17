@@ -25,7 +25,7 @@
 
 #ifdef HASHX_COMPILER_X86
 
-static const uint8_t x86_prologue[] = {
+__device__ static const uint8_t x86_prologue[] = {
 #ifndef WINABI
 	0x48, 0x89, 0xF9,             /* mov rcx, rdi */
 	0x48, 0x83, 0xEC, 0x20,       /* sub rsp, 32 */

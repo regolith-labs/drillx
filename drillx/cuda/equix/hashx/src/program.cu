@@ -553,14 +553,14 @@ __device__ bool hashx_program_generate(const siphash_state* key, hashx_program* 
 	};
 	hashx_siphash_rng_init(&ctx.gen, key);
 	for (int i = 0; i < 8; ++i) {
-		ctx.registers[i].last_op = -1;
+		ctx.registers[i].last_op = (instr_type)-1;
 		ctx.registers[i].latency = 0;
 		ctx.registers[i].last_op_par = -1;
 	}
 	program->code_size = 0;
 
 	int attempt = 0;
-	instr_type last_instr = -1;
+	instr_type last_instr = (instr_type)-1;
 #ifdef HASHX_PROGRAM_STATS
 	program->x86_size = 0;
 #endif

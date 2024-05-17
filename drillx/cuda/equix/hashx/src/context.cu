@@ -18,7 +18,7 @@
 #endif
 
 /* Blake2b params used to generate program keys */
-const blake2b_param hashx_blake2_params = {
+__device__ const blake2b_param hashx_blake2_params = {
 	.digest_length = 64,
 	.key_length = 0,
 	.fanout = 1,

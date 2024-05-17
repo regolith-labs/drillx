@@ -16,7 +16,7 @@ typedef void program_func(uint64_t r[8]);
 extern "C" {
 #endif
 
-HASHX_PRIVATE extern const blake2b_param hashx_blake2_params;
+__device__ HASHX_PRIVATE extern const blake2b_param hashx_blake2_params;
 
 #ifdef __cplusplus
 }
