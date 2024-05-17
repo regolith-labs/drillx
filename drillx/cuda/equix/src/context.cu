@@ -8,8 +8,8 @@
 
 __device__ equix_ctx* equix_alloc(equix_ctx_flags flags) {
 	equix_ctx* ctx_failure = NULL;
-	equix_ctx* ctx = NULL; 
-	if (cudaMalloc(&ctx, sizeof(equix_ctx)) != cudaSuccess) {
+	equix_ctx* ctx = (equix_ctx*)malloc(sizeof(equix_ctx));
+    if (ctx == NULL) {
         goto failure;
     }
 	ctx->flags = (equix_ctx_flags)(flags & EQUIX_CTX_COMPILE);
@@ -23,7 +23,8 @@ __device__ equix_ctx* equix_alloc(equix_ctx_flags flags) {
 		goto failure;
 	}
 	if (flags & EQUIX_CTX_SOLVE) {
-		if (cudaMalloc(&ctx->heap, sizeof(solver_heap)) != cudaSuccess) {
+		ctx->heap = (solver_heap*)malloc(sizeof(solver_heap));
+        if (ctx->heap == NULL) {
             goto failure;
         }
 	}
@@ -37,9 +38,9 @@ failure:
 __device__ void equix_free(equix_ctx* ctx) {
 	if (ctx != NULL && ctx != EQUIX_NOTSUPP) {
 		if (ctx->flags & EQUIX_CTX_SOLVE) {
-			cudaFree(ctx->heap);
+			free(ctx->heap);
 		}
 		hashx_free(ctx->hash_func);
-		cudaFree(ctx);
+		free(ctx);
 	}
 }
