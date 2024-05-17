@@ -60,7 +60,6 @@ static void build_solution_stage1(equix_idx* output, solver_heap* heap, s2_idx r
 	u32 right_parent_idx = ITEM_RIGHT_IDX(root);
 	s1_idx left_parent = STAGE1_IDX(bucket, left_parent_idx);
 	s1_idx right_parent = STAGE1_IDX(bucket_inv, right_parent_idx);
-	printf("%d", STAGE1_IDX(bucket, left_parent_idx));
 	output[0] = left_parent;
 	output[1] = right_parent;
 	if (!tree_cmp1(&output[0], &output[1])) {
@@ -146,6 +145,7 @@ __device__ void solve_stage0i(hashx_ctx* hash_func, solver_heap* heap, uint32_t 
     }                                                                         \
 
 static void solve_stage1(solver_heap* heap) {
+	printf("Stage1");
 	CLEAR(heap->stage2_indices.counts);
 	for (u32 bucket_idx = BUCK_START; bucket_idx < BUCK_END; ++bucket_idx) {
 		u32 cpl_bucket = INVERT_BUCKET(bucket_idx);
