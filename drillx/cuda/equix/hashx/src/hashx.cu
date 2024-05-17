@@ -40,8 +40,8 @@ __device__ static int initialize_program(hashx_ctx* ctx, hashx_program* program,
 }
 
 __device__ int hashx_make(hashx_ctx* ctx, const void* seed, size_t size) {
-	CUDA_ASSERT(ctx != NULL && ctx != HASHX_NOTSUPP);
-	CUDA_ASSERT(seed != NULL || size == 0);	
+	assert(ctx != NULL && ctx != HASHX_NOTSUPP);
+	assert(seed != NULL || size == 0);	
 	siphash_state keys[2];
 	blake2b_state hash_state;
 	hashx_blake2b_init_param(&hash_state, &hashx_blake2_params);
@@ -59,9 +59,9 @@ __device__ int hashx_make(hashx_ctx* ctx, const void* seed, size_t size) {
 }
 
 __device__ void hashx_exec(const hashx_ctx* ctx, HASHX_INPUT, void* output) {
-	CUDA_ASSERT(ctx != NULL && ctx != HASHX_NOTSUPP);
-	CUDA_ASSERT(output != NULL);
-	CUDA_ASSERT(ctx->has_program);
+	assert(ctx != NULL && ctx != HASHX_NOTSUPP);
+	assert(output != NULL);
+	assert(ctx->has_program);
 	uint64_t r[8];
 #ifndef HASHX_BLOCK_MODE
 	hashx_siphash24_ctr_state512(&ctx->keys, input, r);
