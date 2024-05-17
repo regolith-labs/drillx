@@ -25,9 +25,6 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 	      return;
 	  }
 
-    // Prep stage 0
-    prep_stage0(ctx->heap);
-
     // Launch kernel to parallelize hashx operations
     dim3 threadsPerBlock(256); // 256 threads per block
     dim3 blocksPerGrid((65536 + threadsPerBlock.x - 1) / threadsPerBlock.x); // enough blocks to cover 65536 threads
