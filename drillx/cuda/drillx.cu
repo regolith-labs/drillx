@@ -39,8 +39,8 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     if (output == NULL) {
         return;
     }
-    int n = solve_stage123(ctx->heap, output);
-    printf("n %d", n);
+    int sols = solve_stage123(ctx->heap, output);
+    printf("sols %d", sols);
 
     // Free equix context
     equix_free(ctx);

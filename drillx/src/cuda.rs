@@ -9,7 +9,7 @@ mod tests {
 
     #[test]
     fn test_gpu() {
-        let challenge = [1; 32];
+        let challenge = [255; 32];
         let nonce = [2; 8];
         let mut out = [0; 16];
         let timer = Instant::now();
