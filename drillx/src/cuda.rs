@@ -16,7 +16,7 @@ mod tests {
         unsafe {
             hash(challenge.as_ptr(), nonce.as_ptr(), out.as_mut_ptr());
         }
-        println!("Did 65536 hashx in {} ms", timer.elapsed().as_millis());
+        println!("Did 65536 hashx in {} ns", timer.elapsed().as_nanos());
         assert_eq!(42, u128::from_le_bytes(out));
     }
 }
