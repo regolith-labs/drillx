@@ -41,15 +41,6 @@ fn main() {
     //     .flag("-cudart=static")
     //     .compile("equix.a");
 
-    // Compile mylib C code
-    cc::Build::new()
-        .cuda(true)
-        // .compiler("nvcc")
-        .include("cuda/mylib")
-        .file("cuda/mylib/mylib.cu")
-        .flag("-cudart=static")
-        .compile("mylib.a");
-
     // Compile drillx
     cc::Build::new()
         .cuda(true)
@@ -57,6 +48,7 @@ fn main() {
         // .include("cuda/equix/hashx/include")
         .include("cuda/mylib")
         .file("cuda/drillx.cu")
+        .file("cuda/mylib/mylib.cu")
         .flag("-cudart=static")
         // .flag("-gencode=arch=compute_89,code=sm_89") // Optimize for RTX 4090
         // .flag("-gencode=arch=compute_89,code=compute_89") // PTX for future compatibility
