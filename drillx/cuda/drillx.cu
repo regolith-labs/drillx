@@ -35,24 +35,19 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     cudaDeviceSynchronize();
 
     // Do the remaining stages
-    equix_solution* output = (equix_solution*)malloc(EQUIX_MAX_SOLS * sizeof(equix_solution));
-    if (output == NULL) {
-        equix_free(ctx);
-        return;
-    }
-    int sols = solve_stage123(ctx->heap, output);
-    printf("sols %d\n", sols);
+    equix_solution solutions[EQUIX_MAX_SOLS];
+    int num_sols = solve_stage123(ctx->heap, solutions);
+    printf("sols %d\n", num_sols);
 
-    for (int i = 0; i < sols; ++i) {
+    for (int i = 0; i < num_sols; ++i) {
         for (int j = 0; j < EQUIX_NUM_IDX; ++j) {
-            printf("%u ", output[i].idx[i]);
+            printf("%u ", solutions[i].idx[i]);
         }
     }
 
     // Copy results back to host
     if (sols > 0) {
-        // printf("hmm %d\n", output[6].idx[2]);
-        // memcpy(out, output[6].idx, sizeof(output[6].idx));
+        memcpy(out, solutions[0].idx, sizeof(solutions[0].idx));
     }
 
     // Free memory
