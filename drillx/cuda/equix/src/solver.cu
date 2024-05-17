@@ -60,6 +60,7 @@ static void build_solution_stage1(equix_idx* output, solver_heap* heap, s2_idx r
 	u32 right_parent_idx = ITEM_RIGHT_IDX(root);
 	s1_idx left_parent = STAGE1_IDX(bucket, left_parent_idx);
 	s1_idx right_parent = STAGE1_IDX(bucket_inv, right_parent_idx);
+	printf("%d", STAGE1_IDX(bucket_idx, left_parent_idx));
 	output[0] = left_parent;
 	output[1] = right_parent;
 	if (!tree_cmp1(&output[0], &output[1])) {
@@ -120,7 +121,6 @@ __device__ void solve_stage0i(hashx_ctx* hash_func, solver_heap* heap, uint32_t 
 	STAGE1_SIZE(bucket_idx) = item_idx + 1;
 	STAGE1_IDX(bucket_idx, item_idx) = i;
 	STAGE1_DATA(bucket_idx, item_idx) = value / NUM_COARSE_BUCKETS; /* 52 bits */
-	printf("%d", STAGE1_DATA(bucket_idx, item_idx));
 }
 
 #define MAKE_PAIRS1                                                           \
