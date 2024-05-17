@@ -114,10 +114,13 @@ void prep_stage0(solver_heap* heap) {
 __device__ void solve_stage0i(hashx_ctx* hash_func, solver_heap* heap, uint32_t i) {
 	uint64_t value = hash_value(hash_func, i);
 	u32 bucket_idx = value % NUM_COARSE_BUCKETS;
-	u32 item_idx = STAGE1_SIZE(bucket_idx);
-	if (item_idx >= COARSE_BUCKET_ITEMS)
-		return;
-	STAGE1_SIZE(bucket_idx) = item_idx + 1;
+	// Atomically increment the bucket size and get the previous value
+  u32 item_idx = atomicAdd(&STAGE1_SIZE(bucket_idx), 1);
+  if (item_idx >= COARSE_BUCKET_ITEMS) {
+  	// Decrement the count back if it exceeds the limit
+  	atomicSub(&STAGE1_SIZE(bucket_idx), 1);
+  	return;
+  }
 	STAGE1_IDX(bucket_idx, item_idx) = i;
 	STAGE1_DATA(bucket_idx, item_idx) = value / NUM_COARSE_BUCKETS; /* 52 bits */
 }
