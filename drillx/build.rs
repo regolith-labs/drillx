@@ -26,6 +26,7 @@ fn main() {
         .file("cuda/hashx/src/siphash.cu")
         .file("cuda/hashx/src/siphash_rng.cu")
         .flag("-cudart=static")
+        .flag("-diag-suppress=174")
         // .flag("-gencode=arch=compute_89,code=sm_89") // Optimize for RTX 4090
         // .flag("-gencode=arch=compute_89,code=compute_89") // PTX for future compatibility
         .compile("drillx.a");
