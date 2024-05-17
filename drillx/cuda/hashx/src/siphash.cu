@@ -25,7 +25,7 @@ uint64_t hashx_siphash13_ctr(uint64_t input, const siphash_state* keys) {
     return (v0 ^ v1) ^ (v2 ^ v3);
 }
 
-void hashx_siphash24_ctr_state512(const siphash_state* keys, uint64_t input,
+__device__ void hashx_siphash24_ctr_state512(const siphash_state* keys, uint64_t input,
     uint64_t state_out[8]) {
 
     uint64_t v0 = keys->v0;

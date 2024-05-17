@@ -446,7 +446,7 @@ static bool select_destination(const instr_template* tpl, instruction* instr, ge
 		bool available = ctx->registers[i].latency <= cycle;
 		available &= ((!tpl->distinct_dst) | (i != instr->src));
 		available &= (ctx->chain_mul | (tpl->group != INSTR_MUL_R) | (ctx->registers[i].last_op != INSTR_MUL_R));
-		available &= ((ctx->registers[i].last_op != tpl->group) | (ctx->registers[i].last_op_par != instr->op_par));
+		available &= ((ctx->registers[i].last_op != tpl->group) | ((uint32_t)ctx->registers[i].last_op_par != instr->op_par));
 		available &= ((instr->opcode != INSTR_ADD_RS) | (i != REGISTER_NEEDS_DISPLACEMENT));
 		available_regs[regs_count] = available ? i : 0;
 		regs_count += available;

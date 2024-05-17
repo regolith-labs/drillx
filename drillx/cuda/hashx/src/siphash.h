@@ -26,7 +26,7 @@ extern "C" {
 #endif
 
 HASHX_PRIVATE uint64_t hashx_siphash13_ctr(uint64_t input, const siphash_state* keys);
-HASHX_PRIVATE void hashx_siphash24_ctr_state512(const siphash_state* keys, uint64_t input, uint64_t state_out[8]);
+__device__ HASHX_PRIVATE void hashx_siphash24_ctr_state512(const siphash_state* keys, uint64_t input, uint64_t state_out[8]);
 
 #ifdef __cplusplus
 }
