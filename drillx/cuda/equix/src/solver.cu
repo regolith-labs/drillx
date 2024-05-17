@@ -107,6 +107,21 @@ __device__ static void solve_stage0(hashx_ctx* hash_func, solver_heap* heap) {
 	}
 }
 
+__device__ void prep_stage0(solver_heap* heap) {
+	CLEAR(heap->stage1_indices.counts);
+}
+
+__device__ void solve_stage0i(hashx_ctx* hash_func, solver_heap* heap, uint32_t i) {
+	uint64_t value = hash_value(hash_func, i);
+	u32 bucket_idx = value % NUM_COARSE_BUCKETS;
+	u32 item_idx = STAGE1_SIZE(bucket_idx);
+	if (item_idx >= COARSE_BUCKET_ITEMS)
+		return;
+	STAGE1_SIZE(bucket_idx) = item_idx + 1;
+	STAGE1_IDX(bucket_idx, item_idx) = i;
+	STAGE1_DATA(bucket_idx, item_idx) = value / NUM_COARSE_BUCKETS; /* 52 bits */
+}
+
 #define MAKE_PAIRS1                                                           \
     stage1_data_item value = STAGE1_DATA(bucket_idx, item_idx) + CARRY;       \
     u32 fine_buck_idx = value % NUM_FINE_BUCKETS;                             \
