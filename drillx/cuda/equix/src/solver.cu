@@ -107,7 +107,7 @@ __device__ static void solve_stage0(hashx_ctx* hash_func, solver_heap* heap) {
 	}
 }
 
-__device__ void prep_stage0(solver_heap* heap) {
+void prep_stage0(solver_heap* heap) {
 	CLEAR(heap->stage1_indices.counts);
 }
 

@@ -26,6 +26,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 	  }
 
     // Launch kernel to parallelize hashx operations
+    prep_stage0(heap);
     dim3 threadsPerBlock(256); // 256 threads per block
     dim3 blocksPerGrid((65536 + threadsPerBlock.x - 1) / threadsPerBlock.x); // enough blocks to cover 65536 threads
     do_solve_stage0<<<blocksPerGrid, threadsPerBlock>>>(ctx->hash_func, ctx->heap);
@@ -56,7 +57,6 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 
 __global__ void do_solve_stage0(hashx_ctx* hash_func, solver_heap* heap) {
     uint16_t i = blockIdx.x * blockDim.x + threadIdx.x;
-    prep_stage0(heap);
     if (i < 65536) {
         solve_stage0i(hash_func, heap, i);
     }
