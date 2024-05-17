@@ -54,7 +54,6 @@ fn main() {
         .file("cuda/equix/hashx/src/compiler_x86.cu")
         .file("cuda/equix/hashx/src/context.cu")
         .file("cuda/equix/hashx/src/hashx.cu")
-        .file("cuda/equix/hashx/src/hashx_thread.cu")
         .file("cuda/equix/hashx/src/program.cu")
         .file("cuda/equix/hashx/src/program_exec.cu")
         .file("cuda/equix/hashx/src/siphash.cu")
