@@ -46,13 +46,12 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     }
 
     // Copy results back to host
-    if (sols > 0) {
+    if (num_sols > 0) {
         memcpy(out, solutions[0].idx, sizeof(solutions[0].idx));
     }
 
     // Free memory
     equix_free(ctx);
-    free(output);
 
     // Print errors
     cudaError_t err = cudaGetLastError();
