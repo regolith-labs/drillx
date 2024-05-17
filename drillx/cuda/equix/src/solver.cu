@@ -110,7 +110,7 @@ static void build_solution_stage2(equix_idx* output, solver_heap* heap, s3_idx r
 static void build_solution(equix_solution* solution, solver_heap* heap, s3_idx left, s3_idx right) {
 	build_solution_stage2(&solution->idx[0], heap, left);
 	build_solution_stage2(&solution->idx[4], heap, right);
-		printf("SOLUTION %u %u %u %u", solution->idx[0], solution->idx[1], solution->idx[2], solution->idx[3]);
+	printf("SOLUTION %u", !tree_cmp4(&solution->idx[0], &solution->idx[4]));
 	if (!tree_cmp4(&solution->idx[0], &solution->idx[4])) {
 		SWAP_IDX(solution->idx[0], solution->idx[4]);
 		SWAP_IDX(solution->idx[1], solution->idx[5]);
