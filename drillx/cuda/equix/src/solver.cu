@@ -54,6 +54,25 @@ __device__ FORCE_INLINE uint64_t hash_value(hashx_ctx* hash_func, equix_idx inde
 	return load64(hash);
 }
 
+__device__ static uint16_t atomicAddU16(uint16_t* address, uint16_t val) {
+    unsigned int* base_address = (unsigned int*)((char*)address - ((size_t)address & 2));
+    unsigned int long_val, short_val, assumed;
+
+    short_val = ((unsigned int)val) << (((size_t)address & 2) * 8);
+
+    do {
+        assumed = long_val = *base_address;
+        long_val = (long_val & ~(0xFFFF << (((size_t)address & 2) * 8))) |
+                   (((((long_val >> (((size_t)address & 2) * 8)) & 0xFFFF) + val) & 0xFFFF) << (((size_t)address & 2) * 8));
+    } while (atomicCAS(base_address, assumed, long_val) != assumed);
+
+    return (long_val >> (((size_t)address & 2) * 8)) & 0xFFFF;
+}
+
+__device__ static uint16_t atomicSubU16(uint16_t* address, uint16_t val) {
+    return atomicAddCustom(address, -val);
+}
+
 static void build_solution_stage1(equix_idx* output, solver_heap* heap, s2_idx root) {
 	u32 bucket = ITEM_BUCKET(root);
 	u32 bucket_inv = INVERT_BUCKET(bucket);
@@ -299,21 +318,3 @@ int solve_stage123(
 	return solve_stage3(heap, output);
 }
 
-__device__ uint16_t atomicAddU16(uint16_t* address, uint16_t val) {
-    unsigned int* base_address = (unsigned int*)((char*)address - ((size_t)address & 2));
-    unsigned int long_val, short_val, assumed;
-
-    short_val = ((unsigned int)val) << (((size_t)address & 2) * 8);
-
-    do {
-        assumed = long_val = *base_address;
-        long_val = (long_val & ~(0xFFFF << (((size_t)address & 2) * 8))) |
-                   (((((long_val >> (((size_t)address & 2) * 8)) & 0xFFFF) + val) & 0xFFFF) << (((size_t)address & 2) * 8));
-    } while (atomicCAS(base_address, assumed, long_val) != assumed);
-
-    return (long_val >> (((size_t)address & 2) * 8)) & 0xFFFF;
-}
-
-__device__ uint16_t atomicSubU16(uint16_t* address, uint16_t val) {
-    return atomicAddCustom(address, -val);
-}
