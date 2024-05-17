@@ -233,7 +233,6 @@ static void solve_stage2(solver_heap* heap) {
         sum /= NUM_FINE_BUCKETS; /* 15 bits */                                \
         if ((sum & EQUIX_STAGE1_MASK) == 0) {                                 \
             /* we have a solution */                                          \
-						printf("good sol!\n");																						\
             s3_idx item_left = STAGE3_IDX(bucket_idx, item_idx);              \
             s3_idx item_right = STAGE3_IDX(cpl_bucket, cpl_index);            \
             build_solution(&output[sols_found], heap, item_left, item_right); \
@@ -241,9 +240,6 @@ static void solve_stage2(solver_heap* heap) {
                 return sols_found;                                            \
             }                                                                 \
         }                                                                     \
-				else {																																\
-						printf("bad sol\n");																							\
-				}																																			\
     }                                                                         \
 
 static int solve_stage3(solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]) {
