@@ -36,10 +36,12 @@ __device__ hashx_ctx* hashx_alloc(hashx_type type) {
 	if (!HASHX_COMPILER && (type & HASHX_COMPILED)) {
 		return HASHX_NOTSUPP;
 	}
-	hashx_ctx* ctx = malloc(sizeof(hashx_ctx));
-	if (ctx == NULL) {
-		goto failure;
-	}
+
+	hashx_ctx* ctx = NULL;
+    if (cudaMalloc(&ctx, sizeof(hashx_ctx)) != cudaSuccess) {
+        goto failure;
+    }
+
 	ctx->code = NULL;
 	if (type & HASHX_COMPILED) {
 		if (!hashx_compiler_init(ctx)) {
@@ -48,10 +50,9 @@ __device__ hashx_ctx* hashx_alloc(hashx_type type) {
 		ctx->type = HASHX_COMPILED;
 	}
 	else {
-		ctx->program = malloc(sizeof(hashx_program));
-		if (ctx->program == NULL) {
-			goto failure;
-		}
+		if (cudaMalloc(&ctx->program, sizeof(hashx_program)) != cudaSuccess) {
+            goto failure;
+        }
 		ctx->type = HASHX_INTERPRETED;
 	}
 #ifdef HASHX_BLOCK_MODE
@@ -73,9 +74,9 @@ __device__ void hashx_free(hashx_ctx* ctx) {
 				hashx_compiler_destroy(ctx);
 			}
 			else {
-				free(ctx->program);
+				cudaFree(ctx->program);
 			}
 		}
-		free(ctx);
+		cudaFree(ctx);
 	}
 }

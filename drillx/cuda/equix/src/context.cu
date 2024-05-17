@@ -10,7 +10,7 @@
 __device__ equix_ctx* equix_alloc(equix_ctx_flags flags) {
 	equix_ctx* ctx_failure = NULL;
 	equix_ctx* ctx = NULL; 
-	if (cudaMalloc((void**)&ctx, sizeof(equix_ctx)) != cudaSuccess) {
+	if (cudaMalloc(&ctx, sizeof(equix_ctx)) != cudaSuccess) {
         goto failure;
     }
 	ctx->flags = (equix_ctx_flags)(flags & EQUIX_CTX_COMPILE);
@@ -24,7 +24,7 @@ __device__ equix_ctx* equix_alloc(equix_ctx_flags flags) {
 		goto failure;
 	}
 	if (flags & EQUIX_CTX_SOLVE) {
-		if (cudaMalloc((void**)&ctx->heap, sizeof(solver_heap)) != cudaSuccess) {
+		if (cudaMalloc(&ctx->heap, sizeof(solver_heap)) != cudaSuccess) {
             goto failure;
         }
 	}
