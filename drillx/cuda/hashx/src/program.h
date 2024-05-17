@@ -35,11 +35,9 @@ typedef struct hashx_program {
 extern "C" {
 #endif
 
-__device__ HASHX_PRIVATE bool hashx_program_generate(const siphash_state* key, hashx_program* program);
+__host__ HASHX_PRIVATE bool hashx_program_generate(const siphash_state* key, hashx_program* program);
 
 __device__ HASHX_PRIVATE void hashx_program_execute(const hashx_program* program, uint64_t r[8]);
-
-__device__ HASHX_PRIVATE void hashx_program_asm_x86(const hashx_program* program);
 
 #ifdef __cplusplus
 }

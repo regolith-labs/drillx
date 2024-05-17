@@ -100,11 +100,11 @@ __host__ EQUIX_API void equix_free(equix_ctx* ctx);
  *
  * @return the number of solutions found
  */
-__device__ EQUIX_API int equix_solve(
-    equix_ctx* ctx,
-    const void* challenge,
-    size_t challenge_size,
-    equix_solution output[EQUIX_MAX_SOLS]);
+// __device__ EQUIX_API int equix_solve(
+//     equix_ctx* ctx,
+//     const void* challenge,
+//     size_t challenge_size,
+//     equix_solution output[EQUIX_MAX_SOLS]);
 
 
 #ifdef __cplusplus
