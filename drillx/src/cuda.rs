@@ -14,7 +14,6 @@ mod tests {
         let mut out = [0; 16];
         let timer = Instant::now();
         unsafe {
-            println!("Out: {:?}", out);
             hash(challenge.as_ptr(), nonce.as_ptr(), out.as_mut_ptr());
             println!("Out: {:?}", out);
         }
