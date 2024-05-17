@@ -11,13 +11,13 @@ mod tests {
     fn test_gpu() {
         let challenge = [255; 32];
         let nonce = [2; 8];
-        let mut out = [0; 16];
-        let timer = Instant::now();
+        let mut digest = [0; 16];
+        // let timer = Instant::now();
         unsafe {
-            hash(challenge.as_ptr(), nonce.as_ptr(), out.as_mut_ptr());
-            println!("Out: {:?}", out);
+            hash(challenge.as_ptr(), nonce.as_ptr(), digest.as_mut_ptr());
         }
-        println!("Did 65536 hashx in {} ms", timer.elapsed().as_millis());
-        assert_eq!(42, u128::from_le_bytes(out));
+        let solution = Solution::new(digest, nonce);
+        // println!("Did 65536 hashx in {} ms", timer.elapsed().as_millis());
+        assert!(solution.is_valid(challenge));
     }
 }
