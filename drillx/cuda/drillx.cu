@@ -41,6 +41,7 @@ __global__ void do_hash(uint8_t *d_challenge, uint8_t *d_nonce, uint8_t *d_out) 
     // Create a solutions buffer
     equix_solution solutions[EQUIX_MAX_SOLS];
     int num_solutions = equix_solve(ctx, d_challenge, 32, solutions);
+    printf("Solutions %d", num_solutions);
 
     // Check the result
     // TODO Output full solution
