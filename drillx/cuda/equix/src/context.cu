@@ -6,12 +6,17 @@
 #include "context.h"
 #include "solver_heap.h"
 
-__device__ equix_ctx* equix_alloc(equix_ctx_flags flags) {
+// TODO do cudaMalloc and cudaFree ? 
+
+__host__ equix_ctx* equix_alloc(equix_ctx_flags flags) {
 	equix_ctx* ctx_failure = NULL;
-	equix_ctx* ctx = (equix_ctx*)malloc(sizeof(equix_ctx));
-    if (ctx == NULL) {
+	equix_ctx* ctx = NULL;
+	
+	// Allocate unified memory for equix_ctx
+    if (cudaMallocManaged(&ctx, sizeof(equix_ctx)) != cudaSuccess) {
         goto failure;
     }
+	
 	ctx->flags = (equix_ctx_flags)(flags & EQUIX_CTX_COMPILE);
 	ctx->hash_func = hashx_alloc(flags & EQUIX_CTX_COMPILE ?
 		HASHX_COMPILED : HASHX_INTERPRETED);
@@ -23,8 +28,7 @@ __device__ equix_ctx* equix_alloc(equix_ctx_flags flags) {
 		goto failure;
 	}
 	if (flags & EQUIX_CTX_SOLVE) {
-		ctx->heap = (solver_heap*)malloc(sizeof(solver_heap));
-        if (ctx->heap == NULL) {
+		if (cudaMallocManaged(&ctx->heap, sizeof(solver_heap)) != cudaSuccess) {
             goto failure;
         }
 	}
@@ -35,12 +39,12 @@ failure:
 	return ctx_failure;
 }
 
-__device__ void equix_free(equix_ctx* ctx) {
+__host__ void equix_free(equix_ctx* ctx) {
 	if (ctx != NULL && ctx != EQUIX_NOTSUPP) {
 		if (ctx->flags & EQUIX_CTX_SOLVE) {
-			free(ctx->heap);
+			cudaFree(ctx->heap);
 		}
 		hashx_free(ctx->hash_func);
-		free(ctx);
+		cudaFree(ctx);
 	}
 }

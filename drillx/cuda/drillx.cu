@@ -12,9 +12,26 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 	cudaMemcpy(d_challenge, challenge, 32, cudaMemcpyHostToDevice);
     cudaMemcpy(d_nonce, nonce, 8, cudaMemcpyHostToDevice);
 
-    // Launch kernel
-    do_hash<<<1, 1>>>(d_challenge, d_nonce, d_out);
+    // Create an equix context
+    equix_ctx* ctx = equix_alloc(EQUIX_CTX_SOLVE);
+    if (ctx == nullptr) {
+        printf("Failed to allocate equix context\n");
+        return;
+    }
+
+    // Make hashx function
+	if (!hashx_make(ctx->hash_func, challenge, challenge_size)) {
+		return 0;
+	}
+
+    // Launch kernel to parallelize hashx operations
+	do_solve_stage0<<<1, 1>>>(ctx->hash_func, ctx->heap);
     cudaDeviceSynchronize();
+
+    // Free equix context
+    equix_free(ctx);
+
+    // TODO Do the remaining stages
 
     // Copy results back to host
     cudaMemcpy(out, d_out, 16, cudaMemcpyDeviceToHost);
@@ -31,28 +48,11 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     }
 }
 
-__global__ void do_hash(uint8_t *d_challenge, uint8_t *d_nonce, uint8_t *d_out) {
-    // Create an equix context
-    equix_ctx* ctx = equix_alloc(EQUIX_CTX_SOLVE);
-    if (ctx == nullptr) {
-        printf("Failed to allocate equix context\n");
-        return;
-    }
+__global__ void do_solve_stage0(hashx_ctx* hash_func, solver_heap* heap) {
+    u32 i = 0;
+	uint64_t value = hash_value(hash_func, i);
+    printf("%lld", value);
 
-    // Create a solutions buffer
-    equix_solution solutions[EQUIX_MAX_SOLS];
-    int num_solutions = equix_solve(ctx, d_challenge, 32, solutions);
-    printf("Solutions %d", num_solutions);
-
-    // Check the result
-    // TODO Output full solution
-    if (num_solutions > 0) {
-        *d_out = solutions[0].idx[0];
-    } else {
-        *d_out = 42;
-    }
-
-    // Free the equix context
-    equix_free(ctx);
+    // TODO
 }
 

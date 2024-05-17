@@ -87,7 +87,7 @@ extern "C" {
  * @return pointer to a new HashX instance. Returns NULL on memory allocation 
  *         failure and HASHX_NOTSUPP if the requested type is not supported.
 */
-__device__ HASHX_API hashx_ctx* hashx_alloc(hashx_type type);
+__host__ HASHX_API hashx_ctx* hashx_alloc(hashx_type type);
 
 /*
  * Create a new HashX function from seed.
@@ -98,7 +98,7 @@ __device__ HASHX_API hashx_ctx* hashx_alloc(hashx_type type);
  *
  * @return 1 on success, 0 on failure.                                         
 */
-__device__ HASHX_API int hashx_make(hashx_ctx* ctx, const void* seed, size_t size);
+__host__ HASHX_API int hashx_make(hashx_ctx* ctx, const void* seed, size_t size);
 
 /*
  * Execute the HashX function.
@@ -116,7 +116,7 @@ __device__ HASHX_API void hashx_exec(const hashx_ctx* ctx, HASHX_INPUT, void* ou
  *
  * @param ctx is pointer to a HashX instance.
 */
-__device__ HASHX_API void hashx_free(hashx_ctx* ctx);
+__host__ HASHX_API void hashx_free(hashx_ctx* ctx);
 
 #ifdef __cplusplus
 }
