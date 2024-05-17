@@ -16,7 +16,7 @@ mod tests {
         unsafe {
             hash(challenge.as_ptr(), nonce.as_ptr(), digest.as_mut_ptr());
         }
-        let solution = Solution::new(digest, nonce);
+        let solution = crate::Solution::new(digest, nonce);
         // println!("Did 65536 hashx in {} ms", timer.elapsed().as_millis());
         assert!(solution.is_valid(challenge));
     }
