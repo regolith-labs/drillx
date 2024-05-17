@@ -53,7 +53,7 @@ typedef enum execution_port {
 	PORT_P015 = PORT_P0 | PORT_P1 | PORT_P5
 } execution_port;
 
-static const char* execution_port_names[] = {
+__device__ static const char* execution_port_names[] = {
 	"PORT_NONE", "PORT_P0", "PORT_P1", "PORT_P01", "PORT_P5", "PORT_P05", "PORT_P15", "PORT_P015"
 };
 
@@ -715,7 +715,7 @@ __device__ bool hashx_program_generate(const siphash_state* key, hashx_program* 
 		(ctx.latency == REQUIREMENT_LATENCY - 1); /* cycles are numbered from 0 */
 }
 
-static const char* x86_reg_map[] = { "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15" };
+__device__ static const char* x86_reg_map[] = { "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15" };
 
 __device__ void hashx_program_asm_x86(const hashx_program* program) {
 	int target = 0;
