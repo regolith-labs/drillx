@@ -29,7 +29,9 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 	  }
 
     // Launch kernel to parallelize hashx operations
-    do_solve_stage0<<<1, 1>>>(ctx->hash_func, ctx->heap);
+    dim3 threadsPerBlock(256); // 256 threads per block
+    dim3 blocksPerGrid((65536 + threadsPerBlock.x - 1) / threadsPerBlock.x); // enough blocks to cover 65536 threads
+    do_solve_stage0<<<blocksPerGrid, threadsPerBlock>>>(ctx->hash_func, ctx->heap);
     cudaDeviceSynchronize();
 
     // Free equix context
@@ -53,10 +55,11 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 }
 
 __global__ void do_solve_stage0(hashx_ctx* hash_func, solver_heap* heap) {
-    uint16_t i = 0;
-    uint64_t value = hash_value(hash_func, i);
-    printf("%lld", value);
-
+    uint16_t i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < 65536) {
+        uint64_t value = hash_value(hash_func, i);
+        printf("%d %lld\n", i, value);
+    }
     // TODO
 }
 
