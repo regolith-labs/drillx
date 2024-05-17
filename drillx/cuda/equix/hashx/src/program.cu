@@ -97,7 +97,7 @@ typedef struct generator_ctx {
 	execution_port ports[PORT_MAP_SIZE][NUM_PORTS];
 } generator_ctx;
 
-const static instr_template tpl_umulh_r = {
+__device__ const static instr_template tpl_umulh_r = {
 	.type = INSTR_UMULH_R,
 	.x86_asm = "mul r",
 	.x86_size = 9, /* mov, mul, mov */
@@ -113,7 +113,7 @@ const static instr_template tpl_umulh_r = {
 	.has_dst = true,
 };
 
-const static instr_template tpl_smulh_r = {
+__device__ const static instr_template tpl_smulh_r = {
 	.type = INSTR_SMULH_R,
 	.x86_asm = "imul r",
 	.x86_size = 9, /* mov, mul, mov */
@@ -129,7 +129,7 @@ const static instr_template tpl_smulh_r = {
 	.has_dst = true,
 };
 
-const static instr_template tpl_mul_r = {
+__device__ const static instr_template tpl_mul_r = {
 	.type = INSTR_MUL_R,
 	.x86_asm = "imul r,r",
 	.x86_size = 4,
@@ -145,7 +145,7 @@ const static instr_template tpl_mul_r = {
 	.has_dst = true,
 };
 
-const static instr_template tpl_sub_r = {
+__device__ const static instr_template tpl_sub_r = {
 	.type = INSTR_SUB_R,
 	.x86_asm = "sub r,r",
 	.x86_size = 3,
@@ -161,7 +161,7 @@ const static instr_template tpl_sub_r = {
 	.has_dst = true,
 };
 
-const static instr_template tpl_xor_r = {
+__device__ const static instr_template tpl_xor_r = {
 	.type = INSTR_XOR_R,
 	.x86_asm = "xor r,r",
 	.x86_size = 3,
@@ -177,7 +177,7 @@ const static instr_template tpl_xor_r = {
 	.has_dst = true,
 };
 
-const static instr_template tpl_add_rs = {
+__device__ const static instr_template tpl_add_rs = {
 	.type = INSTR_ADD_RS,
 	.x86_asm = "lea r,r+r*s",
 	.x86_size = 4,
@@ -193,7 +193,7 @@ const static instr_template tpl_add_rs = {
 	.has_dst = true,
 };
 
-const static instr_template tpl_ror_c = {
+__device__ const static instr_template tpl_ror_c = {
 	.type = INSTR_ROR_C,
 	.x86_asm = "ror r,i",
 	.x86_size = 4,
@@ -209,7 +209,7 @@ const static instr_template tpl_ror_c = {
 	.has_dst = true,
 };
 
-const static instr_template tpl_add_c = {
+__device__ const static instr_template tpl_add_c = {
 	.type = INSTR_ADD_C,
 	.x86_asm = "add r,i",
 	.x86_size = 7,
@@ -225,7 +225,7 @@ const static instr_template tpl_add_c = {
 	.has_dst = true,
 };
 
-const static instr_template tpl_xor_c = {
+__device__ const static instr_template tpl_xor_c = {
 	.type = INSTR_XOR_C,
 	.x86_asm = "xor r,i",
 	.x86_size = 7,
@@ -242,7 +242,7 @@ const static instr_template tpl_xor_c = {
 };
 
 
-const static instr_template tpl_target = {
+__device__ const static instr_template tpl_target = {
 	.type = INSTR_TARGET,
 	.x86_asm = "cmovz esi, edi",
 	.x86_size = 5, /* test, cmovz */
@@ -258,7 +258,7 @@ const static instr_template tpl_target = {
 	.has_dst = false,
 };
 
-const static instr_template tpl_branch = {
+__device__ const static instr_template tpl_branch = {
 	.type = INSTR_BRANCH,
 	.x86_asm = "jz target",
 	.x86_size = 10, /* or, test, jz */
@@ -274,7 +274,7 @@ const static instr_template tpl_branch = {
 	.has_dst = false,
 };
 
-const static instr_template* instr_lookup[] = {
+__device__ const static instr_template* instr_lookup[] = {
 	&tpl_ror_c,
 	&tpl_xor_c,
 	&tpl_add_c,
@@ -285,44 +285,44 @@ const static instr_template* instr_lookup[] = {
 	&tpl_add_rs,
 };
 
-const static instr_template* wide_mul_lookup[] = {
+__device__ const static instr_template* wide_mul_lookup[] = {
 	&tpl_smulh_r,
 	&tpl_umulh_r
 };
 
-const static instr_template* mul_lookup = &tpl_mul_r;
-const static instr_template* target_lookup = &tpl_target;
-const static instr_template* branch_lookup = &tpl_branch;
+__device__ const static instr_template* mul_lookup = &tpl_mul_r;
+__device__ const static instr_template* target_lookup = &tpl_target;
+__device__ const static instr_template* branch_lookup = &tpl_branch;
 
-const static program_item item_mul = {
+__device__ const static program_item item_mul = {
 	.templates = &mul_lookup,
 	.mask0 = 0,
 	.mask1 = 0,
 	.duplicates = true
 };
 
-const static program_item item_target = {
+__device__ const static program_item item_target = {
 	.templates = &target_lookup,
 	.mask0 = 0,
 	.mask1 = 0,
 	.duplicates = true
 };
 
-const static program_item item_branch = {
+__device__ const static program_item item_branch = {
 	.templates = &branch_lookup,
 	.mask0 = 0,
 	.mask1 = 0,
 	.duplicates = true
 };
 
-const static program_item item_wide_mul = {
+__device__ const static program_item item_wide_mul = {
 	.templates = wide_mul_lookup,
 	.mask0 = 1,
 	.mask1 = 1,
 	.duplicates = true
 };
 
-const static program_item item_any = {
+__device__ const static program_item item_any = {
 	.templates = instr_lookup,
 	.mask0 = 7,
 	.mask1 = 3, /* instructions that don't need a src register */
