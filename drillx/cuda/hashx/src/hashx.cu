@@ -22,7 +22,7 @@
 #define HASHX_INPUT_ARGS input, size
 #endif
 
-__host__ static int initialize_program(hashx_ctx* ctx, hashx_program* program, 
+static int initialize_program(hashx_ctx* ctx, hashx_program* program, 
 	siphash_state keys[2]) {
 
 	if (!hashx_program_generate(&keys[0], program)) {
@@ -39,7 +39,7 @@ __host__ static int initialize_program(hashx_ctx* ctx, hashx_program* program,
 	return 1;
 }
 
-__host__ int hashx_make(hashx_ctx* ctx, const void* seed, size_t size) {
+int hashx_make(hashx_ctx* ctx, const void* seed, size_t size) {
 	assert(ctx != NULL && ctx != HASHX_NOTSUPP);
 	assert(seed != NULL || size == 0);	
 	siphash_state keys[2];
