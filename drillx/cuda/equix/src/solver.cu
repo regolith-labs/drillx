@@ -115,6 +115,7 @@ static void build_solution(equix_solution* solution, solver_heap* heap, s3_idx l
 		SWAP_IDX(solution->idx[1], solution->idx[5]);
 		SWAP_IDX(solution->idx[2], solution->idx[6]);
 		SWAP_IDX(solution->idx[3], solution->idx[7]);
+		printf("SOLUTION %u %u %u %u", solution->idx.[0], solution->idx[1], solution->idx[2], solution->idx[3]);
 	}
 }
 
@@ -264,7 +265,6 @@ static void solve_stage2(solver_heap* heap) {
             s3_idx item_left = STAGE3_IDX(bucket_idx, item_idx);              \
             s3_idx item_right = STAGE3_IDX(cpl_bucket, cpl_index);            \
             build_solution(&output[sols_found], heap, item_left, item_right); \
-						printf("OK %u", output[sols_found].idx[0]);                       \
             if (++(sols_found) >= EQUIX_MAX_SOLS) {                           \
                 return sols_found;                                            \
             }                                                                 \
