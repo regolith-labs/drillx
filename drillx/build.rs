@@ -44,9 +44,10 @@ fn main() {
     // Compile mylib C code
     cc::Build::new()
         .cuda(true)
-        .compiler("nvcc")
+        // .compiler("nvcc")
         .include("cuda/mylib")
-        .file("cuda/mylib/mylib.c")
+        .file("cuda/mylib/mylib.cu")
+        .flag("-cudart=static")
         .compile("mylib.a");
 
     // Compile drillx
