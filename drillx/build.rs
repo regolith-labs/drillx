@@ -10,7 +10,6 @@ fn main() {
     cc::Build::new()
         .cuda(true)
         .compiler("nvcc")
-        .no_default_flags(true)
         .include("cuda/equix/hashx/include")
         .include("cuda/equix/hashx/src")
         .file("cuda/equix/hashx/src/blake2.c")
@@ -25,20 +24,13 @@ fn main() {
         .file("cuda/equix/hashx/src/siphash.c")
         .file("cuda/equix/hashx/src/siphash_rng.c")
         .file("cuda/equix/hashx/src/virtual_memory.c")
-        .flag("-O0")
-        .flag("-fdata-sections")
-        .flag("-fPIC")
-        .flag("-G")
-        .flag("-gdwarf-4")
-        .flag("-fno-omit-frame-pointer")
-        .flag("-m64")
+        .flag("-cudart=static")
         .compile("hashx.a");
 
     // Compile equix C code
     cc::Build::new()
         .cuda(true)
         .compiler("nvcc")
-        .no_default_flags(true)
         .include("cuda/equix/include")
         .include("cuda/equix/src")
         .include("cuda/equix/hashx/include")
@@ -46,13 +38,7 @@ fn main() {
         .file("cuda/equix/src/context.c")
         .file("cuda/equix/src/equix.c")
         .file("cuda/equix/src/solver.c")
-        .flag("-O0")
-        .flag("-fdata-sections")
-        .flag("-fPIC")
-        .flag("-G")
-        .flag("-gdwarf-4")
-        .flag("-fno-omit-frame-pointer")
-        .flag("-m64")
+        .flag("-cudart=static")
         .compile("equix.a");
 
     // Compile drillx
