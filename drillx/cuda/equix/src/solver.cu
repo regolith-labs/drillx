@@ -116,10 +116,10 @@ __device__ void solve_stage0i(hashx_ctx* hash_func, solver_heap* heap, uint32_t 
 	uint64_t value = hash_value(hash_func, i);
 	u32 bucket_idx = value % NUM_COARSE_BUCKETS;
 	// Atomically increment the bucket size and get the previous value
-  u32 item_idx = atomicAdd(&STAGE1_SIZE(bucket_idx), 1);
+  u32 item_idx = atomicAddU16(&STAGE1_SIZE(bucket_idx), 1);
   if (item_idx >= COARSE_BUCKET_ITEMS) {
   	// Decrement the count back if it exceeds the limit
-  	atomicSub(&STAGE1_SIZE(bucket_idx), 1);
+  	atomicSubU16(&STAGE1_SIZE(bucket_idx), 1);
   	return;
   }
 	STAGE1_IDX(bucket_idx, item_idx) = i;
@@ -297,4 +297,23 @@ int solve_stage123(
 	solve_stage2(heap);
 	printf("%d %d %d\n", STAGE1_SIZE(0), STAGE2_SIZE(0), STAGE3_SIZE(0));
 	return solve_stage3(heap, output);
+}
+
+__device__ uint16_t atomicAddU16(uint16_t* address, uint16_t val) {
+    unsigned int* base_address = (unsigned int*)((char*)address - ((size_t)address & 2));
+    unsigned int long_val, short_val, assumed;
+
+    short_val = ((unsigned int)val) << (((size_t)address & 2) * 8);
+
+    do {
+        assumed = long_val = *base_address;
+        long_val = (long_val & ~(0xFFFF << (((size_t)address & 2) * 8))) |
+                   (((((long_val >> (((size_t)address & 2) * 8)) & 0xFFFF) + val) & 0xFFFF) << (((size_t)address & 2) * 8));
+    } while (atomicCAS(base_address, assumed, long_val) != assumed);
+
+    return (long_val >> (((size_t)address & 2) * 8)) & 0xFFFF;
+}
+
+__device__ uint16_t atomicSubU16(uint16_t* address, uint16_t val) {
+    return atomicAddCustom(address, -val);
 }
