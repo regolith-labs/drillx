@@ -24,6 +24,16 @@ fn main() {
         .file("cuda/equix/hashx/src/siphash.c")
         .file("cuda/equix/hashx/src/siphash_rng.c")
         .file("cuda/equix/hashx/src/virtual_memory.c")
+        .no_default_flags(true)
+        .flag("-O0")
+        .flag("-fdata-sections")
+        .flag("-fPIC")
+        .flag("-G")
+        .flag("-gdwarf-4")
+        .flag("-fno-omit-frame-pointer")
+        .flag("-m64")
+        .flag("-Wall")
+        .flag("-Wextra")
         .compile("hashx.a");
 
     // Compile equix C code
@@ -37,6 +47,16 @@ fn main() {
         .file("cuda/equix/src/context.c")
         .file("cuda/equix/src/equix.c")
         .file("cuda/equix/src/solver.c")
+        .no_default_flags(true)
+        .flag("-O0")
+        .flag("-fdata-sections")
+        .flag("-fPIC")
+        .flag("-G")
+        .flag("-gdwarf-4")
+        .flag("-fno-omit-frame-pointer")
+        .flag("-m64")
+        .flag("-Wall")
+        .flag("-Wextra")
         .compile("equix.a");
 
     // Compile drillx
