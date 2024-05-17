@@ -253,7 +253,7 @@ static int solve_stage3(solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]
 		u32 cpl_bucket = -bucket_idx & (NUM_COARSE_BUCKETS - 1);
 		CLEAR(heap->scratch_ht.counts);
 		u32 cpl_buck_size = STAGE3_SIZE(cpl_bucket);
-		printf("A");
+		printf("A %d\n", cpl_buck_size);
 		for (u32 item_idx = 0; item_idx < cpl_buck_size; ++item_idx) {
 			stage3_data_item value = STAGE3_DATA(cpl_bucket, item_idx);
 			u32 fine_buck_idx = value % NUM_FINE_BUCKETS;
