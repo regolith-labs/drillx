@@ -34,10 +34,16 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     do_solve_stage0<<<blocksPerGrid, threadsPerBlock>>>(ctx->hash_func, ctx->heap);
     cudaDeviceSynchronize();
 
+    // TODO Do the remaining stages
+    equix_solution* output = (equix_solution*)malloc(EQUIX_MAX_SOLS * sizeof(equix_solution));
+    if (output == NULL) {
+        return;
+    }
+    let n = solve_stage123(ctx->heap, output);
+    printf("n %d", n);
+
     // Free equix context
     equix_free(ctx);
-
-    // TODO Do the remaining stages
 
     // Copy results back to host
     cudaMemcpy(out, d_out, 16, cudaMemcpyDeviceToHost);

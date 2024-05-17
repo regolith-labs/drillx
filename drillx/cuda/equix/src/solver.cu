@@ -53,7 +53,7 @@ __device__ FORCE_INLINE uint64_t hash_value(hashx_ctx* hash_func, equix_idx inde
 	return load64(hash);
 }
 
-__device__ static void build_solution_stage1(equix_idx* output, solver_heap* heap, s2_idx root) {
+static void build_solution_stage1(equix_idx* output, solver_heap* heap, s2_idx root) {
 	u32 bucket = ITEM_BUCKET(root);
 	u32 bucket_inv = INVERT_BUCKET(bucket);
 	u32 left_parent_idx = ITEM_LEFT_IDX(root);
@@ -67,7 +67,7 @@ __device__ static void build_solution_stage1(equix_idx* output, solver_heap* hea
 	}
 }
 
-__device__ static void build_solution_stage2(equix_idx* output, solver_heap* heap, s3_idx root) {
+static void build_solution_stage2(equix_idx* output, solver_heap* heap, s3_idx root) {
 	u32 bucket = ITEM_BUCKET(root);
 	u32 bucket_inv = INVERT_BUCKET(bucket);
 	u32 left_parent_idx = ITEM_LEFT_IDX(root);
@@ -82,7 +82,7 @@ __device__ static void build_solution_stage2(equix_idx* output, solver_heap* hea
 	}
 }
 
-__device__ static void build_solution(equix_solution* solution, solver_heap* heap, s3_idx left, s3_idx right) {
+static void build_solution(equix_solution* solution, solver_heap* heap, s3_idx left, s3_idx right) {
 	build_solution_stage2(&solution->idx[0], heap, left);
 	build_solution_stage2(&solution->idx[4], heap, right);
 	if (!tree_cmp4(&solution->idx[0], &solution->idx[4])) {
@@ -144,7 +144,7 @@ __device__ void solve_stage0i(hashx_ctx* hash_func, solver_heap* heap, uint32_t 
             sum / NUM_COARSE_BUCKETS; /* 37 bits */                           \
     }                                                                         \
 
-__device__ static void solve_stage1(solver_heap* heap) {
+static void solve_stage1(solver_heap* heap) {
 	CLEAR(heap->stage2_indices.counts);
 	for (u32 bucket_idx = BUCK_START; bucket_idx < BUCK_END; ++bucket_idx) {
 		u32 cpl_bucket = INVERT_BUCKET(bucket_idx);
@@ -193,7 +193,7 @@ __device__ static void solve_stage1(solver_heap* heap) {
             sum / NUM_COARSE_BUCKETS; /* 22 bits */                           \
     }                                                                         \
 
-__device__ static void solve_stage2(solver_heap* heap) {
+static void solve_stage2(solver_heap* heap) {
 	CLEAR(heap->stage3_indices.counts);
 	for (u32 bucket_idx = BUCK_START; bucket_idx < BUCK_END; ++bucket_idx) {
 		u32 cpl_bucket = INVERT_BUCKET(bucket_idx);
@@ -242,7 +242,7 @@ __device__ static void solve_stage2(solver_heap* heap) {
         }                                                                     \
     }                                                                         \
 
-__device__ static int solve_stage3(solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]) {
+static int solve_stage3(solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]) {
 	int sols_found = 0;
 
 	for (u32 bucket_idx = BUCK_START; bucket_idx < BUCK_END; ++bucket_idx) {
@@ -272,12 +272,21 @@ __device__ static int solve_stage3(solver_heap* heap, equix_solution output[EQUI
 	return sols_found;
 }
 
-__device__ int equix_solver_solve(
-	hashx_ctx* hash_func,
+// __device__ int equix_solver_solve(
+// 	hashx_ctx* hash_func,
+// 	solver_heap* heap,
+// 	equix_solution output[EQUIX_MAX_SOLS])
+// {
+// 	solve_stage0(hash_func, heap);
+// 	solve_stage1(heap);
+// 	solve_stage2(heap);
+// 	return solve_stage3(heap, output);
+// }
+
+int equix_solver_solve123(
 	solver_heap* heap,
 	equix_solution output[EQUIX_MAX_SOLS])
 {
-	solve_stage0(hash_func, heap);
 	solve_stage1(heap);
 	solve_stage2(heap);
 	return solve_stage3(heap, output);
