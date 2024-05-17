@@ -13,6 +13,7 @@
 #define EQUIX_STAGE2_MASK ((1ull << 30) - 1)
 #define EQUIX_FULL_MASK ((1ull << 60) - 1)
 
+
 __device__ static inline bool tree_cmp1(const equix_idx* left, const equix_idx* right) {
 	return *left <= *right;
 }
@@ -26,5 +27,7 @@ __device__ static inline bool tree_cmp4(const equix_idx* left, const equix_idx* 
 }
 
 __device__ int equix_solver_solve(hashx_ctx* hash_func, solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]);
+
+__device__ static FORCE_INLINE uint64_t hash_value(hashx_ctx* hash_func, equix_idx index);
 
 #endif
