@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "drillx.h"
-// #include "equix.h"
+#include "equix.h"
 
 extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     // Allocate device memory for input and output data
