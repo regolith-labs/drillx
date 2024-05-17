@@ -37,11 +37,6 @@ __device__ static inline bool is_mul(instr_type type) {
 	return type <= INSTR_MUL_R;
 }
 
-/* If the instruction is a 64x64->128 bit multiplication.  */
-__device__ static inline bool is_wide_mul(instr_type type) {
-	return type < INSTR_MUL_R;
-}
-
 /* Ivy Bridge integer execution ports: P0, P1, P5 */
 typedef enum execution_port {
 	PORT_NONE = 0,
@@ -561,9 +556,6 @@ __device__ bool hashx_program_generate(const siphash_state* key, hashx_program* 
 
 	int attempt = 0;
 	instr_type last_instr = (instr_type)-1;
-#ifdef HASHX_PROGRAM_STATS
-	program->x86_size = 0;
-#endif
 
 	while (program->code_size < HASHX_PROGRAM_MAX_SIZE) {
 		instruction* instr = &program->code[program->code_size];
@@ -652,9 +644,6 @@ __device__ bool hashx_program_generate(const siphash_state* key, hashx_program* 
 		}
 
 		program->code_size++;
-#ifdef HASHX_PROGRAM_STATS
-		program->x86_size += tpl->x86_size;
-#endif
 
 		ctx.mul_count += is_mul(instr->opcode);
 
@@ -662,50 +651,6 @@ __device__ bool hashx_program_generate(const siphash_state* key, hashx_program* 
 		ctx.sub_cycle += (tpl->uop2 != PORT_NONE);
 		ctx.cycle = ctx.sub_cycle / 3;
 	}
-
-#ifdef HASHX_PROGRAM_STATS
-	memset(program->asic_latencies, 0, sizeof(program->asic_latencies));
-
-	program->counter = ctx.gen.counter;
-	program->wide_mul_count = 0;
-	program->mul_count = ctx.mul_count;
-
-	/* Calculate ASIC latency:
-	   Assumes 1 cycle latency for all operations and unlimited parallelization. */
-	for (int i = 0; i < program->code_size; ++i) {
-		instruction* instr = &program->code[i];
-		if (instr->dst < 0)
-			continue;
-		int last_dst = program->asic_latencies[instr->dst] + 1;
-		int lat_src = instr->dst != instr->src ? program->asic_latencies[instr->src] + 1 : 0;
-		program->asic_latencies[instr->dst] = MAX(last_dst, lat_src);
-		program->wide_mul_count += is_wide_mul(instr->opcode);
-	}
-
-	program->asic_latency = 0;
-	program->cpu_latency = 0;
-	for (int i = 0; i < 8; ++i) {
-		program->asic_latency = MAX(program->asic_latency, program->asic_latencies[i]);
-		program->cpu_latencies[i] = ctx.registers[i].latency;
-		program->cpu_latency = MAX(program->cpu_latency, program->cpu_latencies[i]);
-	}
-
-	program->ipc = program->code_size / (double)program->cpu_latency;
-	program->branch_count = 0;
-	memset(program->branches, 0, sizeof(program->branches));
-
-	if (TRACE) {
-		printf("; ALU port utilization:\n");
-		printf("; (* = in use, _ = idle)\n");
-		for (int i = 0; i < PORT_MAP_SIZE; ++i) {
-			printf("; %3i ", i);
-			for (int j = 0; j < NUM_PORTS; ++j) {
-				printf("%c", (ctx.ports[i][j] ? '*' : '_'));
-			}
-			printf("\n");
-		}
-	}
-#endif
 
 	/* reject programs that don't meet the uniform complexity requirements */
 	/* this happens in less than 1 seed out of 10000 */
