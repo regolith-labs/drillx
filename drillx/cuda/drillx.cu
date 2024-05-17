@@ -14,6 +14,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 
     // Launch kernel
     do_hash<<<1, 1>>>(d_challenge, d_nonce, d_out);
+    cudaDeviceSynchronize();
 
     // Copy results back to host
     cudaMemcpy(out, d_out, 16, cudaMemcpyDeviceToHost);
