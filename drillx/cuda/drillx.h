@@ -3,8 +3,8 @@
 
 #include "equix.h"
 #include "hashx.h"
-#include "equix/context.h"
-#include "hashx/context.h"
+#include "equix/src/context.h"
+#include "hashx/src/context.h"
 
 extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out);
 

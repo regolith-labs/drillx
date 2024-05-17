@@ -12,8 +12,8 @@
 #define HASHX_COMPILER 0
 #define hashx_compile
 
-__device__ HASHX_PRIVATE bool hashx_compiler_init(hashx_ctx* compiler);
-__device__ HASHX_PRIVATE void hashx_compiler_destroy(hashx_ctx* compiler);
+HASHX_PRIVATE bool hashx_compiler_init(hashx_ctx* compiler);
+HASHX_PRIVATE void hashx_compiler_destroy(hashx_ctx* compiler);
 
 #define ALIGN_SIZE(pos, align) ((((pos) - 1) / (align) + 1) * (align))
 
