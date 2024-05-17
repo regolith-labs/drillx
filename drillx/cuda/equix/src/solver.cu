@@ -115,7 +115,7 @@ static void build_solution(equix_solution* solution, solver_heap* heap, s3_idx l
 		SWAP_IDX(solution->idx[1], solution->idx[5]);
 		SWAP_IDX(solution->idx[2], solution->idx[6]);
 		SWAP_IDX(solution->idx[3], solution->idx[7]);
-		printf("SOLUTION %u %u %u %u", solution->idx.[0], solution->idx[1], solution->idx[2], solution->idx[3]);
+		printf("SOLUTION %u %u %u %u", solution->idx[0], solution->idx[1], solution->idx[2], solution->idx[3]);
 	}
 }
 
