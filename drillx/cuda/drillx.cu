@@ -58,7 +58,7 @@ __global__ void do_solve_stage0(hashx_ctx* hash_func, solver_heap* heap) {
     uint16_t i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < 65536) {
         uint64_t value = hash_value(hash_func, i);
-        printf("%d %lld\n", i, value);
+        // printf("%d %lld\n", i, value);
     }
     // TODO
 }
