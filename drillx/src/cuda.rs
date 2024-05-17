@@ -14,7 +14,9 @@ mod tests {
         let mut out = [0; 16];
         let timer = Instant::now();
         unsafe {
+            println!("Out: {:?}", out);
             hash(challenge.as_ptr(), nonce.as_ptr(), out.as_mut_ptr());
+            println!("Out: {:?}", out);
         }
         println!("Did 65536 hashx in {} ms", timer.elapsed().as_millis());
         assert_eq!(42, u128::from_le_bytes(out));
