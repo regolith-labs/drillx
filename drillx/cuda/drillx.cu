@@ -42,16 +42,14 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     int sols = solve_stage123(ctx->heap, output);
     printf("sols %d\n", sols);
 
-    // Free equix context
-    equix_free(ctx);
-
     // Copy results back to host
     if (sols > 0) {
         printf("hmm %d\n", output[1].idx[2]);
         memcpy(out, output[0].idx, sizeof(output[0].idx));
     }
 
-    // Free output
+    // Free memory
+    equix_free(ctx);
     free(output);
 
     // Print errors
