@@ -18,6 +18,6 @@ mod tests {
         }
         let solution = crate::Solution::new(digest, nonce);
         // println!("Did 65536 hashx in {} ms", timer.elapsed().as_millis());
-        assert!(solution.is_valid(challenge));
+        assert!(solution.is_valid(&challenge));
     }
 }
