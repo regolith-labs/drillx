@@ -292,10 +292,10 @@ int solve_stage123(
 	solver_heap* heap,
 	equix_solution output[EQUIX_MAX_SOLS])
 {
-	printf("%d %d %d", STAGE1_SIZE(0), STAGE2_SIZE(0), STAGE3_SIZE(0));
+	printf("%d %d %d\n", STAGE1_SIZE(0), STAGE2_SIZE(0), STAGE3_SIZE(0));
 	solve_stage1(heap);
-	printf("%d %d %d", STAGE1_SIZE(0), STAGE2_SIZE(0), STAGE3_SIZE(0));
+	printf("%d %d %d\n", STAGE1_SIZE(0), STAGE2_SIZE(0), STAGE3_SIZE(0));
 	solve_stage2(heap);
-	printf("%d %d %d", STAGE1_SIZE(0), STAGE2_SIZE(0), STAGE3_SIZE(0));
+	printf("%d %d %d\n", STAGE1_SIZE(0), STAGE2_SIZE(0), STAGE3_SIZE(0));
 	return solve_stage3(heap, output);
 }
