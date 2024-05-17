@@ -19,17 +19,17 @@
 
 /* Blake2b params used to generate program keys */
 __device__ const blake2b_param hashx_blake2_params = {
-	.digest_length = 64,
-	.key_length = 0,
-	.fanout = 1,
-	.depth = 1,
-	.leaf_length = 0,
-	.node_offset = 0,
-	.node_depth = 0,
-	.inner_length = 0,
-	.reserved = { 0 },
-	.salt = STRINGIZE(HASHX_SALT),
-	.personal = { 0 }
+	64,
+	0,
+	1,
+	1,
+	0,
+	0,
+	0,
+	0,
+	{ 0 },
+	STRINGIZE(HASHX_SALT),
+	{ 0 }
 };
 
 __device__ hashx_ctx* hashx_alloc(hashx_type type) {
