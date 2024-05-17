@@ -54,7 +54,7 @@ __device__ static const uint8_t x86_prologue[] = {
 	0x4C, 0x8B, 0x79, 0x38        /* mov r15, qword ptr [rcx+56] */
 };
 
-static const uint8_t x86_epilogue[] = {
+__device__ static const uint8_t x86_epilogue[] = {
 	0x4C, 0x89, 0x01,             /* mov qword ptr [rcx+0], r8 */
 	0x4C, 0x89, 0x49, 0x08,       /* mov qword ptr [rcx+8], r9 */
 	0x4C, 0x89, 0x51, 0x10,       /* mov qword ptr [rcx+16], r10 */

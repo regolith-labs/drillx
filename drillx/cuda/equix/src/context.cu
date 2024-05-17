@@ -13,7 +13,7 @@ __device__ equix_ctx* equix_alloc(equix_ctx_flags flags) {
 	if (ctx == NULL) {
 		goto failure;
 	}
-	ctx->flags = flags & EQUIX_CTX_COMPILE;
+	ctx->flags = (equix_ctx_flags)(flags & EQUIX_CTX_COMPILE);
 	ctx->hash_func = hashx_alloc(flags & EQUIX_CTX_COMPILE ?
 		HASHX_COMPILED : HASHX_INTERPRETED);
 	if (ctx->hash_func == NULL) {

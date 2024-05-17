@@ -329,7 +329,7 @@ const static program_item item_any = {
 	.duplicates = false
 };
 
-const static program_item* program_layout[] = {
+__device__ const static program_item* program_layout[] = {
 	&item_mul,
 	&item_target,
 	&item_any,
