@@ -15,6 +15,8 @@
 __device__ HASHX_PRIVATE bool hashx_compiler_init(hashx_ctx* compiler);
 __device__ HASHX_PRIVATE void hashx_compiler_destroy(hashx_ctx* compiler);
 
+#define ALIGN_SIZE(pos, align) ((((pos) - 1) / (align) + 1) * (align))
+
 #define COMP_PAGE_SIZE 4096
 #define COMP_RESERVE_SIZE 1024
 #define COMP_AVG_INSTR_SIZE 5

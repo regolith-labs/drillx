@@ -10,7 +10,7 @@
 
 __device__ bool hashx_compiler_init(hashx_ctx* ctx) {
 	if (cudaMalloc(&ctx->code, COMP_CODE_SIZE) != cudaSuccess) {
-        return false; // Allocation failed
+        return false;
     }
     return true;
 }
