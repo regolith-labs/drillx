@@ -40,7 +40,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     printf("sols %d\n", num_sols);
     for (int i = 0; i < num_sols; ++i) {
         for (int j = 0; j < EQUIX_NUM_IDX; ++j) {
-            printf("%u ", solutions[i].idx[i]);
+            printf("%u ", solutions[i].idx[j]);
         }
     }
 

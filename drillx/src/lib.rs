@@ -20,9 +20,6 @@ pub fn hash_with_memory(
     nonce: &[u8; 8],
 ) -> Result<Hash, DrillxError> {
     let digest = digest_with_memory(memory, challenge, nonce)?;
-    if !is_valid_digest(challenge, nonce, &digest) {
-        panic!("WTH {:?}", digest);
-    };
     Ok(Hash {
         d: digest,
         h: hashv(&digest, nonce),
@@ -197,6 +194,7 @@ mod tests {
         let timer = Instant::now();
         let hx = hash(&challenge, &nonce).unwrap();
         println!("Did hash in {} ns", timer.elapsed().as_nanos());
+        println!("Digest: {:?}", hx.d);
         let solution = Solution::new(hx.d, nonce);
         assert!(!solution.is_valid(&challenge));
     }
