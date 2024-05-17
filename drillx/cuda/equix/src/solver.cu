@@ -54,19 +54,19 @@ __device__ FORCE_INLINE uint64_t hash_value(hashx_ctx* hash_func, equix_idx inde
 	return load64(hash);
 }
 
-__device__ uint16_t atomicAdd_u16(uint16_t *address, uint16_t val) {
+__device__ static uint16_t atomicAdd_u16(uint16_t *address, uint16_t val) {
     unsigned int *base_address = (unsigned int *)((char *)address - ((size_t)address & 2));
     unsigned int old = atomicAddCustom(base_address, val, ((size_t)address & 2) != 0);
     return ((old >> (((size_t)address & 2) * 8)) & 0xFFFF);
 }
 
-__device__ uint16_t atomicSub_u16(uint16_t *address, uint16_t val) {
+__device__ static uint16_t atomicSub_u16(uint16_t *address, uint16_t val) {
 	  unsigned int *base_address = (unsigned int *)((char *)address - ((size_t)address & 2));
     unsigned int old = atomicSubCustom(base_address, (int16_t)val, ((size_t)address & 2) != 0);
 	  return ((old >> (((size_t)address & 2) * 8)) & 0xFFFF);
 }
 
-__device__ unsigned int atomicAddCustom(unsigned int *address, uint16_t val, bool is_high) {
+__device__ static unsigned int atomicAddCustom(unsigned int *address, uint16_t val, bool is_high) {
     unsigned int old, assumed;
     old = *address;
     do {
@@ -80,7 +80,7 @@ __device__ unsigned int atomicAddCustom(unsigned int *address, uint16_t val, boo
     return old;
 }
 
-__device__ unsigned int atomicSubCustom(unsigned int *address, int16_t val, bool is_high) {
+__device__ static unsigned int atomicSubCustom(unsigned int *address, int16_t val, bool is_high) {
     unsigned int old, assumed;
     old = *address;
     do {
