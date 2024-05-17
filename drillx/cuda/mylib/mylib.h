@@ -14,7 +14,7 @@ extern "C" {
  * @param b Second integer.
  * @return The sum of a and b.
  */
-int32_t add(int32_t a, int32_t b);
+__device__ int32_t add(int32_t a, int32_t b);
 
 
 #ifdef __cplusplus
