@@ -21,7 +21,7 @@
 #endif
 /* Argon2 Team - End Code */
 
-static FORCE_INLINE uint32_t load32(const void* src) {
+__host__ __device__ static FORCE_INLINE uint32_t load32(const void* src) {
 #if defined(NATIVE_LITTLE_ENDIAN)
 	uint32_t w;
 	memcpy(&w, src, sizeof w);
@@ -36,13 +36,13 @@ static FORCE_INLINE uint32_t load32(const void* src) {
 #endif
 }
 
-static FORCE_INLINE uint64_t load64_native(const void* src) {
+__host__ __device__ static FORCE_INLINE uint64_t load64_native(const void* src) {
 	uint64_t w;
 	memcpy(&w, src, sizeof w);
 	return w;
 }
 
-static FORCE_INLINE uint64_t load64(const void* src) {
+__host__ __device__ static FORCE_INLINE uint64_t load64(const void* src) {
 #if defined(NATIVE_LITTLE_ENDIAN)
 	return load64_native(src);
 #else
@@ -59,7 +59,7 @@ static FORCE_INLINE uint64_t load64(const void* src) {
 #endif
 }
 
-static FORCE_INLINE void store32(void* dst, uint32_t w) {
+__host__ __device__ static FORCE_INLINE void store32(void* dst, uint32_t w) {
 #if defined(NATIVE_LITTLE_ENDIAN)
 	memcpy(dst, &w, sizeof w);
 #else
@@ -74,11 +74,11 @@ static FORCE_INLINE void store32(void* dst, uint32_t w) {
 #endif
 }
 
-static FORCE_INLINE void store64_native(void* dst, uint64_t w) {
+__host__ __device__ static FORCE_INLINE void store64_native(void* dst, uint64_t w) {
 	memcpy(dst, &w, sizeof w);
 }
 
-static FORCE_INLINE void store64(void* dst, uint64_t w) {
+__host__ __device__ static FORCE_INLINE void store64(void* dst, uint64_t w) {
 #if defined(NATIVE_LITTLE_ENDIAN)
 	store64_native(dst, w);
 #else
