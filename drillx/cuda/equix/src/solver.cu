@@ -70,7 +70,7 @@ __device__ static uint16_t atomicAddU16(uint16_t* address, uint16_t val) {
 }
 
 __device__ static uint16_t atomicSubU16(uint16_t* address, uint16_t val) {
-    return atomicAddCustom(address, -val);
+    return atomicAddU16(address, -val);
 }
 
 static void build_solution_stage1(equix_idx* output, solver_heap* heap, s2_idx root) {
