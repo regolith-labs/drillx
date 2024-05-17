@@ -47,11 +47,11 @@ typedef stage1_idx_item s1_idx;
 typedef stage2_idx_item s2_idx;
 typedef stage3_idx_item s3_idx;
 
-// __device__ FORCE_INLINE uint64_t hash_value(hashx_ctx* hash_func, equix_idx index) {
-// 	char hash[HASHX_SIZE];
-// 	hashx_exec(hash_func, index, hash);
-// 	return load64(hash);
-// }
+__device__ FORCE_INLINE uint64_t hash_value(hashx_ctx* hash_func, equix_idx index) {
+	char hash[HASHX_SIZE];
+	hashx_exec(hash_func, index, hash);
+	return load64(hash);
+}
 
 __device__ static void build_solution_stage1(equix_idx* output, solver_heap* heap, s2_idx root) {
 	u32 bucket = ITEM_BUCKET(root);
