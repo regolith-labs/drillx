@@ -21,12 +21,14 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     }
 
     // Make hashx function
-	  if (!hashx_make(ctx->hash_func, seed, 32)) {
+	  if (!hashx_make(ctx->hash_func, seed, 40)) {
 	      return;
 	  }
 
-    // Launch kernel to parallelize hashx operations
+    // Prep stage 0
     prep_stage0(ctx->heap);
+
+    // Launch kernel to parallelize hashx operations
     dim3 threadsPerBlock(256); // 256 threads per block
     dim3 blocksPerGrid((65536 + threadsPerBlock.x - 1) / threadsPerBlock.x); // enough blocks to cover 65536 threads
     do_solve_stage0<<<blocksPerGrid, threadsPerBlock>>>(ctx->hash_func, ctx->heap);
