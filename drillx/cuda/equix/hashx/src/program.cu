@@ -549,7 +549,7 @@ __device__ bool hashx_program_generate(const siphash_state* key, hashx_program* 
 		.mul_count = 0,
 		.chain_mul = false,
 		.latency = 0,
-		.ports = { 0 }
+		.ports = { (execution_port)0 }
 	};
 	hashx_siphash_rng_init(&ctx.gen, key);
 	for (int i = 0; i < 8; ++i) {

@@ -232,7 +232,6 @@ __device__ static int solve_stage3(solver_heap* heap, equix_solution output[EQUI
 
 	for (u32 bucket_idx = BUCK_START; bucket_idx < BUCK_END; ++bucket_idx) {
 		u32 cpl_bucket = -bucket_idx & (NUM_COARSE_BUCKETS - 1);
-		bool nodup = cpl_bucket == bucket_idx;
 		CLEAR(heap->scratch_ht.counts);
 		u32 cpl_buck_size = STAGE3_SIZE(cpl_bucket);
 		for (u32 item_idx = 0; item_idx < cpl_buck_size; ++item_idx) {
