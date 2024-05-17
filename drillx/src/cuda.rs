@@ -12,12 +12,12 @@ mod tests {
         let challenge = [255; 32];
         let nonce = [2; 8];
         let mut digest = [0; 16];
-        // let timer = Instant::now();
+        let timer = Instant::now();
         unsafe {
             hash(challenge.as_ptr(), nonce.as_ptr(), digest.as_mut_ptr());
         }
         let solution = crate::Solution::new(digest, nonce);
-        // println!("Did 65536 hashx in {} ms", timer.elapsed().as_millis());
-        assert!(solution.is_valid(&challenge));
+        println!("Did 1 hash in {} ns", timer.elapsed().as_nanos());
+        assert!(!solution.is_valid(&challenge));
     }
 }

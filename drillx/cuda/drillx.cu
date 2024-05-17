@@ -34,7 +34,6 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     // Do the remaining stages
     equix_solution solutions[EQUIX_MAX_SOLS];
     int num_sols = equix_solver_solve(ctx->heap, solutions);
-    printf("sols %d\n", num_sols);
 
     // Copy results back to host
     if (num_sols > 0) {
