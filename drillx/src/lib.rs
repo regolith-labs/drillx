@@ -184,3 +184,18 @@ impl std::error::Error for DrillxError {
         None
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    // use std::time::Instant;
+
+    #[test]
+    fn test_gpu() {
+        let challenge = [255; 32];
+        let nonce = [2; 8];
+        let hx = hash(&challenge, &nonce).unwrap();
+        let solution = Solution::new(hx.d, nonce);
+        assert!(solution.is_valid(&challenge));
+    }
+}
