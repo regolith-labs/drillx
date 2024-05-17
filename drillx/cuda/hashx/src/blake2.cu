@@ -229,14 +229,19 @@ static FORCE_INLINE uint64_t rotr64(const uint64_t w, const unsigned c) {
 	return (w >> c) | (w << (64 - c));
 }
 
-__host__ __device__ static FORCE_INLINE void blake2b_set_lastblock(blake2b_state* S) {
+static FORCE_INLINE void blake2b_set_lastblock(blake2b_state* S) {
 	S->f[0] = (uint64_t)-1;
 }
 
-__host__ __device__ static FORCE_INLINE void blake2b_increment_counter(blake2b_state* S,
+static FORCE_INLINE void blake2b_increment_counter(blake2b_state* S,
 	uint64_t inc) {
 	S->t[0] += inc;
 	S->t[1] += (S->t[0] < inc);
+}
+
+static FORCE_INLINE void blake2b_invalidate_state(blake2b_state* S) {
+	//clear_internal_memory(S, sizeof(*S));      /* wipe */
+	blake2b_set_lastblock(S); /* invalidate for further use */
 }
 
 static FORCE_INLINE void blake2b_init0(blake2b_state* S) {
@@ -266,7 +271,7 @@ int hashx_blake2b_init_param(blake2b_state* S, const blake2b_param* P) {
 #define G(r, i, j, a, b, c, d)                                               \
     do {                                                                     \
         a = a + b + m[SIGMA(r, i)];                                          \
-        d host64(d ^ a, 32);                                               \
+        d = rotr64(d ^ a, 32);                                               \
         c = c + d;                                                           \
         b = rotr64(b ^ c, 24);                                               \
         a = a + b + m[SIGMA(r, j)];                                          \
@@ -289,7 +294,7 @@ int hashx_blake2b_init_param(blake2b_state* S, const blake2b_param* P) {
 
 #define ROUND(r) ROUND_INNER(r)
 
-__device__ static void blake2b_compress(blake2b_state* S, const uint8_t* block) {
+static void blake2b_compress(blake2b_state* S, const uint8_t* block) {
 	uint64_t m[16];
 	uint64_t v[16];
 	unsigned int i;
@@ -329,7 +334,7 @@ __device__ static void blake2b_compress(blake2b_state* S, const uint8_t* block) 
 	}
 }
 
-__device__ static void blake2b_compress_4r(blake2b_state* S, const uint8_t* block) {
+static void blake2b_compress_4r(blake2b_state* S, const uint8_t* block) {
 	uint64_t m[16];
 	uint64_t v[16];
 	unsigned int i;
@@ -430,7 +435,7 @@ int hashx_blake2b_final(blake2b_state* S, void* out, size_t outlen) {
 }
 
 /* 4-round version of Blake2b */
-__device__ void hashx_blake2b_4r(const blake2b_param* params, const void* in, 
+void hashx_blake2b_4r(const blake2b_param* params, const void* in, 
 	size_t inlen, void* out) {
 
 	blake2b_state state;
@@ -454,7 +459,7 @@ __device__ void hashx_blake2b_4r(const blake2b_param* params, const void* in,
 
 	memcpy(state.buf, pin, inlen);
 	blake2b_increment_counter(&state, inlen);
-	blake2b_s__device__ et_lastblock(&state);
+	blake2b_set_lastblock(&state);
 	blake2b_compress_4r(&state, state.buf);
 
 	/* Output hash */

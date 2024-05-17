@@ -64,7 +64,7 @@ enum {
 int hashx_blake2b_init_param(blake2b_state* S, const blake2b_param* P);
 int hashx_blake2b_update(blake2b_state* S, const void* in, size_t inlen);
 int hashx_blake2b_final(blake2b_state* S, void* out, size_t outlen);
-__device__ HASHX_PRIVATE void hashx_blake2b_4r(const blake2b_param* P, const void* in, size_t inlen, void* out);
+HASHX_PRIVATE void hashx_blake2b_4r(const blake2b_param* P, const void* in, size_t inlen, void* out);
 
 #if defined(__cplusplus)
 }
