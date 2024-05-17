@@ -321,28 +321,11 @@ int solve_stage123(
 	solver_heap* heap,
 	equix_solution output[EQUIX_MAX_SOLS])
 {
+	printf("%d %d %d\n", STAGE1_SIZE(0), STAGE2_SIZE(0), STAGE3_SIZE(0));
 	solve_stage1(heap);
+	printf("%d %d %d\n", STAGE1_SIZE(0), STAGE2_SIZE(0), STAGE3_SIZE(0));
 	solve_stage2(heap);
+	printf("%d %d %d\n", STAGE1_SIZE(0), STAGE2_SIZE(0), STAGE3_SIZE(0));
 	return solve_stage3(heap, output);
 }
-
-// __device__ static uint16_t atomicAddU16(uint16_t* address, uint16_t val) {
-//     unsigned int* base_address = (unsigned int*)((char*)address - ((size_t)address & 2));
-//     unsigned int long_val, short_val, assumed;
-
-//     short_val = ((unsigned int)val) << (((size_t)address & 2) * 8);
-
-//     do {
-//         assumed = long_val = *base_address;
-//         long_val = (long_val & ~(0xFFFF << (((size_t)address & 2) * 8))) |
-//                    (((((long_val >> (((size_t)address & 2) * 8)) & 0xFFFF) + val) & 0xFFFF) << (((size_t)address & 2) * 8));
-//     } while (atomicCAS(base_address, assumed, long_val) != assumed);
-
-//     return (long_val >> (((size_t)address & 2) * 8)) & 0xFFFF;
-// }
-
-// __device__ static uint16_t atomicSubU16(uint16_t* address, uint16_t val) {
-//     return atomicAddU16(address, -val);
-// }
-
 
