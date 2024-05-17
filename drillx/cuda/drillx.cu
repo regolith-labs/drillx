@@ -31,27 +31,29 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 }
 
 __global__ void do_hash(uint8_t *d_challenge, uint8_t *d_nonce, uint8_t *d_out) {
-    // Create an equix context
-    equix_ctx* ctx = equix_alloc(EQUIX_CTX_SOLVE);
-    if (ctx == nullptr) {
-        printf("Failed to allocate equix context\n");
-        return;
-    }
+    *d_out = 42;
 
-    // Create a solutions buffer
-    equix_solution solutions[EQUIX_MAX_SOLS];
-    int num_solutions = equix_solve(ctx, d_challenge, 32, solutions);
-    printf("Solutions %d", num_solutions);
+    // // Create an equix context
+    // equix_ctx* ctx = equix_alloc(EQUIX_CTX_SOLVE);
+    // if (ctx == nullptr) {
+    //     printf("Failed to allocate equix context\n");
+    //     return;
+    // }
 
-    // Check the result
-    // TODO Output full solution
-    if (num_solutions > 0) {
-        *d_out = solutions[0].idx[0];
-    } else {
-        *d_out = 42;
-    }
+    // // Create a solutions buffer
+    // equix_solution solutions[EQUIX_MAX_SOLS];
+    // int num_solutions = equix_solve(ctx, d_challenge, 32, solutions);
+    // printf("Solutions %d", num_solutions);
 
-    // Free the equix context
-    equix_free(ctx);
+    // // Check the result
+    // // TODO Output full solution
+    // if (num_solutions > 0) {
+    //     *d_out = solutions[0].idx[0];
+    // } else {
+    //     *d_out = 42;
+    // }
+
+    // // Free the equix context
+    // equix_free(ctx);
 }
 
