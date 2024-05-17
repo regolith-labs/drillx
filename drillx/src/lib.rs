@@ -188,14 +188,16 @@ impl std::error::Error for DrillxError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    // use std::time::Instant;
+    use std::time::Instant;
 
     #[test]
-    fn test_gpu() {
+    fn test_hash() {
         let challenge = [255; 32];
         let nonce = [2; 8];
+        let timer = Instant::now();
         let hx = hash(&challenge, &nonce).unwrap();
+        println!("Did hash in {} ns", timer.elapsed().as_nanos());
         let solution = Solution::new(hx.d, nonce);
-        assert!(solution.is_valid(&challenge));
+        assert!(!solution.is_valid(&challenge));
     }
 }

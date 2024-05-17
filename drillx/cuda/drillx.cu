@@ -8,12 +8,10 @@
 #include "hashx/src/context.h"
 
 extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
-    // Allocate device memory for input and output data
-    uint8_t *d_challenge, *d_nonce;
-    cudaMalloc((void **)&d_challenge, 32);
-    cudaMalloc((void **)&d_nonce, 8);
-	  cudaMemcpy(d_challenge, challenge, 32, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_nonce, nonce, 8, cudaMemcpyHostToDevice);
+    // Allocate a 40-byte buffer
+    uint8_t seed[40];
+    memcpy(seed, challenge, 32);
+    memcpy(seed + 32, nonce, 8);
 
     // Create an equix context
     equix_ctx* ctx = equix_alloc(EQUIX_CTX_SOLVE);
@@ -23,8 +21,8 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     }
 
     // Make hashx function
-	  if (!hashx_make(ctx->hash_func, challenge, 32)) {
-	  	return;
+	  if (!hashx_make(ctx->hash_func, seed, 32)) {
+	      return;
 	  }
 
     // Launch kernel to parallelize hashx operations
@@ -48,11 +46,6 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     if (sols > 0) {
         // cudaMemcpy(out, output.idx[0], 16, cudaMemcpyDeviceToHost);        
     }
-
-    // Free device memory
-    cudaFree(d_challenge);
-    cudaFree(d_nonce);
-    // cudaFree(d_out);
 
     // Print errors
     cudaError_t err = cudaGetLastError();

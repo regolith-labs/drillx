@@ -30,19 +30,6 @@ typedef struct equix_solution {
 } equix_solution;
 
 /*
- * Solution verification results
- */
-typedef enum equix_result {
-    EQUIX_OK,               /* Solution is valid */
-    EQUIX_CHALLENGE,        /* The challenge is invalid (the internal hash
-                               function doesn't pass validation). */
-    EQUIX_ORDER,            /* Indices are not in the correct order. */
-    EQUIX_PARTIAL_SUM,      /* The partial sums of the hash values don't
-                               have the required number of trailing zeroes. */
-    EQUIX_FINAL_SUM         /* The hash values don't sum to zero. */
-} equix_result;
-
-/*
  * Opaque struct that holds the Equi-X context
  */
 typedef struct equix_ctx equix_ctx;
