@@ -80,31 +80,14 @@ extern "C" {
  *         allocation failure and EQUIX_NOTSUPP if the requested type
  *         is not supported.
  */
-__host__ EQUIX_API equix_ctx* equix_alloc(equix_ctx_flags flags);
+EQUIX_API equix_ctx* equix_alloc(equix_ctx_flags flags);
 
 /*
 * Free an Equi-X a context.
 *
 * @param ctx is a pointer to the context
 */
-__host__ EQUIX_API void equix_free(equix_ctx* ctx);
-
-/*
- * Find Equi-X solutions for the given challenge.
- *
- * @param ctx             pointer to an Equi-X context
- * @param challenge       pointer to the challenge data
- * @param challenge_size  size of the challenge
- * @param output          pointer to the output array where solutions will be
- *                        stored
- *
- * @return the number of solutions found
- */
-// __device__ EQUIX_API int equix_solve(
-//     equix_ctx* ctx,
-//     const void* challenge,
-//     size_t challenge_size,
-//     equix_solution output[EQUIX_MAX_SOLS]);
+EQUIX_API void equix_free(equix_ctx* ctx);
 
 
 #ifdef __cplusplus

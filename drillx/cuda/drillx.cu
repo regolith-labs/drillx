@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "drillx.h"
 #include "equix.h"
+#include "hashx.h"
 
 extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     // Allocate device memory for input and output data
@@ -9,7 +10,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     cudaMalloc((void **)&d_challenge, 32);
     cudaMalloc((void **)&d_nonce, 8);
     cudaMalloc((void **)&d_out, 16);
-	cudaMemcpy(d_challenge, challenge, 32, cudaMemcpyHostToDevice);
+	  cudaMemcpy(d_challenge, challenge, 32, cudaMemcpyHostToDevice);
     cudaMemcpy(d_nonce, nonce, 8, cudaMemcpyHostToDevice);
 
     // Create an equix context
@@ -20,12 +21,12 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     }
 
     // Make hashx function
-	if (!hashx_make(ctx->hash_func, challenge, challenge_size)) {
-		return 0;
-	}
+	  if (!hashx_make(ctx->hash_func, challenge, 32)) {
+	  	return 0;
+	  }
 
     // Launch kernel to parallelize hashx operations
-	do_solve_stage0<<<1, 1>>>(ctx->hash_func, ctx->heap);
+    do_solve_stage0<<<1, 1>>>(ctx->hash_func, ctx->heap);
     cudaDeviceSynchronize();
 
     // Free equix context
@@ -50,7 +51,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 
 __global__ void do_solve_stage0(hashx_ctx* hash_func, solver_heap* heap) {
     u32 i = 0;
-	uint64_t value = hash_value(hash_func, i);
+    uint64_t value = hash_value(hash_func, i);
     printf("%lld", value);
 
     // TODO

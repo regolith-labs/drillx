@@ -5,7 +5,7 @@
 #include "hashx_endian.h"
 #include "unreachable.h"
 
-__host__ uint64_t hashx_siphash13_ctr(uint64_t input, const siphash_state* keys) {
+uint64_t hashx_siphash13_ctr(uint64_t input, const siphash_state* keys) {
     uint64_t v0 = keys->v0;
     uint64_t v1 = keys->v1;
     uint64_t v2 = keys->v2;
@@ -25,7 +25,7 @@ __host__ uint64_t hashx_siphash13_ctr(uint64_t input, const siphash_state* keys)
     return (v0 ^ v1) ^ (v2 ^ v3);
 }
 
-__host__ void hashx_siphash24_ctr_state512(const siphash_state* keys, uint64_t input,
+void hashx_siphash24_ctr_state512(const siphash_state* keys, uint64_t input,
     uint64_t state_out[8]) {
 
     uint64_t v0 = keys->v0;

@@ -19,9 +19,9 @@ typedef struct siphash_rng {
 extern "C" {
 #endif
 
-__host__ HASHX_PRIVATE void hashx_siphash_rng_init(siphash_rng* gen, const siphash_state* state);
-__host__ HASHX_PRIVATE uint32_t hashx_siphash_rng_u32(siphash_rng* gen);
-__host__ HASHX_PRIVATE uint8_t hashx_siphash_rng_u8(siphash_rng* gen);
+HASHX_PRIVATE void hashx_siphash_rng_init(siphash_rng* gen, const siphash_state* state);
+HASHX_PRIVATE uint32_t hashx_siphash_rng_u32(siphash_rng* gen);
+HASHX_PRIVATE uint8_t hashx_siphash_rng_u8(siphash_rng* gen);
 
 #ifdef __cplusplus
 }

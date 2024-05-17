@@ -8,7 +8,7 @@
 
 // TODO do cudaMalloc and cudaFree ? 
 
-__host__ equix_ctx* equix_alloc(equix_ctx_flags flags) {
+equix_ctx* equix_alloc(equix_ctx_flags flags) {
 	equix_ctx* ctx_failure = NULL;
 	equix_ctx* ctx = NULL;
 	
@@ -39,7 +39,7 @@ failure:
 	return ctx_failure;
 }
 
-__host__ void equix_free(equix_ctx* ctx) {
+void equix_free(equix_ctx* ctx) {
 	if (ctx != NULL && ctx != EQUIX_NOTSUPP) {
 		if (ctx->flags & EQUIX_CTX_SOLVE) {
 			cudaFree(ctx->heap);
