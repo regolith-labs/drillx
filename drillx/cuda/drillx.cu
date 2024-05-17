@@ -39,7 +39,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     if (output == NULL) {
         return;
     }
-    let n = solve_stage123(ctx->heap, output);
+    int n = solve_stage123(ctx->heap, output);
     printf("n %d", n);
 
     // Free equix context
