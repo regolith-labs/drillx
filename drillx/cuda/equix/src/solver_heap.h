@@ -92,6 +92,7 @@ typedef stage2_idx_hashtab stage3_idx_hashtab;
 typedef stage2_idx_item stage3_idx_item;
 
 typedef struct solver_heap {
+		uint64_t stage0_hashes[INDEX_SPACE];         /* 524 504 byets */ 
     stage1_idx_hashtab stage1_indices;           /* 172 544 bytes */
     stage2_idx_hashtab stage2_indices;           /* 344 576 bytes */
     stage2_data_hashtab stage2_data;             /* 688 128 bytes */
@@ -103,6 +104,6 @@ typedef struct solver_heap {
         };
     };
     fine_hashtab scratch_ht;                     /*   3 200 bytes */
-} solver_heap;                          /* TOTAL: 1 897 088 bytes */
+} solver_heap;                          /* TOTAL: 2 421 592 bytes */
 
 #endif

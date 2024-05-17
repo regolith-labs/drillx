@@ -36,7 +36,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 
     // Do the remaining stages
     equix_solution solutions[EQUIX_MAX_SOLS];
-    int num_sols = solve_stage123(ctx->heap, solutions);
+    int num_sols = equix_solver_solve(ctx->heap, solutions);
     printf("sols %d\n", num_sols);
     for (int i = 0; i < num_sols; ++i) {
         for (int j = 0; j < EQUIX_NUM_IDX; ++j) {
@@ -62,7 +62,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 __global__ void do_solve_stage0(hashx_ctx* hash_func, solver_heap* heap) {
     uint16_t i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < 65536) {
-        solve_stage0i(hash_func, heap, i);
+        hash_stage0i(hash_func, heap, i);
     }
 }
 

@@ -28,8 +28,8 @@ static inline bool tree_cmp4(const equix_idx* left, const equix_idx* right) {
 
 // __device__ int equix_solver_solve(hashx_ctx* hash_func, solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]);
 
-void prep_stage0(solver_heap* heap);
-__device__ void solve_stage0i(hashx_ctx* hash_func, solver_heap* heap, uint32_t i);
-int solve_stage123(solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]);
+__device__ void hash_stage0i(hashx_ctx* hash_func, solver_heap* heap, uint32_t i);
+int equix_solver_solve(solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]);
+
 
 #endif
