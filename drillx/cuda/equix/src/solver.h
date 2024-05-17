@@ -14,15 +14,15 @@
 #define EQUIX_FULL_MASK ((1ull << 60) - 1)
 
 
-__device__ static inline bool tree_cmp1(const equix_idx* left, const equix_idx* right) {
+static inline bool tree_cmp1(const equix_idx* left, const equix_idx* right) {
 	return *left <= *right;
 }
 
-__device__ static inline bool tree_cmp2(const equix_idx* left, const equix_idx* right) {
+static inline bool tree_cmp2(const equix_idx* left, const equix_idx* right) {
 	return load32(left) <= load32(right);
 }
 
-__device__ static inline bool tree_cmp4(const equix_idx* left, const equix_idx* right) {
+static inline bool tree_cmp4(const equix_idx* left, const equix_idx* right) {
 	return load64(left) <= load64(right);
 }
 
