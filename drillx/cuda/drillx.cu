@@ -1,8 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "drillx.h"
-#include "mylib.h"
-// #include "equix.h"
+#include "equix.h"
 
 extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
     // Allocate device memory for input and output data
@@ -32,7 +31,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 }
 
 __global__ void do_hash(uint8_t *d_challenge, uint8_t *d_nonce, uint8_t *d_out) {
-    *d_out = add(40, 2);
+    *d_out = 42;
 
     // Create an equix context
     // equix_ctx* ctx = equix_alloc(EQUIX_CTX_SOLVE);
