@@ -60,6 +60,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out) {
 __global__ void do_solve_stage0(hashx_ctx* hash_func, solver_heap* heap) {
     uint16_t i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < 65536) {
+        printf("i %d", i);
         solve_stage0i(hash_func, heap, i);
     }
 }
