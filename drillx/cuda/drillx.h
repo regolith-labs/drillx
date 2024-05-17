@@ -1,7 +1,7 @@
 #ifndef DRILLX_H
 #define DRILLX_H
 
-#include "equix.h"
+// #include "equix.h"
 
 extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint8_t *out);
 
