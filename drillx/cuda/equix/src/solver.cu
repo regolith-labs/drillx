@@ -147,10 +147,10 @@ __device__ void solve_stage0i(hashx_ctx* hash_func, solver_heap* heap, uint32_t 
 static void solve_stage1(solver_heap* heap) {
 	CLEAR(heap->stage2_indices.counts);
 	for (u32 bucket_idx = BUCK_START; bucket_idx < BUCK_END; ++bucket_idx) {
-		printf("%d", bucket_idx);
 		u32 cpl_bucket = INVERT_BUCKET(bucket_idx);
 		CLEAR(heap->scratch_ht.counts);
 		u32 cpl_buck_size = STAGE1_SIZE(cpl_bucket);
+		printf("%d ", cpl_buck_size);
 		for (u32 item_idx = 0; item_idx < cpl_buck_size; ++item_idx) {
 			stage1_data_item value = STAGE1_DATA(cpl_bucket, item_idx);
 			u32 fine_buck_idx = value % NUM_FINE_BUCKETS;
