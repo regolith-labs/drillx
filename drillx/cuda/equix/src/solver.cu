@@ -120,7 +120,7 @@ __device__ void solve_stage0i(hashx_ctx* hash_func, solver_heap* heap, uint32_t 
 	STAGE1_SIZE(bucket_idx) = item_idx + 1;
 	STAGE1_IDX(bucket_idx, item_idx) = i;
 	STAGE1_DATA(bucket_idx, item_idx) = value / NUM_COARSE_BUCKETS; /* 52 bits */
-	printf("%d", STAGE1_DATA(bucket_idx));
+	printf("%d", STAGE1_DATA(bucket_idx, item_idx));
 }
 
 #define MAKE_PAIRS1                                                           \
