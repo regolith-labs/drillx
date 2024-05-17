@@ -283,7 +283,7 @@ static int solve_stage3(solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]
 // 	return solve_stage3(heap, output);
 // }
 
-int equix_solver_solve123(
+int solve_stage123(
 	solver_heap* heap,
 	equix_solution output[EQUIX_MAX_SOLS])
 {
