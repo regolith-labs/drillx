@@ -54,6 +54,46 @@ __device__ FORCE_INLINE uint64_t hash_value(hashx_ctx* hash_func, equix_idx inde
 	return load64(hash);
 }
 
+__device__ uint16_t atomicAdd_u16(uint16_t *address, uint16_t val) {
+    unsigned int *base_address = (unsigned int *)((char *)address - ((size_t)address & 2));
+    unsigned int old = atomicAddCustom(base_address, val, ((size_t)address & 2) != 0);
+    return ((old >> (((size_t)address & 2) * 8)) & 0xFFFF);
+}
+
+__device__ uint16_t atomicSub_u16(uint16_t *address, uint16_t val) {
+	  unsigned int *base_address = (unsigned int *)((char *)address - ((size_t)address & 2));
+    unsigned int old = atomicSubCustom(base_address, (int16_t)val, ((size_t)address & 2) != 0);
+	  return ((old >> (((size_t)address & 2) * 8)) & 0xFFFF);
+}
+
+__device__ unsigned int atomicAddCustom(unsigned int *address, uint16_t val, bool is_high) {
+    unsigned int old, assumed;
+    old = *address;
+    do {
+        assumed = old;
+        if (is_high) {
+            old = atomicCAS(address, assumed, (assumed & 0x0000FFFF) | ((((assumed >> 16) + val) & 0xFFFF) << 16));
+        } else {
+            old = atomicCAS(address, assumed, (assumed & 0xFFFF0000) | (((assumed + val) & 0xFFFF)));
+        }
+    } while (assumed != old);
+    return old;
+}
+
+__device__ unsigned int atomicSubCustom(unsigned int *address, int16_t val, bool is_high) {
+    unsigned int old, assumed;
+    old = *address;
+    do {
+        assumed = old;
+        if (is_high) {
+            old = atomicCAS(address, assumed, (assumed & 0x0000FFFF) | ((((int16_t)(assumed >> 16) - val) & 0xFFFF) << 16));
+        } else {
+            old = atomicCAS(address, assumed, (assumed & 0xFFFF0000) | (((int16_t)(assumed & 0xFFFF) - val) & 0xFFFF));
+        }
+    } while (assumed != old);
+    return old;
+}
+
 static void build_solution_stage1(equix_idx* output, solver_heap* heap, s2_idx root) {
 	u32 bucket = ITEM_BUCKET(root);
 	u32 bucket_inv = INVERT_BUCKET(bucket);
@@ -305,42 +345,3 @@ int solve_stage123(
 // }
 
 
-__device__ uint16_t atomicAdd_u16(uint16_t *address, uint16_t val) {
-    unsigned int *base_address = (unsigned int *)((char *)address - ((size_t)address & 2));
-    unsigned int old = atomicAddCustom(base_address, val, ((size_t)address & 2) != 0);
-    return ((old >> (((size_t)address & 2) * 8)) & 0xFFFF);
-}
-
-__device__ uint16_t atomicSub_u16(uint16_t *address, uint16_t val) {
-	  unsigned int *base_address = (unsigned int *)((char *)address - ((size_t)address & 2));
-    unsigned int old = atomicSubCustom(base_address, (int16_t)val, ((size_t)address & 2) != 0);
-	  return ((old >> (((size_t)address & 2) * 8)) & 0xFFFF);
-}
-
-__device__ unsigned int atomicAddCustom(unsigned int *address, uint16_t val, bool is_high) {
-    unsigned int old, assumed;
-    old = *address;
-    do {
-        assumed = old;
-        if (is_high) {
-            old = atomicCAS(address, assumed, (assumed & 0x0000FFFF) | ((((assumed >> 16) + val) & 0xFFFF) << 16));
-        } else {
-            old = atomicCAS(address, assumed, (assumed & 0xFFFF0000) | (((assumed + val) & 0xFFFF)));
-        }
-    } while (assumed != old);
-    return old;
-}
-
-__device__ unsigned int atomicSubCustom(unsigned int *address, int16_t val, bool is_high) {
-    unsigned int old, assumed;
-    old = *address;
-    do {
-        assumed = old;
-        if (is_high) {
-            old = atomicCAS(address, assumed, (assumed & 0x0000FFFF) | ((((int16_t)(assumed >> 16) - val) & 0xFFFF) << 16));
-        } else {
-            old = atomicCAS(address, assumed, (assumed & 0xFFFF0000) | (((int16_t)(assumed & 0xFFFF) - val) & 0xFFFF));
-        }
-    } while (assumed != old);
-    return old;
-}
