@@ -25,7 +25,7 @@ mod tests {
                 hashes.as_mut_ptr() as *mut u64,
             );
             for i in 0..8 {
-                println!("Got hash: {:?}", hashes[8]);
+                println!("Got hash: {:?}", hashes[i]);
             }
         }
         assert!(false);
