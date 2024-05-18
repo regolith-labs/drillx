@@ -59,7 +59,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
 
 __global__ void do_hash_stage0i(hashx_ctx** ctxs, uint64_t** hash_space) {
     uint32_t item = blockIdx.x * blockDim.x + threadIdx.x;
-    uint32_t batch_idx = item / INDEX_SPACE;
+    uint32_t batch_idx = item / BATCH_SIZE;
     uint32_t i = item % INDEX_SPACE;
     if (batch_idx < BATCH_SIZE) {
         hash_stage0i(ctxs[batch_idx], hash_space[batch_idx], i);
