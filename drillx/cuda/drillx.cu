@@ -77,7 +77,7 @@ __global__ void do_hash_stage0i(hashx_ctx** ctxs, uint64_t** hash_space) {
     }
 }
 
-extern "C" void solve(uint64_t *hashes, uint8_t *out) {
+extern "C" void solve_all_stages(uint64_t *hashes, uint8_t *out) {
     // Create an equix context
     equix_ctx* ctx = equix_alloc(EQUIX_CTX_SOLVE);
     if (ctx == nullptr) {
