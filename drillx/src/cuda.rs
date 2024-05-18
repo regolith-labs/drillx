@@ -1,4 +1,5 @@
 extern "C" {
+    pub static BATCH_SIZE: u32;
     pub fn hash(challenge: *const u8, nonce: *const u8, out: *mut u64);
 }
 
@@ -6,7 +7,6 @@ extern "C" {
 mod tests {
     use super::*;
 
-    const BATCH_SIZE: usize = 8;
     const INDEX_SPACE: usize = 65536;
     const HASH_SPACE: usize = BATCH_SIZE * INDEX_SPACE;
 
