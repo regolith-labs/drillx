@@ -18,21 +18,21 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
     }
 
     // Generate a hash function for each (challenge, nonce)
-    // printf("B");
-    // uint8_t seed[40];
-    // memcpy(seed, challenge, 32);
-    // for (int i = 0; i < BATCH_SIZE; i++) {
-    //     uint64_t nonce_offset = *((uint64_t*)nonce) + i;
-    //     memcpy(seed + 32, &nonce_offset, 8);
-    //     // TODO Initialize hashx context
-    //     // ctxs[i] = hashx_alloc(HASHX_INTERPRETED);
-    //     hashx_init(ctxs[i], HASHX_INTERPRETED);
-    //     if (!hashx_make(ctxs[i], seed, 40)) {
-    //         // TODO Handle error
-    //         printf("Failed to make hash\n");
-    //         return;
-    //     }
-    // }
+    printf("B");
+    uint8_t seed[40];
+    memcpy(seed, challenge, 32);
+    for (int i = 0; i < BATCH_SIZE; i++) {
+        uint64_t nonce_offset = *((uint64_t*)nonce) + i;
+        memcpy(seed + 32, &nonce_offset, 8);
+        // TODO Initialize hashx context
+        // ctxs[i] = hashx_alloc(HASHX_INTERPRETED);
+        hashx_init(ctxs[i], HASHX_INTERPRETED);
+        if (!hashx_make(ctxs[i], seed, 40)) {
+            // TODO Handle error
+            printf("Failed to make hash\n");
+            return;
+        }
+    }
 
     // Allocate space to hold on to hash values (~500KB per seed)
     // printf("C");
@@ -52,7 +52,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
     // cudaMemcpy(out, hash_space, total_size, cudaMemcpyDeviceToHost);
 
     // Free memory
-    // cudaFree(ctxs);
+    cudaFree(ctxs);
     // cudaFree(hash_space);
 
     // Print errors
