@@ -258,8 +258,8 @@ static void solve_stage2(solver_heap* heap) {
         }                                                                     \
     }                                                                         \
 
-static int solve_stage3(solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]) {
-	int sols_found = 0;
+static uint32_t solve_stage3(solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]) {
+	uint32_t sols_found = 0;
 
 	for (u32 bucket_idx = BUCK_START; bucket_idx < BUCK_END; ++bucket_idx) {
 		u32 cpl_bucket = -bucket_idx & (NUM_COARSE_BUCKETS - 1);
@@ -289,7 +289,7 @@ static int solve_stage3(solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]
 }
 
 // int equix_solver_solve(uint64_t* hashes, solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]);
-int equix_solver_solve(
+uint32_t equix_solver_solve(
 	uint64_t* hashes,
 	solver_heap* heap,
 	equix_solution output[EQUIX_MAX_SOLS])

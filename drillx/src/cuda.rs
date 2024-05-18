@@ -1,7 +1,7 @@
 extern "C" {
     pub static BATCH_SIZE: u32;
     pub fn hash(challenge: *const u8, nonce: *const u8, out: *mut u64);
-    pub fn solve_all_stages(hashes: *const u64, out: *mut u8);
+    pub fn solve_all_stages(hashes: *const u64, out: *mut u8, sols: *mut u32);
 }
 
 #[cfg(test)]
@@ -28,11 +28,14 @@ mod tests {
             let mut n = u64::from_le_bytes(nonce);
             for i in 0..BATCH_SIZE as usize {
                 let mut digest = [0u8; 16];
+                let mut sols = 0;
                 let batch_start = hashes.as_ptr().add(i * INDEX_SPACE);
-                solve_all_stages(batch_start, digest.as_mut_ptr());
+                solve_all_stages(batch_start, digest.as_mut_ptr(), sols.as_mut_ptr());
+                if sols.gt(&0) {
+                    let solution = crate::Solution::new(digest, (n + i as u64).to_le_bytes());
+                    assert!(solution.is_valid(&challenge));
+                }
                 println!("{} digest {:?}", i, digest);
-                let solution = crate::Solution::new(digest, (n + i as u64).to_le_bytes());
-                assert!(solution.is_valid(&challenge));
                 println!("{} is valid", i);
             }
             // assert!(false);

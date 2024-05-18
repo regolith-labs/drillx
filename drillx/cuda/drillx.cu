@@ -77,7 +77,7 @@ __global__ void do_hash_stage0i(hashx_ctx** ctxs, uint64_t** hash_space) {
     }
 }
 
-extern "C" void solve_all_stages(uint64_t *hashes, uint8_t *out) {
+extern "C" void solve_all_stages(uint64_t *hashes, uint8_t *out, uint32_t *sols) {
     // Create an equix context
     equix_ctx* ctx = equix_alloc(EQUIX_CTX_SOLVE);
     if (ctx == nullptr) {
@@ -87,9 +87,10 @@ extern "C" void solve_all_stages(uint64_t *hashes, uint8_t *out) {
 
     // Do the remaining stages
     equix_solution solutions[EQUIX_MAX_SOLS];
-    int num_sols = equix_solver_solve(hashes, ctx->heap, solutions);
+    uint32_t num_sols = equix_solver_solve(hashes, ctx->heap, solutions);
 
     // Copy results back to host
+    memcpy(sols, num_sols, sizeof(num_sols));
     if (num_sols > 0) {
         memcpy(out, solutions[0].idx, sizeof(solutions[0].idx));
     }
