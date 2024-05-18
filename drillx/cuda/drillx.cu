@@ -37,7 +37,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
     // printf("D");
     dim3 threadsPerBlock(256); // 256 threads per block
     dim3 blocksPerGrid((65536 * BATCH_SIZE + threadsPerBlock.x - 1) / threadsPerBlock.x); // enough blocks to cover batch
-    do_hash_stage0i<<<blocksPerGrid, threadsPerBlock>>>(&ctxs, &hash_space);
+    do_hash_stage0i<<<blocksPerGrid, threadsPerBlock>>>(ctxs, hash_space);
     cudaDeviceSynchronize();
 
     // Copy hashes back to cpu
@@ -57,7 +57,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
     }
 }
 
-__global__ void do_hash_stage0i(hashx_ctx* (*ctxs)[BATCH_SIZE], uint64_t* (*hash_space)[INDEX_SPACE]) {
+__global__ void do_hash_stage0i(hashx_ctx** ctxs, uint64_t** hash_space) {
     uint32_t item = blockIdx.x * blockDim.x + threadIdx.x;
     uint32_t batch_idx = item / INDEX_SPACE;
     uint32_t i = item % INDEX_SPACE;
