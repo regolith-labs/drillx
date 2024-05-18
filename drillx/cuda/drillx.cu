@@ -90,7 +90,7 @@ extern "C" void solve_all_stages(uint64_t *hashes, uint8_t *out, uint32_t *sols)
     uint32_t num_sols = equix_solver_solve(hashes, ctx->heap, solutions);
 
     // Copy results back to host
-    memcpy(sols, num_sols, sizeof(num_sols));
+    memcpy(sols, &num_sols, sizeof(num_sols));
     if (num_sols > 0) {
         memcpy(out, solutions[0].idx, sizeof(solutions[0].idx));
     }
