@@ -30,7 +30,7 @@ mod tests {
                 let mut digest = [0u8; 16];
                 let batch_start = hashes.as_ptr().add(i * INDEX_SPACE);
                 solve_all_stages(batch_start, digest.as_mut_ptr());
-                let solution = crate::Solution::new(digest, (n + i).to_le_bytes());
+                let solution = crate::Solution::new(digest, (n + i as u64).to_le_bytes());
                 assert!(solution.is_valid(&challenge));
             }
             // assert!(false);
