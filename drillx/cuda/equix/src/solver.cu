@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #ifdef _MSC_VER
 #pragma warning (disable : 4146) /* unary minus applied to unsigned type */
