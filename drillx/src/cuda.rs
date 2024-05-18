@@ -29,10 +29,8 @@ mod tests {
                 println!("Got hash: {:?}", hashes[i]);
             }
             let mut digest = [0u8; 2];
-            unsafe {
-                solve_all_stages(hashes.as_ptr(), digest.as_mut_ptr());
-                println!("Digest: {:?}", digest);
-            }
+            solve_all_stages(hashes.as_ptr(), digest.as_mut_ptr());
+            println!("Digest: {:?}", digest);
         }
         assert!(false);
         // let solution = crate::Solution::new(digest, nonce);
