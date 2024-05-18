@@ -27,11 +27,11 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
         // TODO Initialize hashx context
         // ctxs[i] = hashx_alloc(HASHX_INTERPRETED);
         // hashx_init(ctxs[i], HASHX_INTERPRETED);
-        // if (!hashx_make(ctxs[i], seed, 40)) {
-        //     // TODO Handle error
-        //     printf("Failed to make hash\n");
-        //     return;
-        // }
+        if (!hashx_make(ctxs[i], seed, 40)) {
+            // TODO Handle error
+            printf("Failed to make hash\n");
+            return;
+        }
     }
 
     // Allocate space to hold on to hash values (~500KB per seed)
