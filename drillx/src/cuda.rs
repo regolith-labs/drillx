@@ -1,6 +1,7 @@
 extern "C" {
     pub static BATCH_SIZE: u32;
     pub fn hash(challenge: *const u8, nonce: *const u8, out: *mut u64);
+    pub fn solve(hashes: *u64, out: *mut u16);
 }
 
 #[cfg(test)]
@@ -26,6 +27,11 @@ mod tests {
             );
             for i in 0..8 {
                 println!("Got hash: {:?}", hashes[i]);
+            }
+            let mut digest = [0u8; 2];
+            unsafe {
+                solve(hashes, digest);
+                println!("Digest: {:?}", digest);
             }
         }
         assert!(false);

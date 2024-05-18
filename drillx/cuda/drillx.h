@@ -11,6 +11,8 @@ extern "C" const int BATCH_SIZE;
 
 extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out);
 
+extern "C" void solve(uint64_t *hashes, uint8_t *out) {
+
 __global__ void do_hash_stage0i(hashx_ctx** ctxs, uint64_t** hash_space);
 
 #endif

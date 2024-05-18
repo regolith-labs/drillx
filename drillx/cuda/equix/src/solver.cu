@@ -119,10 +119,10 @@ static void build_solution(equix_solution* solution, solver_heap* heap, s3_idx l
 	}
 }
 
-static void solve_stage0(solver_heap* heap) {
+static void solve_stage0(uint64_t* hashes, solver_heap* heap) {
 	CLEAR(heap->stage1_indices.counts);
 	for (u32 i = 0; i < INDEX_SPACE; ++i) {
-		uint64_t value = heap->stage0_hashes[i];
+		uint64_t value = hashes[i];
 		u32 bucket_idx = value % NUM_COARSE_BUCKETS;
 		u32 item_idx = STAGE1_SIZE(bucket_idx);
 		if (item_idx >= COARSE_BUCKET_ITEMS)
@@ -288,11 +288,13 @@ static int solve_stage3(solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]
 	return sols_found;
 }
 
+// int equix_solver_solve(uint64_t* hashes, solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]);
 int equix_solver_solve(
+	uint64_t* hashes,
 	solver_heap* heap,
 	equix_solution output[EQUIX_MAX_SOLS])
 {
-	solve_stage0(heap);
+	solve_stage0(hashes, heap);
 	solve_stage1(heap);
 	solve_stage2(heap);
 	return solve_stage3(heap, output);

@@ -26,11 +26,9 @@ static inline bool tree_cmp4(const equix_idx* left, const equix_idx* right) {
 	return load64(left) <= load64(right);
 }
 
-// __device__ int equix_solver_solve(hashx_ctx* hash_func, solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]);
-
-// __device__ void hash_stage0i(hashx_ctx* hash_func, solver_heap* heap, uint32_t i);
 __device__ void hash_stage0i(hashx_ctx* hash_func, uint64_t* out, uint32_t i);
-int equix_solver_solve(solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]);
+
+int equix_solver_solve(uint64_t* hashes, solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]);
 
 
 #endif

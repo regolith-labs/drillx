@@ -77,24 +77,23 @@ __global__ void do_hash_stage0i(hashx_ctx** ctxs, uint64_t** hash_space) {
     }
 }
 
-// TODO
-// extern "C" void solve(uint8_t *hashes, uint8_t *out) {
+extern "C" void solve(uint64_t *hashes, uint8_t *out) {
     // Create an equix context
-    // equix_ctx* ctx = equix_alloc(EQUIX_CTX_SOLVE);
-    // if (ctx == nullptr) {
-    //     printf("Failed to allocate equix context\n");
-    //     return;
-    // }
+    equix_ctx* ctx = equix_alloc(EQUIX_CTX_SOLVE);
+    if (ctx == nullptr) {
+        printf("Failed to allocate equix context\n");
+        return;
+    }
 
     // Do the remaining stages
-    // equix_solution solutions[EQUIX_MAX_SOLS];
-    // int num_sols = equix_solver_solve(ctx->heap, solutions);
+    equix_solution solutions[EQUIX_MAX_SOLS];
+    int num_sols = equix_solver_solve(hashes, ctx->heap, solutions);
 
     // Copy results back to host
-    // if (num_sols > 0) {
-    //     memcpy(out, solutions[0].idx, sizeof(solutions[0].idx));
-    // }
+    if (num_sols > 0) {
+        memcpy(out, solutions[0].idx, sizeof(solutions[0].idx));
+    }
 
     // Free memory
-    // equix_free(ctx);
-// }
+    equix_free(ctx);
+}
