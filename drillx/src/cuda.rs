@@ -78,7 +78,6 @@ mod tests {
                 BATCH_SIZE,
                 timer.elapsed().as_millis()
             );
-            assert!(false);
         }
     }
 }
