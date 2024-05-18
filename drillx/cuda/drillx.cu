@@ -10,6 +10,7 @@
 
 extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
     // Generate a hash function for each (challenge, nonce)
+    printf("A");
     hashx_ctx** ctxs;
     if (cudaMallocManaged(&ctxs, BATCH_SIZE * sizeof(hashx_ctx*)) != cudaSuccess) {
         printf("Failed to allocate managed memory for ctxs\n");
@@ -17,7 +18,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
     }
 
     // Generate a hash function for each (challenge, nonce)
-    printf("A");
+    printf("B");
     uint8_t seed[40];
     memcpy(seed, challenge, 32);
     for (int i = 0; i < BATCH_SIZE; i++) {
@@ -34,20 +35,20 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
     }
 
     // Allocate space to hold on to hash values (~500KB per seed)
-    printf("B");
+    printf("C");
     uint64_t* hash_space;
     size_t total_size = BATCH_SIZE * INDEX_SPACE * sizeof(uint64_t);
     cudaMalloc((void**)&hash_space, total_size);
 
     // Launch kernel to parallelize hashx operations
-    printf("C");
+    printf("D");
     dim3 threadsPerBlock(256); // 256 threads per block
     dim3 blocksPerGrid((65536 * BATCH_SIZE + threadsPerBlock.x - 1) / threadsPerBlock.x); // enough blocks to cover batch
     do_hash_stage0i<<<blocksPerGrid, threadsPerBlock>>>(ctxs, hash_space);
     cudaDeviceSynchronize();
 
     // Copy hashes back to cpu
-    printf("D");
+    printf("E");
     cudaMemcpy(out, hash_space, total_size, cudaMemcpyDeviceToHost);
 
     // Free memory
