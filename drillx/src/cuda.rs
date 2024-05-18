@@ -30,9 +30,11 @@ mod tests {
             }
             let mut digest = [0u8; 2];
             solve_all_stages(hashes.as_ptr(), digest.as_mut_ptr());
-            println!("Digest: {:?}", digest);
+            let solution = crate::Solution::new(digest, nonce);
+            assert!(solution.is_valid(&challenge));
+            // println!("Digest: {:?}", digest);
         }
-        assert!(false);
+        // assert!(false);
         // let solution = crate::Solution::new(digest, nonce);
         // assert!(solution.is_valid(&challenge));
     }
