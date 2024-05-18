@@ -44,7 +44,6 @@ mod tests {
                     let solution = crate::Solution::new(digest, (n + i as u64).to_le_bytes());
                     assert!(solution.is_valid(&challenge));
                 }
-                println!("{} is valid", i);
             }
             println!(
                 "Did {} hashes in {} ms",
