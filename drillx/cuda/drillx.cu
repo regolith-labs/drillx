@@ -19,7 +19,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
     }
     uint8_t seed[40];
     memcpy(seed, challenge, 32);
-    for (int i = 0; i < BATCH_SIZE; i++) {
+    for (uint64_t i = 0; i < BATCH_SIZE; i++) {
         uint64_t nonce_offset = *((uint64_t*)nonce) + i;
         memcpy(seed + 32, &nonce_offset, 8);
         ctxs[i] = hashx_alloc(HASHX_INTERPRETED);
@@ -35,7 +35,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
         printf("Failed to allocate managed memory for hash_space\n");
         return;
     }
-    for (int i = 0; i < BATCH_SIZE; i++) {
+    for (uint64_t i = 0; i < BATCH_SIZE; i++) {
         if (cudaMallocManaged(&hash_space[i], INDEX_SPACE * sizeof(uint64_t)) != cudaSuccess) {
             printf("Failed to allocate managed memory for hash_space[%d]\n", i);
             return;
@@ -49,12 +49,12 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
     cudaDeviceSynchronize();
 
     // Copy hashes back to cpu
-    for (int i = 0; i < BATCH_SIZE; i++) {
+    for (uint64_t i = 0; i < BATCH_SIZE; i++) {
         cudaMemcpy(out + i * INDEX_SPACE, hash_space[i], INDEX_SPACE * sizeof(uint64_t), cudaMemcpyDeviceToHost);
     }
 
     // Free memory
-    for (int i = 0; i < BATCH_SIZE; i++) {
+    for (uint64_t i = 0; i < BATCH_SIZE; i++) {
         hashx_free(ctxs[i]);
         cudaFree(hash_space[i]);
     }
