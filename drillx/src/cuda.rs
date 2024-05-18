@@ -37,11 +37,12 @@ mod tests {
             // Do memory heavy work on cpu
             let chunk_size = BATCH_SIZE as usize / num_threads;
             let challenge = Arc::new(challenge);
+            let hashes = Arc::new(hashes);
             let num_threads = num_cpus::get();
             let mut handles = vec![];
             for t in 0..num_threads {
-                let hashes = Arc::clone(&hashes);
-                let challenge = Arc::clone(&challenge);
+                let challenge = challenge.clone();
+                let hashes = hashes.clone();
                 let nonce = u64::from_le_bytes(nonce);
                 let handle = thread::spawn(move || {
                     let start = t * chunk_size;
