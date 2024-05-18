@@ -50,7 +50,6 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
 
     // Copy hashes back to cpu
     for (int i = 0; i < BATCH_SIZE; i++) {
-        printf("%d %llu\n", i, *hash_space[i]);
         cudaMemcpy(out + i * INDEX_SPACE, hash_space[i], INDEX_SPACE * sizeof(uint64_t), cudaMemcpyDeviceToHost);
     }
 
