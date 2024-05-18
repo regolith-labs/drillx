@@ -28,6 +28,11 @@ mod tests {
                 nonce.as_ptr(),
                 hashes.as_mut_ptr() as *mut u64,
             );
+            println!(
+                "Gpu returned {} hashes in {} ms",
+                BATCH_SIZE,
+                timer.elapsed().as_millis()
+            );
 
             // Do memory heavy solution on cpu
             let n = u64::from_le_bytes(nonce);
