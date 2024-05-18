@@ -31,10 +31,10 @@ mod tests {
             let mut n = u64::from_le_bytes(nonce);
             for i in 0..BATCH_SIZE as usize {
                 let mut digest = [0u8; 16];
-                let mut sols = 0u32;
+                let mut sols = [0u8; 4];
                 let batch_start = hashes.as_ptr().add(i * INDEX_SPACE);
                 solve_all_stages(batch_start, digest.as_mut_ptr(), sols.as_mut_ptr());
-                if sols.gt(&0) {
+                if u32::from_le_bytes(sols).gt(&0) {
                     let solution = crate::Solution::new(digest, (n + i as u64).to_le_bytes());
                     assert!(solution.is_valid(&challenge));
                 }
