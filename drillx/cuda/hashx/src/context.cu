@@ -34,14 +34,13 @@ __device__ const blake2b_param hashx_blake2_params = {
 	{ 0 }
 };
 
-// TODO This can probably just be cuda malloc (not managed)
 hashx_ctx* hashx_alloc(hashx_type type) {
 	if (!HASHX_COMPILER && (type & HASHX_COMPILED)) {
 		return HASHX_NOTSUPP;
 	}
 
 	hashx_ctx* ctx = nullptr;
-	if (cudaMalloc((void**)&ctx, sizeof(hashx_ctx)) != cudaSuccess) {
+	if (cudaMallocManaged(&ctx, sizeof(hashx_ctx)) != cudaSuccess) {
 		goto failure;
 	}
 
@@ -53,7 +52,7 @@ hashx_ctx* hashx_alloc(hashx_type type) {
 		ctx->type = HASHX_COMPILED;
 	}
 	else {
-		if (cudaMalloc((void**)&ctx->program, sizeof(hashx_program)) != cudaSuccess) {
+		if (cudaMallocManaged(&ctx->program, sizeof(hashx_program)) != cudaSuccess) {
 			goto failure;
 		}
 		ctx->type = HASHX_INTERPRETED;
@@ -68,38 +67,6 @@ hashx_ctx* hashx_alloc(hashx_type type) {
 failure:
 	hashx_free(ctx);
 	return NULL;
-}
-
-void hashx_init(hashx_ctx* ctx, hashx_type type) {
-	if (!HASHX_COMPILER && (type & HASHX_COMPILED)) {
-		return;
-	}
-
-	ctx->code = NULL;
-	if (type & HASHX_COMPILED) {
-		if (!hashx_compiler_init(ctx)) {
-			goto failure;
-		}
-		ctx->type = HASHX_COMPILED;
-	}
-	else {
-		if (cudaMalloc((void**)&ctx->program, sizeof(hashx_program)) != cudaSuccess) {
-			goto failure;
-		}
-		ctx->type = HASHX_INTERPRETED;
-	}
-
-#ifdef HASHX_BLOCK_MODE
-	memcpy(&ctx->params, &hashx_blake2_params, 32);
-#endif
-#ifndef NDEBUG
-	ctx->has_program = false;
-#endif
-	return;
-
-failure:
-	hashx_free(ctx);
-	return;
 }
 
 void hashx_free(hashx_ctx* ctx) {
