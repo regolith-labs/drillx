@@ -134,7 +134,8 @@ static void solve_stage0(solver_heap* heap) {
 }
 
 __device__ void hash_stage0i(hashx_ctx* hash_func, uint64_t* out, uint32_t i) {
-	memcpy((char*)out + (i * sizeof(uint64_t)), &hash_value(hash_func, i), sizeof(uint64_t));
+	uint64_t hash = hash_value(hash_func, i);
+	memcpy((char*)out + (i * sizeof(uint64_t)), &hash, sizeof(uint64_t));
 }
 
 #define MAKE_PAIRS1                                                           \
