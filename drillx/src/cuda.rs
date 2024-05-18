@@ -8,7 +8,7 @@ mod tests {
     use super::*;
 
     const INDEX_SPACE: usize = 65536;
-    const HASH_SPACE: usize = BATCH_SIZE * INDEX_SPACE;
+    const HASH_SPACE: usize = unsafe { BATCH_SIZE * INDEX_SPACE };
 
     #[test]
     fn test_gpu() {
