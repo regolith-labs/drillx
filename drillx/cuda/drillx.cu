@@ -26,26 +26,26 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
 
     // Allocate space to hold on to hash values (~500KB per seed)
     // printf("C");
-    // uint64_t* hash_space;
-    // size_t total_size = BATCH_SIZE * INDEX_SPACE * sizeof(uint64_t);
-    // cudaMalloc((void**)&hash_space, total_size);
+    uint64_t* hash_space;
+    size_t total_size = BATCH_SIZE * INDEX_SPACE * sizeof(uint64_t);
+    cudaMalloc((void**)&hash_space, total_size);
 
     // Launch kernel to parallelize hashx operations
     // printf("D");
-    // dim3 threadsPerBlock(256); // 256 threads per block
-    // dim3 blocksPerGrid((65536 * BATCH_SIZE + threadsPerBlock.x - 1) / threadsPerBlock.x); // enough blocks to cover batch
-    // do_hash_stage0i<<<blocksPerGrid, threadsPerBlock>>>(ctxs, hash_space);
-    // cudaDeviceSynchronize();
+    dim3 threadsPerBlock(256); // 256 threads per block
+    dim3 blocksPerGrid((65536 * BATCH_SIZE + threadsPerBlock.x - 1) / threadsPerBlock.x); // enough blocks to cover batch
+    do_hash_stage0i<<<blocksPerGrid, threadsPerBlock>>>(ctxs, hash_space);
+    cudaDeviceSynchronize();
 
     // Copy hashes back to cpu
     // printf("E");
-    // cudaMemcpy(out, hash_space, total_size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(out, hash_space, total_size, cudaMemcpyDeviceToHost);
 
     // Free memory
     for (int i = 0; i < BATCH_SIZE; i++) {
         hashx_free(ctxs[i]);
     }
-    // cudaFree(hash_space);
+    cudaFree(hash_space);
 
     // Print errors
     cudaError_t err = cudaGetLastError();
