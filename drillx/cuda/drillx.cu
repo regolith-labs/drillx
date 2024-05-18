@@ -11,11 +11,11 @@
 extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
     // Generate a hash function for each (challenge, nonce)
     printf("A");
-    // hashx_ctx** ctxs;
-    // if (cudaMallocManaged(&ctxs, BATCH_SIZE * sizeof(hashx_ctx*)) != cudaSuccess) {
-    //     printf("Failed to allocate managed memory for ctxs\n");
-    //     return;
-    // }
+    hashx_ctx** ctxs;
+    if (cudaMallocManaged(&ctxs, BATCH_SIZE * sizeof(hashx_ctx*)) != cudaSuccess) {
+        printf("Failed to allocate managed memory for ctxs\n");
+        return;
+    }
 
     // Generate a hash function for each (challenge, nonce)
     // printf("B");
