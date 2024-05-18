@@ -18,7 +18,7 @@ mod tests {
     fn test_gpu() {
         let challenge = [255; 32];
         let nonce = [2; 8];
-        let mut hashes = vec![0u64; hashspace_size()];
+        let mut hashes = vec![vec![0u64; INDEX_SPACE]; BATCH_SIZE];
         unsafe {
             hash(
                 challenge.as_ptr(),
@@ -27,13 +27,10 @@ mod tests {
             );
             for i in 0..BATCH_SIZE as usize {
                 let mut digest = [0u8; 16];
-                solve_all_stages(hashes[i * INDEX_SPACE].as_ptr(), digest.as_mut_ptr());
+                solve_all_stages(hashes[i].as_ptr(), digest.as_mut_ptr());
                 let solution = crate::Solution::new(digest, nonce);
                 assert!(solution.is_valid(&challenge));
             }
         }
-        // assert!(false);
-        // let solution = crate::Solution::new(digest, nonce);
-        // assert!(solution.is_valid(&challenge));
     }
 }
