@@ -19,7 +19,7 @@ mod tests {
             hash(
                 challenge.as_ptr(),
                 nonce.as_ptr(),
-                hashes.as_mut_ptr() as *mut u8,
+                hashes.as_mut_ptr() as *mut u64,
             );
             println!("Got hash: {:?}", hashes[0]);
         }
