@@ -18,7 +18,7 @@ mod tests {
     fn test_gpu() {
         let challenge = [255; 32];
         let nonce = [2; 8];
-        let mut hashes = vec![vec![0u64; INDEX_SPACE]; BATCH_SIZE];
+        let mut hashes = vec![vec![0u64; INDEX_SPACE]; BATCH_SIZE as usize];
         unsafe {
             hash(
                 challenge.as_ptr(),
