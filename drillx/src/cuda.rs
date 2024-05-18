@@ -7,7 +7,7 @@ extern "C" {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::Instant;
+    use std::{sync::Arc, thread, time::Instant};
 
     const INDEX_SPACE: usize = 65536;
 
@@ -37,8 +37,9 @@ mod tests {
             // Do memory heavy work on cpu
             let chunk_size = BATCH_SIZE as usize / num_threads;
             let challenge = Arc::new(challenge);
+            let num_threads = num_cpus::get();
             let mut handles = vec![];
-            for t in 0..num_cpus::get() {
+            for t in 0..num_threads {
                 let hashes = Arc::clone(&hashes);
                 let challenge = Arc::clone(&challenge);
                 let nonce = u64::from_le_bytes(nonce);
