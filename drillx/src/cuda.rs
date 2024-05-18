@@ -24,7 +24,9 @@ mod tests {
                 nonce.as_ptr(),
                 hashes.as_mut_ptr() as *mut u64,
             );
-            println!("Got hash: {:?}", hashes[0]);
+            for i in 0..8 {
+                println!("Got hash: {:?}", hashes[8]);
+            }
         }
         assert!(false);
         // let solution = crate::Solution::new(digest, nonce);
