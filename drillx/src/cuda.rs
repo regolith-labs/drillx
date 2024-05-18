@@ -28,11 +28,11 @@ mod tests {
             for i in 0..8 {
                 println!("Got hash: {:?}", hashes[i]);
             }
-            let mut digest = [0u8; 2];
+            let mut digest = [0u8; 16];
             solve_all_stages(hashes.as_ptr(), digest.as_mut_ptr());
+            println!("Digest: {:?}", digest);
             let solution = crate::Solution::new(digest, nonce);
             assert!(solution.is_valid(&challenge));
-            // println!("Digest: {:?}", digest);
         }
         // assert!(false);
         // let solution = crate::Solution::new(digest, nonce);
