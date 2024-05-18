@@ -89,6 +89,8 @@ extern "C" {
 */
 HASHX_API hashx_ctx* hashx_alloc(hashx_type type);
 
+HASHX_API void hashx_init(hashx_ctx* ctx, hashx_type type);
+
 /*
  * Create a new HashX function from seed.
  *

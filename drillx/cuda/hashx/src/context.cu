@@ -70,6 +70,38 @@ failure:
 	return NULL;
 }
 
+void hashx_init(hashx_ctx* ctx, hashx_type type) {
+	if (!HASHX_COMPILER && (type & HASHX_COMPILED)) {
+		return;
+	}
+
+	ctx->code = NULL;
+	if (type & HASHX_COMPILED) {
+		if (!hashx_compiler_init(ctx)) {
+			goto failure;
+		}
+		ctx->type = HASHX_COMPILED;
+	}
+	else {
+		if (cudaMalloc((void**)&ctx->program, sizeof(hashx_program)) != cudaSuccess) {
+			goto failure;
+		}
+		ctx->type = HASHX_INTERPRETED;
+	}
+
+#ifdef HASHX_BLOCK_MODE
+	memcpy(&ctx->params, &hashx_blake2_params, 32);
+#endif
+#ifndef NDEBUG
+	ctx->has_program = false;
+#endif
+	return;
+
+failure:
+	hashx_free(ctx);
+	return;
+}
+
 void hashx_free(hashx_ctx* ctx) {
 	if (ctx != NULL && ctx != HASHX_NOTSUPP) {
 		if (ctx->code != NULL) {

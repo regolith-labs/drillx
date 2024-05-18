@@ -10,6 +10,13 @@
 
 extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
     // Generate a hash function for each (challenge, nonce)
+    hashx_ctx** ctxs;
+    if (cudaMallocManaged(&ctxs, BATCH_SIZE * sizeof(hashx_ctx*)) != cudaSuccess) {
+        printf("Failed to allocate managed memory for ctxs\n");
+        return;
+    }
+
+    // Generate a hash function for each (challenge, nonce)
     printf("A");
     hashx_ctx* ctxs[BATCH_SIZE];
     uint8_t seed[40];
@@ -17,7 +24,9 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
     for (int i = 0; i < BATCH_SIZE; i++) {
         uint64_t nonce_offset = *((uint64_t*)nonce) + i;
         memcpy(seed + 32, &nonce_offset, 8);
-        ctxs[i] = hashx_alloc(HASHX_INTERPRETED);
+        // TODO Initialize hashx context
+        // ctxs[i] = hashx_alloc(HASHX_INTERPRETED);
+        hashx_init(ctxs[i], HASHX_INTERPRETED);
         if (!hashx_make(ctxs[i], seed, 40)) {
             // TODO Handle error
             printf("Failed to make hash\n");
@@ -43,10 +52,8 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
     cudaMemcpy(out, hash_space, total_size, cudaMemcpyDeviceToHost);
 
     // Free memory
+    cudaFree(ctxs);
     cudaFree(hash_space);
-    for (int i = 0; i < BATCH_SIZE; i++) {
-        hashx_free(ctxs[i]);
-    }
 
     // Print errors
     cudaError_t err = cudaGetLastError();
