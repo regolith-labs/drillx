@@ -8,13 +8,12 @@ mod tests {
     use super::*;
 
     const INDEX_SPACE: usize = 65536;
-    const HASH_SPACE: usize = (BATCH_SIZE as usize) * INDEX_SPACE;
 
     #[test]
     fn test_gpu() {
         let challenge = [255; 32];
         let nonce = [2; 8];
-        let mut hashes = vec![0u64; HASH_SPACE];
+        let mut hashes = vec![0u64; BATCH_SIZE as usize * INDEX_SPACE];
         unsafe {
             hash(
                 challenge.as_ptr(),
