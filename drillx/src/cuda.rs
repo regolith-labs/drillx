@@ -16,20 +16,20 @@ mod tests {
 
     #[test]
     fn test_gpu() {
+        let challenge = [255; 32];
+        let nonce = [2; 8];
+        let mut hashes = vec![0u64; hashspace_size()];
         unsafe {
-            let challenge = [255; 32];
-            let nonce = [2; 8];
-            let mut hashes = vec![vec![0u64; INDEX_SPACE]; BATCH_SIZE as usize];
             hash(
                 challenge.as_ptr(),
                 nonce.as_ptr(),
                 hashes.as_mut_ptr() as *mut u64,
             );
             for i in 0..BATCH_SIZE as usize {
-                // let mut digest = [0u8; 16];
-                // solve_all_stages(hashes[i].as_ptr(), digest.as_mut_ptr());
-                // let solution = crate::Solution::new(digest, nonce);
-                // assert!(solution.is_valid(&challenge));
+                let mut digest = [0u8; 16];
+                solve_all_stages(hashes.as_ptr() + (i * INDEX_SPACE), digest.as_mut_ptr());
+                let solution = crate::Solution::new(digest, nonce);
+                assert!(solution.is_valid(&challenge));
             }
         }
     }
