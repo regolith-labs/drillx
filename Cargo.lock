@@ -1327,6 +1327,7 @@ dependencies = [
  "cc",
  "criterion",
  "equix",
+ "num_cpus",
  "solana-program",
  "strum 0.26.2",
 ]

@@ -30,6 +30,7 @@ strum = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true, default-features = true, features = ["html_reports"] }
+num_cpus = "1.16.0"
 
 [build-dependencies]
 cc = { version = "1.0", optional = true }
