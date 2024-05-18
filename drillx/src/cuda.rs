@@ -26,7 +26,7 @@ mod tests {
                 hashes.as_mut_ptr() as *mut u64,
             );
             // for i in 0..BATCH_SIZE as usize {
-            let i = 0;
+            let i = 1;
             let mut digest = [0u8; 16];
             let batch_start = hashes.as_ptr().add(i * INDEX_SPACE);
             println!("{} hash: {}", i, *batch_start);
