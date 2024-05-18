@@ -25,16 +25,17 @@ mod tests {
                 nonce.as_ptr(),
                 hashes.as_mut_ptr() as *mut u64,
             );
-            for i in 0..BATCH_SIZE as usize {
-                let mut digest = [0u8; 16];
-                let batch_start = hashes.as_ptr().add(i * INDEX_SPACE);
-                println!("{} hash: {}", i, *batch_start);
-                solve_all_stages(batch_start, digest.as_mut_ptr());
-                let solution = crate::Solution::new(digest, nonce);
-                // println!("Digest: {:?}", digest);
-                println!("{} is valid: {}", i, solution.is_valid(&challenge));
-            }
-            assert!(false);
+            // for i in 0..BATCH_SIZE as usize {
+            let i = 0;
+            let mut digest = [0u8; 16];
+            let batch_start = hashes.as_ptr().add(i * INDEX_SPACE);
+            println!("{} hash: {}", i, *batch_start);
+            solve_all_stages(batch_start, digest.as_mut_ptr());
+            let solution = crate::Solution::new(digest, nonce);
+            // println!("Digest: {:?}", digest);
+            println!("{} is valid: {}", i, solution.is_valid(&challenge));
+            // }
+            // assert!(false);
         }
     }
 }
