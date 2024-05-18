@@ -34,13 +34,14 @@ __device__ const blake2b_param hashx_blake2_params = {
 	{ 0 }
 };
 
+// TODO This can probably just be cuda malloc (not managed)
 hashx_ctx* hashx_alloc(hashx_type type) {
 	if (!HASHX_COMPILER && (type & HASHX_COMPILED)) {
 		return HASHX_NOTSUPP;
 	}
 
 	hashx_ctx* ctx = nullptr;
-	if (cudaMallocManaged(&ctx, sizeof(hashx_ctx)) != cudaSuccess) {
+	if (cudaMalloc((void**)&ctx, sizeof(hashx_ctx)) != cudaSuccess) {
 		goto failure;
 	}
 
@@ -52,7 +53,7 @@ hashx_ctx* hashx_alloc(hashx_type type) {
 		ctx->type = HASHX_COMPILED;
 	}
 	else {
-		if (cudaMallocManaged(&ctx->program, sizeof(hashx_program)) != cudaSuccess) {
+		if (cudaMalloc((void**)&ctx->program, sizeof(hashx_program)) != cudaSuccess) {
 			goto failure;
 		}
 		ctx->type = HASHX_INTERPRETED;

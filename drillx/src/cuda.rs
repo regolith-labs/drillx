@@ -6,15 +6,21 @@ extern "C" {
 mod tests {
     use super::*;
 
+    const BATCH_SIZE: usize = 64;
+    const INDEX_SPACE: usize = 65536;
+    const HASH_SPACE: usize = BATCH_SIZE * INDEX_SPACE * std::mem::size_of::<u64>();
+
     #[test]
     fn test_gpu() {
         let challenge = [255; 32];
         let nonce = [2; 8];
-        let mut digest = [0; 16];
+        let mut hashes = [0u8; HASH_SPACE];
         unsafe {
-            hash(challenge.as_ptr(), nonce.as_ptr(), digest.as_mut_ptr());
+            hash(challenge.as_ptr(), nonce.as_ptr(), hashes.as_mut_ptr());
+            println!("Got hash: {:?}", hashes[0]);
         }
-        let solution = crate::Solution::new(digest, nonce);
-        assert!(solution.is_valid(&challenge));
+        assert!(false);
+        // let solution = crate::Solution::new(digest, nonce);
+        // assert!(solution.is_valid(&challenge));
     }
 }
