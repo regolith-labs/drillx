@@ -25,15 +25,13 @@ mod tests {
                 nonce.as_ptr(),
                 hashes.as_mut_ptr() as *mut u64,
             );
+            let mut n = u64::from_le_bytes(nonce);
             for i in 0..BATCH_SIZE as usize {
                 let mut digest = [0u8; 16];
                 let batch_start = hashes.as_ptr().add(i * INDEX_SPACE);
-                // println!("{} hash: {}", i, batch_start);
                 solve_all_stages(batch_start, digest.as_mut_ptr());
-                let solution = crate::Solution::new(digest, nonce + i);
+                let solution = crate::Solution::new(digest, (n + i).to_le_bytes());
                 assert!(solution.is_valid(&challenge));
-                // println!("Digest: {:?}", digest);
-                // println!("{} is valid: {}", i, solution.is_valid(&challenge));
             }
             // assert!(false);
         }
