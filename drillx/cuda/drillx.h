@@ -7,7 +7,7 @@
 #include "equix/src/solver_heap.h"
 #include "hashx/src/context.h"
 
-#define BATCH_SIZE 32
+#define BATCH_SIZE 8
 
 extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out);
 
