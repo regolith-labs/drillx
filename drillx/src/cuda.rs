@@ -7,6 +7,7 @@ extern "C" {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::time::Instant;
 
     const INDEX_SPACE: usize = 65536;
 
@@ -21,6 +22,7 @@ mod tests {
         let mut hashes = vec![0u64; hashspace_size()];
         unsafe {
             // Do compute heavy hashing on gpu
+            let timer = Instant::now();
             hash(
                 challenge.as_ptr(),
                 nonce.as_ptr(),
@@ -28,7 +30,7 @@ mod tests {
             );
 
             // Do memory heavy solution on cpu
-            let mut n = u64::from_le_bytes(nonce);
+            let n = u64::from_le_bytes(nonce);
             for i in 0..BATCH_SIZE as usize {
                 let mut digest = [0u8; 16];
                 let mut sols = [0u8; 4];
@@ -44,6 +46,12 @@ mod tests {
                 }
                 println!("{} is valid", i);
             }
+            println!(
+                "Did {} hashes in {} ms",
+                BATCH_SIZE,
+                timer.elapsed().as_millis()
+            );
+            assert!(false);
         }
     }
 }
