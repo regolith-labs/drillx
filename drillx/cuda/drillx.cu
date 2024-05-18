@@ -10,7 +10,7 @@
 
 extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
     // Generate a hash function for each (challenge, nonce)
-    hashx_ctx* ctxs[BATCH_SIZE];
+    hashx_ctx (*ctxs)[BATCH_SIZE];
     uint8_t seed[40];
     memcpy(seed, challenge, 32);
     for (int i = 0; i < BATCH_SIZE; i++) {
