@@ -30,7 +30,7 @@ mod tests {
             }
             let mut digest = [0u8; 2];
             unsafe {
-                solve_all_stages(hashes.as_ptr(), digest.as_ptr());
+                solve_all_stages(hashes.as_ptr(), digest.as_mut_ptr());
                 println!("Digest: {:?}", digest);
             }
         }
