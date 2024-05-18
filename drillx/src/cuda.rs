@@ -14,7 +14,7 @@ mod tests {
     fn test_gpu() {
         let challenge = [255; 32];
         let nonce = [2; 8];
-        let mut hashes = [0u64; HASH_SPACE];
+        let mut hashes = [0u64; 8]; //  HASH_SPACE];
         unsafe {
             hash(challenge.as_ptr(), nonce.as_ptr(), hashes.as_mut_ptr());
             println!("Got hash: {:?}", hashes[0]);
