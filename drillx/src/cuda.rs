@@ -20,9 +20,9 @@ mod tests {
         let challenge = [255; 32];
         let nonce = [2; 8];
         let mut hashes = vec![0u64; hashspace_size()];
+        let timer = Instant::now();
         unsafe {
             // Do compute heavy hashing on gpu
-            let timer = Instant::now();
             hash(
                 challenge.as_ptr(),
                 nonce.as_ptr(),
