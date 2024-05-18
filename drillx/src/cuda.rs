@@ -1,5 +1,5 @@
 extern "C" {
-    pub static BATCH_SIZE: usize;
+    pub static BATCH_SIZE: u32;
     pub fn hash(challenge: *const u8, nonce: *const u8, out: *mut u64);
 }
 
@@ -8,7 +8,7 @@ mod tests {
     use super::*;
 
     const INDEX_SPACE: usize = 65536;
-    const HASH_SPACE: usize = unsafe { BATCH_SIZE * INDEX_SPACE };
+    const HASH_SPACE: usize = (BATCH_SIZE as usize) * INDEX_SPACE;
 
     #[test]
     fn test_gpu() {
