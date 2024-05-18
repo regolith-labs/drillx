@@ -132,8 +132,10 @@ static void solve_stage0(solver_heap* heap) {
 	}
 }
 
-__device__ void hash_stage0i(hashx_ctx* hash_func, solver_heap* heap, uint32_t i) {
-	heap->stage0_hashes[i] = hash_value(hash_func, i);
+// __device__ void hash_stage0i(hashx_ctx* hash_func, solver_heap* heap, uint32_t i) {
+__device__ void hash_stage0i(hashx_ctx* hash_func, uint8* out, uint32_t i) {
+	memcpy(out + (i * size_of(uint64_t)), hash_value(hash_func, i), 8);
+	// heap->stage0_hashes[i] = hash_value(hash_func, i);
 }
 
 #define MAKE_PAIRS1                                                           \
