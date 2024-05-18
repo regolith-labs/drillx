@@ -31,6 +31,7 @@ mod tests {
                 solve_all_stages(batch_start, digest.as_mut_ptr());
                 let solution = crate::Solution::new(digest, nonce);
                 assert!(solution.is_valid(&challenge));
+                println!("{} is valid", i);
             }
         }
     }
