@@ -5,6 +5,7 @@
 #include "hashx.h"
 #include "equix/src/context.h"
 #include "equix/src/solver.h"
+#include "equix/src/solver_heap.h"
 #include "hashx/src/context.h"
 
 #define BATCH_SIZE 64
