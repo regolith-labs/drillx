@@ -28,7 +28,7 @@ mod tests {
             for i in 0..BATCH_SIZE as usize {
                 let mut digest = [0u8; 16];
                 let batch_start = hashes.as_ptr().add(i * INDEX_SPACE);
-                println!("{} hash: {}", i, batch_start);
+                println!("{} hash: {}", i, *batch_start);
                 solve_all_stages(batch_start, digest.as_mut_ptr());
                 let solution = crate::Solution::new(digest, nonce);
                 // println!("Digest: {:?}", digest);
