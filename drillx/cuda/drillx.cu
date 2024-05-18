@@ -29,7 +29,7 @@ extern "C" void hash(uint8_t *challenge, uint8_t *nonce, uint64_t *out) {
     // uint64_t* hash_space;
     // size_t total_size = BATCH_SIZE * INDEX_SPACE * sizeof(uint64_t);
     // cudaMalloc((void**)&hash_space, total_size);
-    uint64_t* hash_space[INDEX_SPACE];
+    uint64_t* hash_space[BATCH_SIZE];
     size_t total_size = BATCH_SIZE * INDEX_SPACE * sizeof(uint64_t);
     cudaMalloc((void**)&hash_space, total_size);
 
