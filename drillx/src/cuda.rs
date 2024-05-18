@@ -6,7 +6,7 @@ extern "C" {
 mod tests {
     use super::*;
 
-    const BATCH_SIZE: usize = 64;
+    const BATCH_SIZE: usize = 32;
     const INDEX_SPACE: usize = 65536;
     const HASH_SPACE: usize = BATCH_SIZE * INDEX_SPACE;
 
