@@ -61,7 +61,7 @@ __global__ void do_hash_stage0i(hashx_ctx* ctxs[BATCH_SIZE], uint64_t* hash_spac
 }
 
 // TODO
-extern "C" void solve(uint8_t *hashes, uint8_t *out) {
+// extern "C" void solve(uint8_t *hashes, uint8_t *out) {
     // Create an equix context
     // equix_ctx* ctx = equix_alloc(EQUIX_CTX_SOLVE);
     // if (ctx == nullptr) {
@@ -80,4 +80,4 @@ extern "C" void solve(uint8_t *hashes, uint8_t *out) {
 
     // Free memory
     // equix_free(ctx);
-}
+// }
