@@ -1,5 +1,5 @@
 extern "C" {
-    pub fn hash(challenge: *const u8, nonce: *const u8, out: *mut u8);
+    pub fn hash(challenge: *const u8, nonce: *const u8, out: *mut u64);
 }
 
 #[cfg(test)]
@@ -8,13 +8,13 @@ mod tests {
 
     const BATCH_SIZE: usize = 64;
     const INDEX_SPACE: usize = 65536;
-    const HASH_SPACE: usize = BATCH_SIZE * INDEX_SPACE * std::mem::size_of::<u64>();
+    const HASH_SPACE: usize = BATCH_SIZE * INDEX_SPACE;
 
     #[test]
     fn test_gpu() {
         let challenge = [255; 32];
         let nonce = [2; 8];
-        let mut hashes = [0u8; HASH_SPACE];
+        let mut hashes = [0u64; HASH_SPACE];
         unsafe {
             hash(challenge.as_ptr(), nonce.as_ptr(), hashes.as_mut_ptr());
             println!("Got hash: {:?}", hashes[0]);
