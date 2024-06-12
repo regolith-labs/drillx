@@ -18,9 +18,6 @@ pub fn hash_with_memory(
     nonce: &[u8; 8],
 ) -> Result<Hash, DrillxError> {
     let digest = digest_with_memory(memory, challenge, nonce)?;
-    if !is_valid_digest(challenge, nonce, &digest) {
-        panic!("WTH {:?}", digest);
-    };
     Ok(Hash {
         d: digest,
         h: hashv(&digest, nonce),
@@ -42,7 +39,7 @@ fn digest(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<[u8; 16], DrillxError
     let seed = seed(challenge, nonce);
     let solutions = equix::solve(&seed).map_err(|_| DrillxError::BadEquix)?;
     if solutions.is_empty() {
-        return Err(DrillxError::BadEquix);
+        return Err(DrillxError::NoSolutions);
     }
     // SAFETY: The equix solver guarantees that the first solution is always valid
     let solution = unsafe { solutions.get_unchecked(0) };
@@ -58,12 +55,12 @@ fn digest_with_memory(
 ) -> Result<[u8; 16], DrillxError> {
     let seed = seed(challenge, nonce);
     let equix = equix::EquiXBuilder::new()
-        .runtime(equix::RuntimeOption::CompileOnly)
+        .runtime(equix::RuntimeOption::TryCompile)
         .build(&seed)
         .map_err(|_| DrillxError::BadEquix)?;
     let solutions = equix.solve_with_memory(memory);
     if solutions.is_empty() {
-        return Err(DrillxError::BadEquix);
+        return Err(DrillxError::NoSolutions);
     }
     // SAFETY: The equix solver guarantees that the first solution is always valid
     let solution = unsafe { solutions.get_unchecked(0) };
@@ -167,12 +164,14 @@ impl Solution {
 #[derive(Debug)]
 pub enum DrillxError {
     BadEquix,
+    NoSolutions,
 }
 
 impl std::fmt::Display for DrillxError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
             DrillxError::BadEquix => write!(f, "Failed equix"),
+            DrillxError::NoSolutions => write!(f, "No solutions"),
         }
     }
 }
