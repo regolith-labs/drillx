@@ -6,6 +6,16 @@ members = [
     "program"
 ]
 
+[workspace.package]
+version = "2.0.0-alpha"
+edition = "2021"
+license = "Apache-2.0"
+homepage = "https://ore.supply"
+documentation = "https://ore.supply"
+repository = "https://github.com/regolith-labs/ore"
+readme = "./README.md"
+keywords = ["solana", "crypto", "mining"]
+
 [workspace.dependencies]
 blake3 = "1.5"
 bytemuck = "1.15.0"

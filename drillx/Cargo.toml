@@ -1,14 +1,13 @@
 [package]
 name = "drillx"
-version = "0.2.0"
-description = "Drillx is a proof-of-work algorithm for Ore cryptocurrency mining."
-edition = "2021"
-license = "Apache-2.0"
-homepage = "https://ore.supply"
-documentation = "https://ore.supply"
-repository = "https://github.com/hardhatchad/drillx"
-readme = "../README.md"
-keywords = ["solana", "crypto", "mining"]
+description = "Drillx is a proof-of-work algorithm for cryptocurrency mining on Solana."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+repository.workspace = true
+keywords.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
@@ -34,7 +33,6 @@ num_cpus = "1.16.0"
 
 [build-dependencies]
 cc = { version = "1.0", optional = true }
-
 
 [[bench]]
 name = "drillx_loop"
