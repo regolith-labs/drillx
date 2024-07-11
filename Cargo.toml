@@ -7,7 +7,7 @@ members = [
 ]
 
 [workspace.package]
-version = "2.0.0-alpha"
+version = "2.0.0-beta"
 edition = "2021"
 license = "Apache-2.0"
 homepage = "https://ore.supply"
@@ -21,9 +21,9 @@ blake3 = "1.5"
 bytemuck = { version  = "1.16", features = ["derive"] }
 criterion = { version = "0.5", features = ["html_reports"] }
 equix = "0.1.4"
-solana-program = "^2"
-solana-program-test = "^2"
-solana-sdk = "^2"
+solana-program = "^1.8"
+solana-program-test = "^1.8"
+solana-sdk = "^1.8"
 strum = { version = "0.26.2", features = ["derive"] }
 tokio = { version = "1.37.0", features = ["full"] }
 
