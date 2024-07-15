@@ -1,10 +1,6 @@
 [workspace]
 resolver = "2"
-members = [
-    "drillx",
-    "examples/*",
-    "program"
-]
+members = ["drillx", "examples/*", "program"]
 
 [workspace.package]
 version = "2.0.0-beta"
@@ -18,9 +14,10 @@ keywords = ["solana", "crypto", "mining"]
 
 [workspace.dependencies]
 blake3 = "1.5"
-bytemuck = { version  = "1.16", features = ["derive"] }
+bytemuck = { version = "1.16", features = ["derive"] }
 criterion = { version = "0.5", features = ["html_reports"] }
 equix = "0.1.4"
+serde = { version = "1.0", features = ["derive"] }
 solana-program = "^1.8"
 solana-program-test = "^1.8"
 solana-sdk = "^1.8"
@@ -36,4 +33,3 @@ opt-level = 3
 lto = "fat"
 codegen-units = 1
 opt-level = 3
-

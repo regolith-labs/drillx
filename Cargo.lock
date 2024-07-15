@@ -714,6 +714,7 @@ dependencies = [
  "cc",
  "criterion",
  "equix",
+ "serde",
  "solana-program",
  "strum",
 ]
