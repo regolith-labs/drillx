@@ -131,7 +131,7 @@ impl Hash {
 }
 
 /// A drillx solution which can be efficiently validated on-chain
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize)]
 pub struct Solution {
     pub d: [u8; 16], // digest
     pub n: [u8; 8],  // nonce
