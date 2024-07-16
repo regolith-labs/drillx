@@ -708,7 +708,7 @@ dependencies = [
 
 [[package]]
 name = "drillx"
-version = "2.0.0-beta"
+version = "2.0.0-beta.1"
 dependencies = [
  "blake3",
  "cc",
@@ -721,7 +721,7 @@ dependencies = [
 
 [[package]]
 name = "drillx-program"
-version = "2.0.0-beta"
+version = "2.0.0-beta.1"
 dependencies = [
  "bytemuck",
  "drillx",
@@ -878,21 +878,21 @@ dependencies = [
 
 [[package]]
 name = "example-1"
-version = "2.0.0-beta"
+version = "2.0.0-beta.1"
 dependencies = [
  "drillx",
 ]
 
 [[package]]
 name = "example-2"
-version = "2.0.0-beta"
+version = "2.0.0-beta.1"
 dependencies = [
  "drillx",
 ]
 
 [[package]]
 name = "example-3"
-version = "2.0.0-beta"
+version = "2.0.0-beta.1"
 dependencies = [
  "drillx",
 ]
