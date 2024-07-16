@@ -1,4 +1,5 @@
 pub use equix;
+pub use serde::{Deserialize, Serialize};
 
 /// Generates a new drillx hash from a challenge and nonce.
 #[inline(always)]
@@ -131,7 +132,7 @@ impl Hash {
 }
 
 /// A drillx solution which can be efficiently validated on-chain
-#[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Solution {
     pub d: [u8; 16], // digest
     pub n: [u8; 8],  // nonce
