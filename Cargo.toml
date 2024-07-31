@@ -13,7 +13,7 @@ readme = "./README.md"
 keywords = ["solana", "crypto", "mining"]
 
 [workspace.dependencies]
-blake3 = "1.5"
+sha3 = "0.10"
 bytemuck = { version = "1.16", features = ["derive"] }
 criterion = { version = "0.5", features = ["html_reports"] }
 equix = "0.1.4"

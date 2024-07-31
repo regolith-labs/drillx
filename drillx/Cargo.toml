@@ -22,7 +22,7 @@ solana = ["solana-program"]
 gpu = ["cc"]
 
 [dependencies]
-blake3 = { workspace = true }
+sha3 = { workspace = true }
 equix = { workspace = true }
 serde = { workspace = true }
 solana-program = { workspace = true, optional = true }
