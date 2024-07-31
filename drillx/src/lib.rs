@@ -33,7 +33,7 @@ pub fn seed(challenge: &[u8; 32], nonce: &[u8; 8]) -> [u8; 40] {
     result
 }
 
-/// Constructs a blake3 digest from a challenge and nonce using equix hashes.
+/// Constructs a keccak digest from a challenge and nonce using equix hashes.
 #[inline(always)]
 fn digest(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<[u8; 16], DrillxError> {
     let seed = seed(challenge, nonce);
@@ -46,7 +46,7 @@ fn digest(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<[u8; 16], DrillxError
     Ok(solution.to_bytes())
 }
 
-/// Constructs a blake3 digest from a challenge and nonce using equix hashes and pre-allocated memory.
+/// Constructs a keccak digest from a challenge and nonce using equix hashes and pre-allocated memory.
 #[inline(always)]
 fn digest_with_memory(
     memory: &mut equix::SolverMemory,
@@ -77,13 +77,13 @@ fn sorted(mut digest: [u8; 16]) -> [u8; 16] {
     }
 }
 
-/// Returns a blake3 hash of the provided digest and nonce.
+/// Returns a keccak hash of the provided digest and nonce.
 /// The digest is sorted prior to hashing to prevent malleability.
 /// Delegates the hash to a syscall if compiled for the solana runtime.
 #[cfg(feature = "solana")]
 #[inline(always)]
 fn hashv(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
-    solana_program::blake3::hashv(&[sorted(*digest).as_slice(), &nonce.as_slice()]).to_bytes()
+    solana_program::keccak::hashv(&[sorted(*digest).as_slice(), &nonce.as_slice()]).to_bytes()
 }
 
 /// Calculates a hash from the provided digest and nonce.
@@ -91,7 +91,7 @@ fn hashv(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
 #[cfg(not(feature = "solana"))]
 #[inline(always)]
 fn hashv(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = keccak::Hasher::new();
     hasher.update(&sorted(*digest));
     hasher.update(nonce);
     hasher.finalize().into()
