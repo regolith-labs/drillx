@@ -11,9 +11,10 @@
         flake-utils.follows = "flake-utils";
       };
     };
+    flake-compat.url = "github:edolstra/flake-compat";
   };
 
-  outputs = { self, nixpkgs, rust-overlay, flake-utils }:
+  outputs = { self, nixpkgs, rust-overlay, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         overlays = [ (import rust-overlay) ];
