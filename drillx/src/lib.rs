@@ -1,4 +1,6 @@
 pub use equix;
+#[cfg(not(feature = "solana"))]
+use sha3::Digest;
 
 /// Generates a new drillx hash from a challenge and nonce.
 #[inline(always)]
@@ -91,7 +93,7 @@ fn hashv(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
 #[cfg(not(feature = "solana"))]
 #[inline(always)]
 fn hashv(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
-    let mut hasher = keccak::Hasher::new();
+    let mut hasher = sha3::Keccak256::new();
     hasher.update(&sorted(*digest));
     hasher.update(nonce);
     hasher.finalize().into()
