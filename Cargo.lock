@@ -1321,7 +1321,7 @@ checksum = "1435fa1053d8b2fbbe9be7e97eca7f33d37b28409959813daefc1446a14247f1"
 
 [[package]]
 name = "drillx"
-version = "2.0.0"
+version = "2.0.1"
 dependencies = [
  "cc",
  "criterion",
@@ -1334,7 +1334,7 @@ dependencies = [
 
 [[package]]
 name = "drillx-program"
-version = "2.0.0"
+version = "2.0.1"
 dependencies = [
  "bytemuck",
  "drillx",
@@ -1528,21 +1528,21 @@ checksum = "0206175f82b8d6bf6652ff7d71a1e27fd2e4efde587fd368662814d6ec1d9ce0"
 
 [[package]]
 name = "example-1"
-version = "2.0.0"
+version = "2.0.1"
 dependencies = [
  "drillx",
 ]
 
 [[package]]
 name = "example-2"
-version = "2.0.0"
+version = "2.0.1"
 dependencies = [
  "drillx",
 ]
 
 [[package]]
 name = "example-3"
-version = "2.0.0"
+version = "2.0.1"
 dependencies = [
  "drillx",
 ]

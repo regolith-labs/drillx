@@ -161,6 +161,21 @@ impl Solution {
             h: hashv(&mut d, &self.n),
         }
     }
+
+    pub fn from_bytes(bytes: [u8; 24]) -> Self {
+        let mut d = [0u8; 16];
+        let mut n = [0u8; 8];
+        d.copy_from_slice(&bytes[..16]);
+        n.copy_from_slice(&bytes[16..]);
+        Solution { d, n }
+    }
+
+    pub fn to_bytes(&self) -> [u8; 24] {
+        let mut bytes = [0; 24];
+        bytes[..16].copy_from_slice(&self.d);
+        bytes[16..].copy_from_slice(&self.n);
+        bytes
+    }
 }
 
 #[derive(Debug)]
