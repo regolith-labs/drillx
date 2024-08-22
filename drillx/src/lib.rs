@@ -1,4 +1,5 @@
 pub use equix;
+use equix::SolutionArray;
 #[cfg(not(feature = "solana"))]
 use sha3::Digest;
 
@@ -24,6 +25,26 @@ pub fn hash_with_memory(
         d: digest,
         h: hashv(&digest, nonce),
     })
+}
+
+/// Generates drillx hashes from a challenge and nonce using pre-allocated memory.
+#[inline(always)]
+pub fn hashes_with_memory(
+    memory: &mut equix::SolverMemory,
+    challenge: &[u8; 32],
+    nonce: &[u8; 8],
+) -> Vec<Hash> {
+    let mut hashes: Vec<Hash> = Vec::with_capacity(7);
+    if let Ok(solutions) = digests_with_memory(memory, challenge, nonce) {
+        for solution in solutions {
+            let digest = solution.to_bytes();
+            hashes.push(Hash {
+                d: digest,
+                h: hashv(&digest, nonce),
+            });
+        }
+    }
+    hashes
 }
 
 /// Concatenates a challenge and a nonce into a single buffer.
@@ -67,6 +88,21 @@ fn digest_with_memory(
     // SAFETY: The equix solver guarantees that the first solution is always valid
     let solution = unsafe { solutions.get_unchecked(0) };
     Ok(solution.to_bytes())
+}
+
+/// Constructs a keccak digest from a challenge and nonce using equix hashes and pre-allocated memory.
+#[inline(always)]
+fn digests_with_memory(
+    memory: &mut equix::SolverMemory,
+    challenge: &[u8; 32],
+    nonce: &[u8; 8],
+) -> Result<SolutionArray, DrillxError> {
+    let seed = seed(challenge, nonce);
+    let equix = equix::EquiXBuilder::new()
+        .runtime(equix::RuntimeOption::TryCompile)
+        .build(&seed)
+        .map_err(|_| DrillxError::BadEquix)?;
+    Ok(equix.solve_with_memory(memory))
 }
 
 /// Sorts the provided digest as a list of u16 values.
