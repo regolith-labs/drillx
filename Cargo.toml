@@ -18,9 +18,9 @@ bytemuck = { version = "1.16", features = ["derive"] }
 criterion = { version = "0.5", features = ["html_reports"] }
 equix = "0.1.4"
 serde = { version = "1.0", features = ["derive"] }
-solana-program = "^1.18"
-solana-program-test = "^1.18"
-solana-sdk = "^1.18"
+solana-program = "^2.1"
+solana-program-test = "^2.1"
+solana-sdk = "^2.1"
 strum = { version = "0.26.2", features = ["derive"] }
 tokio = { version = "1.37.0", features = ["full"] }
 
