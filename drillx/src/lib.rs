@@ -121,7 +121,7 @@ fn sorted(mut digest: [u8; 16]) -> [u8; 16] {
 #[cfg(feature = "solana")]
 #[inline(always)]
 fn hashv(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
-    solana_program::keccak::hashv(&[sorted(*digest).as_slice(), &nonce.as_slice()]).to_bytes()
+    solana_program::keccak::hashv(&[sorted(*digest).as_slice(), nonce.as_slice()]).to_bytes()
 }
 
 /// Calculates a hash from the provided digest and nonce.
@@ -130,7 +130,7 @@ fn hashv(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
 #[inline(always)]
 fn hashv(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
     let mut hasher = sha3::Keccak256::new();
-    hasher.update(&sorted(*digest));
+    hasher.update(sorted(*digest));
     hasher.update(nonce);
     hasher.finalize().into()
 }
@@ -189,12 +189,15 @@ impl Solution {
         is_valid_digest(challenge, &self.n, &self.d)
     }
 
-    /// Calculates the result hash for a given solution
+    /// Calculates the result hash for a given solution.
     pub fn to_hash(&self) -> Hash {
-        let mut d = self.d;
+        // Create a copy of self.d (no need for mutability)
+        let d = self.d;
+
+        // Return a new Hash object
         Hash {
-            d: self.d,
-            h: hashv(&mut d, &self.n),
+            d: self.d,             // Use the original value of self.d
+            h: hashv(&d, &self.n), // Pass an immutable reference to hashv
         }
     }
 

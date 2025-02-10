@@ -74,6 +74,6 @@ impl Args {
     }
 
     fn try_from_bytes(data: &[u8]) -> Result<&Self, ProgramError> {
-        bytemuck::try_from_bytes::<Self>(&data).or(Err(ProgramError::InvalidAccountData))
+        bytemuck::try_from_bytes::<Self>(data).or(Err(ProgramError::InvalidAccountData))
     }
 }
