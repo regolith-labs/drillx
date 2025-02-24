@@ -19,7 +19,7 @@ default = []
 
 [dependencies]
 bytemuck = { workspace = true }
-drillx = { path = "../drillx", features = ["solana"] }
+drillx = { workspace = true, features = ["solana"] }
 solana-program = { workspace = true }
 
 [dev-dependencies]

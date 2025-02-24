@@ -13,4 +13,4 @@ publish = false
 name = "example-1"
 
 [dependencies]
-drillx = { path = "../../drillx" }
+drillx = { workspace = true }

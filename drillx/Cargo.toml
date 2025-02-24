@@ -34,7 +34,7 @@ criterion = { workspace = true, default-features = true, features = [
 ] }
 
 [build-dependencies]
-cc = { version = "1.0", optional = true }
+cc = { workspace = true, optional = true }
 
 [[bench]]
 name = "drillx_loop"

@@ -23,6 +23,8 @@ solana-program-test = "2.1"
 solana-sdk = "2.1"
 strum = { version = "0.26.2", features = ["derive"] }
 tokio = { version = "1.37.0", features = ["full"] }
+cc = "1.0"
+drillx = { path = "drillx" }
 
 [profile.release]
 lto = "fat"
