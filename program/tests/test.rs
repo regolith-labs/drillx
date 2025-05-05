@@ -14,10 +14,10 @@ async fn test_haraka() {
     // Hash
     let challenge = [255; 32];
     let nonce = 0u64.to_le_bytes();
-    let solution = drillx::hash(&challenge, &nonce);
+    let solution = drillx::hash(&challenge, &nonce).unwrap();
 
     // Should succeed
-    let tx = build_tx(&payer, challenge, nonce, solution, blockhash);
+    let tx = build_tx(&payer, challenge, nonce, solution.d, blockhash);
     assert!(banks.process_transaction(tx).await.is_ok());
 
     // Should fail
@@ -29,11 +29,11 @@ fn build_tx(
     payer: &Keypair,
     challenge: [u8; 32],
     nonce: [u8; 8],
-    solution: [u8; 32],
+    digest: [u8; 16],
     blockhash: Hash,
 ) -> Transaction {
     let cu_budget_ix = ComputeBudgetInstruction::set_compute_unit_limit(1_400_000);
-    let ix = program::verify(payer.pubkey(), challenge, nonce, solution);
+    let ix = program::verify(payer.pubkey(), challenge, digest, nonce);
     Transaction::new_signed_with_payer(
         &[cu_budget_ix, ix],
         Some(&payer.pubkey()),

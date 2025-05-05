@@ -1,4 +1,5 @@
 use bytemuck::{Pod, Zeroable};
+use drillx::Solution;
 use solana_program::{
     self, account_info::AccountInfo, declare_id, entrypoint::ProgramResult,
     instruction::Instruction, program_error::ProgramError, pubkey::Pubkey,
@@ -14,20 +15,26 @@ pub fn process_instruction(
     _accounts: &[AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
+    // Parse args
     let args = Args::try_from_bytes(data)?;
-
     let challenge = args.challenge;
     let nonce = args.nonce;
-    let solution = args.solution;
+    let digest = args.digest;
 
-    let expected = drillx::hash(&challenge, &nonce);
+    // Get expected solution
+    let solution = Solution {
+        d: digest,
+        n: nonce,
+    };
 
-    solana_program::log::sol_log(&format!("expected: {:?}", expected));
-    solana_program::log::sol_log(&format!("solution: {:?}", solution));
-
-    if expected != solution {
-        return Err(ProgramError::InvalidAccountData);
+    if !solution.is_valid(&challenge) {
+        solana_program::log::sol_log(&format!("invalid solution"));
+        return Err(ProgramError::Custom(0));
     }
+
+    let difficulty = solution.to_hash().difficulty();
+
+    solana_program::log::sol_log(&format!("difficulty: {:?}", difficulty));
 
     Ok(())
 }
@@ -35,16 +42,16 @@ pub fn process_instruction(
 pub fn verify(
     signer: Pubkey,
     challenge: [u8; 32],
+    digest: [u8; 16],
     nonce: [u8; 8],
-    solution: [u8; 32],
 ) -> Instruction {
     Instruction {
         program_id: crate::id(),
         accounts: vec![],
         data: Args {
             challenge,
+            digest,
             nonce,
-            solution,
         }
         .to_bytes()
         .to_vec(),
@@ -55,8 +62,8 @@ pub fn verify(
 #[derive(Clone, Copy, Debug, Pod, Zeroable)]
 pub struct Args {
     pub challenge: [u8; 32],
+    pub digest: [u8; 16],
     pub nonce: [u8; 8],
-    pub solution: [u8; 32],
 }
 
 impl Args {

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["drillx", "program", "cli", "haraka-rs", "haraka-bpf"]
+members = ["drillx", "program", "cli", "haraka-rs", "haraka-bpf", "equix", "hashx", "harakax"]
 
 [workspace.package]
 version = "2.2.0"
@@ -16,6 +16,7 @@ keywords = ["solana", "crypto", "mining"]
 sha3 = "0.10.8"
 bytemuck = { version = "1.16", features = ["derive"] }
 criterion = { version = "0.5", features = ["html_reports"] }
+equix = { path = "./equix" }
 haraka = { path = "./haraka-rs", package = "haraka" }
 haraka-bpf = { path = "./haraka-bpf" }
 serde = { version = "1.0", features = ["derive"] }

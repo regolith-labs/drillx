@@ -14,13 +14,14 @@ keywords.workspace = true
 name = "drillx"
 
 [features]
-default = ["haraka"]
-solana = ["solana-program", "haraka-bpf"]
+default = ["equix/instrinsics"]
+solana = ["solana-program", "equix/solana"]
 
 [dependencies]
 sha3.workspace = true
-haraka = { workspace = true, optional = true }
-haraka-bpf = { workspace = true, optional = true }
+equix = { workspace = true }
+# haraka = { workspace = true, optional = true }
+# haraka-bpf = { workspace = true, optional = true }
 serde.workspace = true
 solana-program = { workspace = true, optional = true }
 strum.workspace = true 
