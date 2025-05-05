@@ -1,59 +1,50 @@
 use bytemuck::{Pod, Zeroable};
-use drillx::Solution;
 use solana_program::{
-    self,
-    account_info::AccountInfo,
-    declare_id,
-    entrypoint::ProgramResult,
-    instruction::{AccountMeta, Instruction},
-    log::sol_log_compute_units,
-    program_error::ProgramError,
-    pubkey::Pubkey,
+    self, account_info::AccountInfo, declare_id, entrypoint::ProgramResult,
+    instruction::Instruction, program_error::ProgramError, pubkey::Pubkey,
 };
 
-declare_id!("mineRHF5r6S7HyD9SppBfVMXMavDkJsxwGesEvxZr2A");
+declare_id!("DV1J1tBiRCSs8czHAJT449nP569c7eCTHQK4sK9NeWRP");
 
 #[cfg(not(feature = "no-entrypoint"))]
 solana_program::entrypoint!(process_instruction);
 
 pub fn process_instruction(
     _program_id: &Pubkey,
-    accounts: &[AccountInfo],
+    _accounts: &[AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
     let args = Args::try_from_bytes(data)?;
-    let [_signer] = accounts else {
-        return Err(ProgramError::NotEnoughAccountKeys);
-    };
 
-    // Prove that the solution is valid.
-    let challenge = [255; 32];
+    let challenge = args.challenge;
+    let nonce = args.nonce;
+    let solution = args.solution;
 
-    let solution = Solution {
-        d: args.digest,
-        n: args.nonce,
-    };
+    let expected = drillx::hash(&challenge, &nonce);
 
-    if !solution.is_valid(&challenge) {
-        return Err(ProgramError::Custom(0));
+    solana_program::log::sol_log(&format!("expected: {:?}", expected));
+    solana_program::log::sol_log(&format!("solution: {:?}", solution));
+
+    if expected != solution {
+        return Err(ProgramError::InvalidAccountData);
     }
 
-    if solution.to_hash().difficulty() < args.difficulty as u32 {
-        return Err(ProgramError::Custom(1));
-    }
-
-    sol_log_compute_units();
     Ok(())
 }
 
-pub fn verify(signer: Pubkey, difficulty: u64, nonce: [u8; 8], digest: [u8; 16]) -> Instruction {
+pub fn verify(
+    signer: Pubkey,
+    challenge: [u8; 32],
+    nonce: [u8; 8],
+    solution: [u8; 32],
+) -> Instruction {
     Instruction {
         program_id: crate::id(),
-        accounts: vec![AccountMeta::new(signer, true)],
+        accounts: vec![],
         data: Args {
-            difficulty,
-            digest,
+            challenge,
             nonce,
+            solution,
         }
         .to_bytes()
         .to_vec(),
@@ -63,9 +54,9 @@ pub fn verify(signer: Pubkey, difficulty: u64, nonce: [u8; 8], digest: [u8; 16])
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Pod, Zeroable)]
 pub struct Args {
-    pub difficulty: u64,
-    pub digest: [u8; 16],
+    pub challenge: [u8; 32],
     pub nonce: [u8; 8],
+    pub solution: [u8; 32],
 }
 
 impl Args {
