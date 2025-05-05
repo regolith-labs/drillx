@@ -19,3 +19,5 @@ default = []
 [dependencies]
 haraka-bpf = { workspace = true }
 
+[dev-dependencies]
+hex = "0.4.3"
