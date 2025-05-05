@@ -20,7 +20,7 @@ solana = ["solana-program", "equix/solana"]
 [dependencies]
 sha3.workspace = true
 equix = { workspace = true }
-# haraka = { workspace = true, optional = true }
+haraka = { workspace = true }
 # haraka-bpf = { workspace = true, optional = true }
 serde.workspace = true
 solana-program = { workspace = true, optional = true }

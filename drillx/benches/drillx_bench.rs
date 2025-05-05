@@ -12,7 +12,7 @@ fn drillx_loop(nonces: u64) {
 
 fn different_sizes(c: &mut Criterion) {
     let mut group = c.benchmark_group("drillx");
-    for size in [1, 10, 100].iter() {
+    for size in [1, 10, 100, 1000, 10_000, 100_000, 100_000_000].iter() {
         group.throughput(Throughput::Elements(*size as u64));
         group.bench_with_input(BenchmarkId::from_parameter(size), size, |b, &size| {
             b.iter(|| drillx_loop(size as u64))
