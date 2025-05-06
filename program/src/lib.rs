@@ -7,7 +7,6 @@ use solana_program::{
 
 declare_id!("DV1J1tBiRCSs8czHAJT449nP569c7eCTHQK4sK9NeWRP");
 
-#[cfg(not(feature = "no-entrypoint"))]
 solana_program::entrypoint!(process_instruction);
 
 pub fn process_instruction(

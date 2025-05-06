@@ -148,6 +148,7 @@ impl SipState {
 }
 
 /// HashX's flavor of SipHash1,3 counter mode with 64-bit output
+#[allow(dead_code)]
 pub(crate) fn siphash13_ctr(key: SipState, input: u64) -> u64 {
     let mut s = key;
     s.v3 ^= input;

@@ -8,9 +8,7 @@
 
 use crate::Error;
 use arrayvec::ArrayVec;
-// use hashx::HashX;
 use harakax::HarakaX;
-// use verusx::VerusX;
 
 use std::{cmp, mem};
 

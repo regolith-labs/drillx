@@ -13,7 +13,7 @@ pub struct HarakaX {
 
 impl HarakaX {
     /// The maximum available output size for [`Self::hash_to_bytes()`]
-    pub const FULL_SIZE: usize = 64;
+    pub const FULL_SIZE: usize = 32;
 
     /// Generate a new hash function with the supplied seed.
     pub fn new(input: &[u8; 64]) -> Self {
@@ -43,15 +43,15 @@ impl HarakaX {
 }
 
 #[cfg(not(feature = "solana"))]
-fn haraka512_through<const N_ROUNDS: usize>(src: &[u8; 64]) -> [u8; 64] {
-    let mut dst = [0; 64];
+fn haraka512_through<const N_ROUNDS: usize>(src: &[u8; 64]) -> [u8; 32] {
+    let mut dst = [0; 32];
     haraka::haraka512::<N_ROUNDS>(&mut dst, src);
     dst
 }
 
 #[cfg(feature = "solana")]
-fn haraka512_through<const N_ROUNDS: usize>(src: &[u8; 64]) -> [u8; 64] {
-    let mut dst = [0; 64];
+fn haraka512_through<const N_ROUNDS: usize>(src: &[u8; 64]) -> [u8; 32] {
+    let mut dst = [0; 32];
     haraka_bpf::haraka512::<N_ROUNDS>(&mut dst, src);
     dst
 }

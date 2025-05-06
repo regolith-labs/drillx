@@ -21,25 +21,17 @@ repository = "https://gitlab.torproject.org/tpo/core/arti.git/"
 license = "LGPL-3.0-only"
 
 [features]
-# default = []
+default = []
 solana = ["harakax/solana"]
 instrinsics = ["harakax/instrinsics"]
 
-default = ["compiler"]
-# full = ["compiler", "hashx/full"]
-compiler = ["hashx/compiler"]
-# experimental = ["bucket-array"]
-# solana = ["harakax/solana", "verusx/solana"]
-# instrinsics = ["harakax/instrinsics", "verusx/instrinsics"]
 # For fuzzing only: expose the unstable 'bucket-array' API.
 bucket-array = ["__is_experimental"]
 __is_experimental = []
 
 [dependencies]
 arrayvec = "0.7.4"
-hashx = { path = "../hashx", version = "0.3.0", default-features = false }
 harakax = { path = "../harakax", optional = true }
-# verusx = { path = "../verusx" }
 num-traits = "0.2.15"
 thiserror = "2"
 visibility = "0.1.0"
