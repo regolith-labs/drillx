@@ -20,7 +20,6 @@ instrinsics = ["haraka"]
 
 [dependencies]
 blake2 = "0.10.6"
-sha3.workspace = true
 haraka = { workspace = true, optional = true }
 haraka-bpf = { workspace = true, optional = true }
 solana-program = { workspace = true, optional = true }

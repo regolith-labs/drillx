@@ -40,7 +40,7 @@ pub fn process_instruction(
 }
 
 pub fn verify(
-    signer: Pubkey,
+    _signer: Pubkey,
     challenge: [u8; 32],
     digest: [u8; 16],
     nonce: [u8; 8],

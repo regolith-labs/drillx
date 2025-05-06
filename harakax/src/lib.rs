@@ -8,7 +8,6 @@ use siphash::{siphash24_ctr, SipState};
 /// public interface, but [`std::fmt::Debug`] can describe program internals.
 #[derive(Debug)]
 pub struct HarakaX {
-    // challenge: [u8; 64],
     sipstate: SipState,
 }
 
@@ -55,24 +54,4 @@ fn haraka512_through<const N_ROUNDS: usize>(src: &[u8; 64]) -> [u8; 64] {
     let mut dst = [0; 64];
     haraka_bpf::haraka512::<N_ROUNDS>(&mut dst, src);
     dst
-}
-
-/// Returns a keccak hash of the provided digest and nonce.
-/// The digest is sorted prior to hashing to prevent malleability.
-/// Delegates the hash to a syscall if compiled for the solana runtime.
-#[cfg(feature = "solana")]
-#[inline(always)]
-fn keccak(seed: &[u8]) -> [u8; 32] {
-    solana_program::keccak::hashv(&[seed]).to_bytes()
-}
-
-/// Calculates a hash from the provided digest and nonce.
-/// The digest is sorted prior to hashing to prevent malleability.
-#[cfg(not(feature = "solana"))]
-#[inline(always)]
-fn keccak(seed: &[u8]) -> [u8; 32] {
-    use sha3::Digest;
-    let mut hasher = sha3::Keccak256::new();
-    hasher.update(seed);
-    hasher.finalize().into()
 }

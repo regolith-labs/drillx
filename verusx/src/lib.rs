@@ -29,7 +29,6 @@ impl VerusX {
         // src[0..64].copy_from_slice(&self.challenge);
         // src[64..72].copy_from_slice(&input.to_le_bytes());
         let mut src = [0; 96];
-
         let solution = verus_rs::VerusHashV2::hash(&src);
         solution
     }
