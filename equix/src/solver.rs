@@ -12,6 +12,7 @@ use crate::solution::{self, HashValue, Solution, SolutionArray, SolutionItem, EQ
 use arrayvec::ArrayVec;
 use harakax::HarakaX;
 // use hashx::HashX;
+// use verusx::VerusX;
 
 // The hash table bucket counts here are mostly constrained by the shape of
 // the Equihash tree, but the bucket capacities are somewhat arbitrary. Larger

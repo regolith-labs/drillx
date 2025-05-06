@@ -1,3 +1,8 @@
+#![cfg_attr(test, feature(test))]
+
+#[cfg(test)]
+extern crate test;
+
 pub use equix;
 #[cfg(not(feature = "solana"))]
 use sha3::Digest;
@@ -30,11 +35,8 @@ pub fn hash_with_memory(
 #[inline(always)]
 pub fn seed(challenge: &[u8; 32], nonce: &[u8; 8]) -> [u8; 64] {
     let mut src: [u8; 64] = [0; 64];
-    src[..32].copy_from_slice(challenge);
-    src[32..40].copy_from_slice(nonce);
-    src[40..48].copy_from_slice(nonce);
-    src[48..56].copy_from_slice(nonce);
-    src[56..64].copy_from_slice(nonce);
+    src[0..8].copy_from_slice(nonce);
+    src[8..40].copy_from_slice(challenge);
     src
 }
 
@@ -107,6 +109,19 @@ pub fn is_valid_digest(challenge: &[u8; 32], nonce: &[u8; 8], digest: &[u8; 16])
 
 /// Returns the number of leading zeros on a 32 byte buffer.
 pub fn difficulty(hash: [u8; 32]) -> u32 {
+    let mut count = 0;
+    for &byte in &hash {
+        let lz = byte.leading_zeros();
+        count += lz;
+        if lz < 8 {
+            break;
+        }
+    }
+    count
+}
+
+/// Returns the number of leading zeros on a 16 byte buffer.
+pub fn difficulty16(hash: [u8; 16]) -> u32 {
     let mut count = 0;
     for &byte in &hash {
         let lz = byte.leading_zeros();
@@ -207,8 +222,34 @@ mod tests {
     fn test_digest() {
         let challenge = [0; 32];
         let nonce = 4u64.to_le_bytes();
-        let digest: Result<[u8; 16], DrillxError> = digest(&challenge, &nonce);
+        let digest = digest(&challenge, &nonce).unwrap();
         println!("digest: {:?}", digest);
-        // assert!(false);
+        assert!(is_valid_digest(&challenge, &nonce, &digest));
+    }
+
+    #[test]
+    fn test_distribution() {
+        let mut distribution = HashMap::new();
+        let challenge = [0; 32];
+        for i in 0..1000 {
+            let nonce = (i as u64).to_le_bytes();
+            if let Ok(digest) = digest(&challenge, &nonce) {
+                let difficulty = difficulty16(digest);
+                *distribution.entry(difficulty).or_insert(0) += 1;
+            } else {
+                *distribution.entry(u32::MAX).or_insert(0) += 1;
+            }
+        }
+        println!("distribution: {:?}", distribution);
+    }
+
+    use std::{collections::HashMap, hint::black_box};
+    use test::Bencher;
+
+    #[bench]
+    fn bench_digest(b: &mut Bencher) {
+        let challenge = [0; 32];
+        let nonce = 3u64.to_le_bytes();
+        b.iter(|| digest(black_box(&challenge), black_box(&nonce)));
     }
 }

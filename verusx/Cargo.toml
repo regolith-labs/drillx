@@ -1,6 +1,6 @@
 [package]
-name = "harakax"
-description = "Harakax ..."
+name = "verusx"
+description = "VerusX ..."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -11,17 +11,12 @@ keywords.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
-name = "harakax"
+name = "verusx"
 
 [features]
 default = []
-solana = ["haraka-bpf", "solana-program"]
-instrinsics = ["haraka"]
+solana = ["verus-rs/solana"]
+instrinsics = ["verus-rs/instrinsics"]
 
 [dependencies]
-blake2 = "0.10.6"
-sha3.workspace = true
-haraka = { workspace = true, optional = true }
-haraka-bpf = { workspace = true, optional = true }
-solana-program = { workspace = true, optional = true }
-
+verus-rs = { workspace = true }

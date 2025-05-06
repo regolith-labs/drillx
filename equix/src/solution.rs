@@ -10,6 +10,8 @@ use crate::Error;
 use arrayvec::ArrayVec;
 // use hashx::HashX;
 use harakax::HarakaX;
+// use verusx::VerusX;
+
 use std::{cmp, mem};
 
 /// Equihash N parameter for Equi-X, number of bits used from the hash output

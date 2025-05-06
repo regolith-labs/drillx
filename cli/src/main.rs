@@ -20,7 +20,7 @@ async fn main() {
     // Build transaction
     let rpc = RpcClient::new(std::env::var("RPC").expect("Missing RPC env var"));
     let cu_budget_ix = ComputeBudgetInstruction::set_compute_unit_limit(1_400_000);
-    let verify_ix = program::verify(payer.pubkey(), challenge, solution.d, 2u64.to_le_bytes());
+    let verify_ix = program::verify(payer.pubkey(), challenge, solution.d, 0u64.to_le_bytes());
     let blockhash = rpc.get_latest_blockhash().await.unwrap();
     let transaction = Transaction::new_signed_with_payer(
         &[cu_budget_ix, verify_ix],

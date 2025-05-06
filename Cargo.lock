@@ -1262,7 +1262,6 @@ dependencies = [
  "cc",
  "criterion",
  "equix",
- "haraka",
  "serde",
  "sha3",
  "solana-program",
@@ -1821,8 +1820,11 @@ dependencies = [
 name = "harakax"
 version = "2.2.0"
 dependencies = [
+ "blake2",
  "haraka",
  "haraka-bpf",
+ "sha3",
+ "solana-program",
 ]
 
 [[package]]
@@ -6776,8 +6778,16 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 name = "verus-rs"
 version = "2.2.0"
 dependencies = [
+ "haraka",
  "haraka-bpf",
  "hex",
+]
+
+[[package]]
+name = "verusx"
+version = "2.2.0"
+dependencies = [
+ "verus-rs",
 ]
 
 [[package]]

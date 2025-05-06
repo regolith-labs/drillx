@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["drillx", "program", "cli", "haraka-rs", "haraka-bpf", "equix", "hashx", "harakax", "verus-rs"]
+members = ["drillx", "program", "cli", "haraka-rs", "haraka-bpf", "equix", "hashx", "harakax", "verus-rs", "verusx"]
 
 [workspace.package]
 version = "2.2.0"
@@ -26,6 +26,8 @@ solana-program-test = "2.1"
 solana-sdk = "2.1"
 strum = { version = "0.26.2", features = ["derive"] }
 tokio = { version = "1.37.0", features = ["full"] }
+verus-rs = { path = "./verus-rs" }
+verusx = { path = "./verusx" }
 
 [profile.release]
 lto = "fat"

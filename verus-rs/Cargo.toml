@@ -11,13 +11,16 @@ keywords.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
-name = "harakax"
+name = "verus_rs"
 
 [features]
-default = []
+default = ["instrinsics"]
+solana = ["haraka-bpf"]
+instrinsics = ["haraka"]
 
 [dependencies]
-haraka-bpf = { workspace = true }
+haraka = { workspace = true, optional = true }
+haraka-bpf = { workspace = true, optional = true }
 
 [dev-dependencies]
 hex = "0.4.3"

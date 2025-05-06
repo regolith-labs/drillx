@@ -64,61 +64,27 @@ impl VerusHashV2 {
         self.buffer.fill(0);
         self.cur_pos = 0;
     }
-
-    pub fn finalize2b(&mut self) -> [u8; 32] {
-        panic!("Not implemented");
-    }
-
-    pub fn fill_extra(&mut self, data: &[u8]) {
-        let mut pos = self.cur_pos;
-        let mut remaining = 32 - pos;
-
-        while remaining > 0 {
-            let copy_len = remaining.min(data.len());
-            self.buffer[32 + pos..32 + pos + copy_len].copy_from_slice(&data[..copy_len]);
-            pos += copy_len;
-            remaining -= copy_len;
-        }
-    }
 }
 
-// // Dummy implementations of Haraka functions for illustration
+#[cfg(feature = "solana")]
+fn haraka256(input: &mut [u8; 32], output: &mut [u8; 32]) {
+    haraka_bpf::haraka256::<5>(output, &input.clone());
+}
+
+#[cfg(feature = "solana")]
 fn haraka512(input: &mut [u8; 64], output: &mut [u8; 64]) {
-    haraka_bpf::haraka512::<6>(output, &input.clone());
+    haraka_bpf::haraka512::<5>(output, &input.clone());
 }
 
-pub fn hash(input: &[u8; 40]) -> [u8; 32] {
-    let mut hasher = VerusHashV2::new();
-    hasher.write(input);
-    hasher.finalize()
+#[cfg(not(feature = "solana"))]
+fn haraka256(input: &mut [u8; 32], output: &mut [u8; 32]) {
+    haraka::haraka256::<5>(output, &input.clone());
 }
 
-// pub fn hash(result: &mut [u8; 32], data: &[u8]) {
-//     let mut buf = [0u8; 128];
-//     let (mut buf_ptr, mut buf_ptr2) = buf.split_at_mut(64);
-//     let mut pos = 0;
-//     let len = data.len();
-
-//     // Initialize the first 32 bytes of the buffer to zero
-//     buf_ptr[..32].fill(0);
-
-//     // Process data in chunks of up to 32 bytes
-//     while pos < len {
-//         if len - pos >= 32 {
-//             buf_ptr[32..64].copy_from_slice(&data[pos..pos + 32]);
-//         } else {
-//             let remaining = len - pos;
-//             buf_ptr[32..32 + remaining].copy_from_slice(&data[pos..]);
-//             buf_ptr[32 + remaining..64].fill(0);
-//         }
-//         haraka512(buf_ptr2.try_into().unwrap(), buf_ptr.try_into().unwrap());
-//         std::mem::swap(&mut buf_ptr, &mut buf_ptr2);
-//         pos += 32;
-//     }
-
-//     // Copy the final hash result
-//     result.copy_from_slice(&buf_ptr[..32]);
-// }
+#[cfg(not(feature = "solana"))]
+fn haraka512(input: &mut [u8; 64], output: &mut [u8; 64]) {
+    haraka::haraka512::<5>(output, &input.clone());
+}
 
 #[cfg(test)]
 mod tests {
@@ -127,11 +93,12 @@ mod tests {
     #[test]
     fn test_verus_hash() {
         let data = b"Test1234Test1234Test1234Test1234Test1234Test1234Test1234Test1234Test1234Test1234Test1234Test1234";
-        let mut hasher = VerusHashV2::new();
-        hasher.reset();
-        hasher.write(data.as_slice());
-        let solution = hasher.finalize();
+        let data2 = b"idkidkikdidkidkikdidkidkikdidkidkikdidkidkikdidkidkikdidkidkikdidkidkikdidkidkikdidkidkikd";
+        let solution = VerusHashV2::hash(data);
+        let solution2 = VerusHashV2::hash(data2);
         let reversed_hex = hex::encode(solution);
+        let reversed_hex2 = hex::encode(solution2);
         println!("Solution: {}", reversed_hex);
+        println!("Solution2: {}", reversed_hex2);
     }
 }
