@@ -1,5 +1,9 @@
+#![cfg_attr(test, feature(test))]
+
+#[cfg(test)]
+extern crate test;
+
 pub use equix;
-use equix::SolutionArray;
 #[cfg(not(feature = "solana"))]
 use sha3::Digest;
 
@@ -9,7 +13,7 @@ pub fn hash(challenge: &[u8; 32], nonce: &[u8; 8]) -> Result<Hash, DrillxError> 
     let digest = digest(challenge, nonce)?;
     Ok(Hash {
         d: digest,
-        h: hashv(&digest, nonce),
+        h: keccak(&digest, nonce),
     })
 }
 
@@ -23,37 +27,17 @@ pub fn hash_with_memory(
     let digest = digest_with_memory(memory, challenge, nonce)?;
     Ok(Hash {
         d: digest,
-        h: hashv(&digest, nonce),
+        h: keccak(&digest, nonce),
     })
-}
-
-/// Generates drillx hashes from a challenge and nonce using pre-allocated memory.
-#[inline(always)]
-pub fn hashes_with_memory(
-    memory: &mut equix::SolverMemory,
-    challenge: &[u8; 32],
-    nonce: &[u8; 8],
-) -> Vec<Hash> {
-    let mut hashes: Vec<Hash> = Vec::with_capacity(7);
-    if let Ok(solutions) = digests_with_memory(memory, challenge, nonce) {
-        for solution in solutions {
-            let digest = solution.to_bytes();
-            hashes.push(Hash {
-                d: digest,
-                h: hashv(&digest, nonce),
-            });
-        }
-    }
-    hashes
 }
 
 /// Concatenates a challenge and a nonce into a single buffer.
 #[inline(always)]
-pub fn seed(challenge: &[u8; 32], nonce: &[u8; 8]) -> [u8; 40] {
-    let mut result = [0; 40];
-    result[00..32].copy_from_slice(challenge);
-    result[32..40].copy_from_slice(nonce);
-    result
+pub fn seed(challenge: &[u8; 32], nonce: &[u8; 8]) -> [u8; 64] {
+    let mut src: [u8; 64] = [0; 64];
+    src[0..8].copy_from_slice(nonce);
+    src[8..40].copy_from_slice(challenge);
+    src
 }
 
 /// Constructs a keccak digest from a challenge and nonce using equix hashes.
@@ -77,10 +61,7 @@ fn digest_with_memory(
     nonce: &[u8; 8],
 ) -> Result<[u8; 16], DrillxError> {
     let seed = seed(challenge, nonce);
-    let equix = equix::EquiXBuilder::new()
-        .runtime(equix::RuntimeOption::TryCompile)
-        .build(&seed)
-        .map_err(|_| DrillxError::BadEquix)?;
+    let equix = equix::EquiX::new(&seed).map_err(|_| DrillxError::BadEquix)?;
     let solutions = equix.solve_with_memory(memory);
     if solutions.is_empty() {
         return Err(DrillxError::NoSolutions);
@@ -88,21 +69,6 @@ fn digest_with_memory(
     // SAFETY: The equix solver guarantees that the first solution is always valid
     let solution = unsafe { solutions.get_unchecked(0) };
     Ok(solution.to_bytes())
-}
-
-/// Constructs a keccak digest from a challenge and nonce using equix hashes and pre-allocated memory.
-#[inline(always)]
-fn digests_with_memory(
-    memory: &mut equix::SolverMemory,
-    challenge: &[u8; 32],
-    nonce: &[u8; 8],
-) -> Result<SolutionArray, DrillxError> {
-    let seed = seed(challenge, nonce);
-    let equix = equix::EquiXBuilder::new()
-        .runtime(equix::RuntimeOption::TryCompile)
-        .build(&seed)
-        .map_err(|_| DrillxError::BadEquix)?;
-    Ok(equix.solve_with_memory(memory))
 }
 
 /// Sorts the provided digest as a list of u16 values.
@@ -120,7 +86,7 @@ fn sorted(mut digest: [u8; 16]) -> [u8; 16] {
 /// Delegates the hash to a syscall if compiled for the solana runtime.
 #[cfg(feature = "solana")]
 #[inline(always)]
-fn hashv(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
+fn keccak(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
     solana_program::keccak::hashv(&[sorted(*digest).as_slice(), &nonce.as_slice()]).to_bytes()
 }
 
@@ -128,7 +94,7 @@ fn hashv(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
 /// The digest is sorted prior to hashing to prevent malleability.
 #[cfg(not(feature = "solana"))]
 #[inline(always)]
-fn hashv(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
+fn keccak(digest: &[u8; 16], nonce: &[u8; 8]) -> [u8; 32] {
     let mut hasher = sha3::Keccak256::new();
     hasher.update(&sorted(*digest));
     hasher.update(nonce);
@@ -143,6 +109,19 @@ pub fn is_valid_digest(challenge: &[u8; 32], nonce: &[u8; 8], digest: &[u8; 16])
 
 /// Returns the number of leading zeros on a 32 byte buffer.
 pub fn difficulty(hash: [u8; 32]) -> u32 {
+    let mut count = 0;
+    for &byte in &hash {
+        let lz = byte.leading_zeros();
+        count += lz;
+        if lz < 8 {
+            break;
+        }
+    }
+    count
+}
+
+/// Returns the number of leading zeros on a 16 byte buffer.
+pub fn difficulty16(hash: [u8; 16]) -> u32 {
     let mut count = 0;
     for &byte in &hash {
         let lz = byte.leading_zeros();
@@ -194,7 +173,7 @@ impl Solution {
         let mut d = self.d;
         Hash {
             d: self.d,
-            h: hashv(&mut d, &self.n),
+            h: keccak(&mut d, &self.n),
         }
     }
 
@@ -232,5 +211,45 @@ impl std::fmt::Display for DrillxError {
 impl std::error::Error for DrillxError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_digest() {
+        let challenge = [0; 32];
+        let nonce = 4u64.to_le_bytes();
+        let digest = digest(&challenge, &nonce).unwrap();
+        println!("digest: {:?}", digest);
+        assert!(is_valid_digest(&challenge, &nonce, &digest));
+    }
+
+    #[test]
+    fn test_distribution() {
+        let mut distribution = HashMap::new();
+        let challenge = [0; 32];
+        for i in 0..1000 {
+            let nonce = (i as u64).to_le_bytes();
+            if let Ok(digest) = digest(&challenge, &nonce) {
+                let difficulty = difficulty16(digest);
+                *distribution.entry(difficulty).or_insert(0) += 1;
+            } else {
+                *distribution.entry(u32::MAX).or_insert(0) += 1;
+            }
+        }
+        println!("distribution: {:?}", distribution);
+    }
+
+    use std::{collections::HashMap, hint::black_box};
+    use test::Bencher;
+
+    #[bench]
+    fn bench_digest(b: &mut Bencher) {
+        let challenge = [0; 32];
+        let nonce = 3u64.to_le_bytes();
+        b.iter(|| digest(black_box(&challenge), black_box(&nonce)));
     }
 }

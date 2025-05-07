@@ -1,20 +1,9 @@
 //! Error types for the `equix` crate
 
-pub use hashx::Error as HashError;
-
 /// Errors applicable to constructing and verifying Equi-X puzzles
 #[derive(Clone, Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum Error {
-    /// Errors inherited from [`hashx`]
-    ///
-    /// Notably, [`HashError::ProgramConstraints`] needs to be handled
-    /// by any program which generates new challenge strings, and
-    /// [`HashError::Compiler`] may show up if you've chosen
-    /// [`crate::RuntimeOption::CompileOnly`] via [`crate::EquiXBuilder`].
-    #[error("hash construction error: {0}")]
-    Hash(#[from] HashError),
-
     /// A solution does not meet Equi-X's ordering requirements.
     ///
     /// This error occurs independently of the specific challenge

@@ -8,7 +8,8 @@
 
 use crate::Error;
 use arrayvec::ArrayVec;
-use hashx::HashX;
+use harakax::HarakaX;
+
 use std::{cmp, mem};
 
 /// Equihash N parameter for Equi-X, number of bits used from the hash output
@@ -31,7 +32,7 @@ pub(crate) type HashValue = u64;
 
 /// Compute a [`HashValue`] from a [`SolutionItem`]
 #[inline(always)]
-pub(crate) fn item_hash(func: &HashX, item: SolutionItem) -> HashValue {
+pub(crate) fn item_hash(func: &HarakaX, item: SolutionItem) -> HashValue {
     func.hash_to_u64(item.into())
 }
 
@@ -176,7 +177,7 @@ fn sort_into_tree_order(items: &mut [SolutionItem]) {
 /// Each recursive invocation returns the entire sum if its layer has the
 /// indicated number of matching bits.
 #[inline(always)]
-fn check_tree_sums(func: &HashX, items: &[SolutionItem], n_bits: usize) -> Result<HashValue, ()> {
+fn check_tree_sums(func: &HarakaX, items: &[SolutionItem], n_bits: usize) -> Result<HashValue, ()> {
     let sum = if items.len() == 2 {
         item_hash(func, items[0]).wrapping_add(item_hash(func, items[1]))
     } else {
@@ -197,7 +198,7 @@ fn check_tree_sums(func: &HashX, items: &[SolutionItem], n_bits: usize) -> Resul
 ///
 /// This will recurse at compile-time into
 /// layered tests for 60-, 30-, and 15-bit masks.
-pub(crate) fn check_all_tree_sums(func: &HashX, solution: &Solution) -> Result<(), Error> {
+pub(crate) fn check_all_tree_sums(func: &HarakaX, solution: &Solution) -> Result<(), Error> {
     match check_tree_sums(func, solution.as_ref(), EQUIHASH_N) {
         Ok(_unused_bits) => Ok(()),
         Err(()) => Err(Error::HashSum),
