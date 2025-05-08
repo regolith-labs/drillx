@@ -1,0 +1,8 @@
+[package]
+name = "haraka"
+version = "0.1.0"
+authors = ["G. Endignoux <ggendx@gmail.com>"]
+edition = "2021"
+
+[dependencies]
+arrayref = "0.3.6"

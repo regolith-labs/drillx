@@ -1,0 +1,10 @@
+[package]
+name = "haraka-bpf"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Use aes_force_soft for no_std/BPF compatibility
+# Enable "hazmat" feature for cipher_round
+aes = { version = "0.8.4", default-features = false, features = ["hazmat"] }
+arrayref = "0.3.6"
