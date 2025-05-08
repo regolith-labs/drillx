@@ -30,7 +30,14 @@ impl HarakaX {
     /// Calculate the first 64-bit word of the hash, without converting to bytes.
     pub fn hash_to_u64(&self, input: u64) -> u64 {
         let hash = self.hash_to_bytes(input);
-        u64::from_le_bytes(hash[0..8].try_into().unwrap())
+        let s0 = hash[0..8].try_into().unwrap();
+        let s1 = hash[8..16].try_into().unwrap();
+        let s2 = hash[16..24].try_into().unwrap();
+        let s3 = hash[24..32].try_into().unwrap();
+        u64::from_le_bytes(s0)
+            ^ u64::from_le_bytes(s1)
+            ^ u64::from_le_bytes(s2)
+            ^ u64::from_le_bytes(s3)
     }
 
     /// Calculate the hash function at its full output width, returning a fixed
