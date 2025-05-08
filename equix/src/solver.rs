@@ -10,7 +10,7 @@ use crate::bucket_array::{
 use crate::collision::{self, PackedCollision};
 use crate::solution::{self, HashValue, Solution, SolutionArray, SolutionItem, EQUIHASH_N};
 use arrayvec::ArrayVec;
-use harakax::HarakaX;
+use corex::CoreX;
 
 // The hash table bucket counts here are mostly constrained by the shape of
 // the Equihash tree, but the bucket capacities are somewhat arbitrary. Larger
@@ -127,7 +127,7 @@ struct OverlaySecond {
 
 /// Search for solutions, iterating the entire [`SolutionItem`] space and using
 /// temporary memory to locate partial sum collisions at each tree layer.
-pub(crate) fn find_solutions(func: &HarakaX, mem: &mut SolverMemory, results: &mut SolutionArray) {
+pub(crate) fn find_solutions(func: &CoreX, mem: &mut SolverMemory, results: &mut SolutionArray) {
     // Use the first memory overlay layout.
     let overlay = mem.heap.overlay.first();
 

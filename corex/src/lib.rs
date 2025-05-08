@@ -7,11 +7,11 @@ use siphash::{siphash24_ctr, SipState};
 /// The program and initial state representation are not specified in this
 /// public interface, but [`std::fmt::Debug`] can describe program internals.
 #[derive(Debug)]
-pub struct HarakaX {
+pub struct CoreX {
     sipstate: SipState,
 }
 
-impl HarakaX {
+impl CoreX {
     /// The maximum available output size for [`Self::hash_to_bytes()`]
     pub const FULL_SIZE: usize = 32;
 
@@ -45,20 +45,29 @@ impl HarakaX {
     pub fn hash_to_bytes(&self, input: u64) -> [u8; Self::FULL_SIZE] {
         let sip = siphash24_ctr(self.sipstate, input);
         let seed: [u8; 64] = unsafe { std::mem::transmute(sip) };
-        haraka512_through::<6>(&seed)
+
+        #[cfg(any(feature = "cpu", feature = "cpu-bpf"))]
+        let hash = haraka512_through::<6>(&seed);
+
+        #[cfg(any(feature = "gpu", feature = "gpu-bpf"))]
+        let hash = {
+            let mut hasher = Blake2s256::new();
+            hasher.update(&seed);
+            hasher.finalize().try_into().unwrap()
+        };
+
+        hash
     }
 }
 
-#[cfg(not(feature = "solana"))]
 fn haraka512_through<const N_ROUNDS: usize>(src: &[u8; 64]) -> [u8; 32] {
     let mut dst = [0; 32];
-    haraka::haraka512::<N_ROUNDS>(&mut dst, src);
-    dst
-}
 
-#[cfg(feature = "solana")]
-fn haraka512_through<const N_ROUNDS: usize>(src: &[u8; 64]) -> [u8; 32] {
-    let mut dst = [0; 32];
+    #[cfg(feature = "cpu")]
+    haraka::haraka512::<N_ROUNDS>(&mut dst, src);
+
+    #[cfg(feature = "cpu-bpf")]
     haraka_bpf::haraka512::<N_ROUNDS>(&mut dst, src);
+
     dst
 }

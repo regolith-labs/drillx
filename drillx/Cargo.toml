@@ -14,14 +14,15 @@ keywords.workspace = true
 name = "drillx"
 
 [features]
-default = ["equix/instrinsics"]
-solana = ["solana-program", "equix/solana"]
+default = []
+cpu = ["equix/cpu"]
+cpu-bpf = ["equix/cpu-bpf", "solana-program"]
+gpu = ["equix/gpu"]
+gpu-bpf = ["equix/gpu-bpf", "solana-program"]
 
 [dependencies]
 sha3.workspace = true
 equix = { workspace = true }
-# haraka = { workspace = true }
-# haraka-bpf = { workspace = true, optional = true }
 serde.workspace = true
 solana-program = { workspace = true, optional = true }
 strum.workspace = true 

@@ -54,7 +54,7 @@ mod solver;
 #[cfg(feature = "bucket-array")]
 pub use bucket_array::mem::{BucketArray, BucketArrayMemory, BucketArrayPair, Count, Uninit};
 
-use harakax::HarakaX;
+use corex::CoreX;
 
 pub use err::Error;
 pub use solution::{Solution, SolutionArray, SolutionByteArray, SolutionItem, SolutionItemArray};
@@ -67,7 +67,7 @@ pub use solver::SolverMemory;
 #[derive(Debug)]
 pub struct EquiX {
     /// HashX instance generated for this puzzle's challenge string
-    hash: HarakaX,
+    hash: CoreX,
 }
 
 impl EquiX {
@@ -79,7 +79,7 @@ impl EquiX {
     /// skipped by solvers and rejected by verifiers.
     pub fn new(challenge: &[u8; 64]) -> Result<Self, Error> {
         Ok(EquiX {
-            hash: HarakaX::new(challenge),
+            hash: CoreX::new(challenge),
         })
     }
 

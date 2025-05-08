@@ -920,6 +920,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
+name = "corex"
+version = "2.2.0"
+dependencies = [
+ "blake2",
+ "haraka",
+ "haraka-bpf",
+ "solana-program",
+]
+
+[[package]]
 name = "cpufeatures"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1282,33 +1292,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dynasm"
-version = "3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0cecff24995c8a5a3c3169cff4c733fe7d91aedf5d8cc96238738bfe53186b8"
-dependencies = [
- "bitflags 2.8.0",
- "byteorder",
- "lazy_static",
- "proc-macro-error2",
- "proc-macro2",
- "quote",
- "syn 2.0.98",
-]
-
-[[package]]
-name = "dynasmrt"
-version = "3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f5eab96b8688bcbf1d2354bcfe0261005ac1dd0616747152ada34948d4e9582"
-dependencies = [
- "byteorder",
- "dynasm",
- "fnv",
- "memmap2 0.9.5",
-]
-
-[[package]]
 name = "eager"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1439,7 +1422,7 @@ name = "equix"
 version = "0.2.3"
 dependencies = [
  "arrayvec",
- "harakax",
+ "corex",
  "num-traits",
  "permutohedron",
  "thiserror 2.0.11",
@@ -1527,12 +1510,6 @@ name = "five8_core"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94474d15a76982be62ca8a39570dccce148d98c238ebb7408b0a21b2c4bdddc4"
-
-[[package]]
-name = "fixed-capacity-vec"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b31a14f5ee08ed1a40e1252b35af18bed062e3f39b69aab34decde36bc43e40"
 
 [[package]]
 name = "flate2"
@@ -1816,16 +1793,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "harakax"
-version = "2.2.0"
-dependencies = [
- "blake2",
- "haraka",
- "haraka-bpf",
- "solana-program",
-]
-
-[[package]]
 name = "hash32"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1854,20 +1821,6 @@ name = "hashbrown"
 version = "0.15.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bf151400ff0baff5465007dd2f3e717f3fe502074ca563069ce3a6629d07b289"
-
-[[package]]
-name = "hashx"
-version = "0.3.0"
-dependencies = [
- "arrayvec",
- "blake2",
- "dynasmrt",
- "fixed-capacity-vec",
- "hex",
- "hex-literal",
- "rand_core 0.9.3",
- "thiserror 2.0.11",
-]
 
 [[package]]
 name = "heck"
@@ -1901,18 +1854,6 @@ name = "hermit-abi"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fbf6a919d6cf397374f7dfeeea91d974c7c0a7221d0d0f4f20d859d329e53fcc"
-
-[[package]]
-name = "hex"
-version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
-
-[[package]]
-name = "hex-literal"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6fe2267d4ed49bc07b63801559be28c718ea06c4738b7a03c94df7386d2cde46"
 
 [[package]]
 name = "histogram"
@@ -2517,15 +2458,6 @@ name = "memmap2"
 version = "0.5.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "83faa42c0a078c393f6b29d5db232d8be22776a891f8f56e5284faee4a20b327"
-dependencies = [
- "libc",
-]
-
-[[package]]
-name = "memmap2"
-version = "0.9.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd3f7eed9d3848f8b98834af67102b720745c4ec028fcd0aa0239277e7de374f"
 dependencies = [
  "libc",
 ]
@@ -3174,28 +3106,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "version_check",
-]
-
-[[package]]
-name = "proc-macro-error-attr2"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96de42df36bb9bba5542fe9f1a054b8cc87e172759a1868aa05c1f3acc89dfc5"
-dependencies = [
- "proc-macro2",
- "quote",
-]
-
-[[package]]
-name = "proc-macro-error2"
-version = "2.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11ec05c52be0a07b08061f7dd003e7d7092e0472bc731b4af7bb1ef876109802"
-dependencies = [
- "proc-macro-error-attr2",
- "proc-macro2",
- "quote",
- "syn 2.0.98",
 ]
 
 [[package]]
@@ -4092,7 +4002,7 @@ dependencies = [
  "lazy_static",
  "log",
  "lz4",
- "memmap2 0.5.10",
+ "memmap2",
  "modular-bitfield",
  "num_cpus",
  "num_enum",
@@ -4268,7 +4178,7 @@ dependencies = [
  "bytemuck",
  "bytemuck_derive",
  "log",
- "memmap2 0.5.10",
+ "memmap2",
  "modular-bitfield",
  "num_enum",
  "rand 0.8.5",
@@ -5139,7 +5049,7 @@ dependencies = [
  "libc",
  "log",
  "lz4",
- "memmap2 0.5.10",
+ "memmap2",
  "mockall",
  "modular-bitfield",
  "num-derive",
@@ -5246,7 +5156,7 @@ dependencies = [
  "lazy_static",
  "libsecp256k1",
  "log",
- "memmap2 0.5.10",
+ "memmap2",
  "num-derive",
  "num-traits",
  "num_enum",

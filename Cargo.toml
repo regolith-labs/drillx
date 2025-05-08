@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["drillx", "program", "cli", "haraka-rs", "haraka-bpf", "equix", "hashx", "harakax"]
+members = ["drillx", "program", "cli", "haraka-rs", "haraka-bpf", "equix", "corex"]
 
 [workspace.package]
 version = "2.2.0"

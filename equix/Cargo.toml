@@ -22,8 +22,10 @@ license = "LGPL-3.0-only"
 
 [features]
 default = []
-solana = ["harakax/solana"]
-instrinsics = ["harakax/instrinsics"]
+cpu = ["corex/cpu"]
+cpu-bpf = ["corex/cpu-bpf"]
+gpu = ["corex/gpu"]
+gpu-bpf = ["corex/gpu-bpf"]
 
 # For fuzzing only: expose the unstable 'bucket-array' API.
 bucket-array = ["__is_experimental"]
@@ -31,7 +33,7 @@ __is_experimental = []
 
 [dependencies]
 arrayvec = "0.7.4"
-harakax = { path = "../harakax", optional = true }
+corex = { path = "../corex", optional = true }
 num-traits = "0.2.15"
 thiserror = "2"
 visibility = "0.1.0"

@@ -1,6 +1,6 @@
 [package]
-name = "harakax"
-description = "Harakax ..."
+name = "corex"
+description = "CoreX ..."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -11,12 +11,14 @@ keywords.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
-name = "harakax"
+name = "corex"
 
 [features]
 default = []
-solana = ["haraka-bpf", "solana-program"]
-instrinsics = ["haraka"]
+cpu = ["haraka"]
+cpu-bpf = ["haraka-bpf", "solana-program"]
+gpu = []
+gpu-bpf = []
 
 [dependencies]
 blake2 = "0.10.6"
